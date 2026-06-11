@@ -132,7 +132,7 @@ pass `@file` -- that removes shell quoting from the threat model.
 | `slide.fill` | fill placeholders (`text`/`image`), `notes`, `footer`, `background` of a slide |
 | `slide.rm` / `slide.move` / `slide.copy` | structure edits |
 | `el.add` | add free elements: `textbox`, `table`, `chart`, `shape`, `image`, `connector` -- all share `frame: {x,y,w,h}` in inches |
-| `el.set` / `el.rm` | retext / remove an existing element by shape name |
+| `el.set` / `el.rm` | retext / remove an element by shape name; matches exactly or as prefix of the engine's UUID-suffixed names (`Kasten` matches `Kasten-1d22c8b0-...`), and also targets elements generated earlier in the same ops document |
 | `img.prompts` | overlay picture placeholders with visible image-prompt boxes (removable via `el.rm`) |
 | `meta.props` | document properties (title, author, subject, keywords, category, comments) |
 

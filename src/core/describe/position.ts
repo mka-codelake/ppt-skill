@@ -15,7 +15,7 @@ import type { Frame } from "../model.js"
  *
  *  @param frame - box geometry in inches
  *  @param slideW - slide width in inches
- *  @returns one of "full width", "left half", "right half", "left/center/right column"
+ *  @returns one of "volle Breite", "linke/rechte Hälfte", "linke/mittlere/rechte Spalte"
  */
 export const horizontalBand = (frame: Frame, slideW: number): string => {
     const rel = frame.w / slideW
@@ -36,7 +36,7 @@ export const horizontalBand = (frame: Frame, slideW: number): string => {
  *
  *  @param frame - box geometry in inches
  *  @param slideH - slide height in inches
- *  @returns one of "full height", "upper area", "middle area", "lower area"
+ *  @returns one of "volle Höhe", "oberer/mittlerer/unterer Bereich"
  */
 export const verticalBand = (frame: Frame, slideH: number): string => {
     const rel = frame.h / slideH

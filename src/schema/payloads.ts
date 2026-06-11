@@ -166,4 +166,3 @@ export type Run = z.infer<typeof RunSchema>
 export type TableData = z.infer<typeof TableSchema>
 export type ChartData = z.infer<typeof ChartSchema>
 export type ElementSpec = z.infer<typeof ElementSchema>
-export type FrameSpec = z.infer<typeof FrameSchema>

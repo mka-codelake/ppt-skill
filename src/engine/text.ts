@@ -9,7 +9,7 @@
 */
 
 import type { Document, Element } from "@xmldom/xmldom"
-import { NS_A } from "./xml.js"
+import { NS_A, elements, firstElement } from "./xml.js"
 import type { Paragraph, RichText, Run } from "../schema/payloads.js"
 
 /**  marker attribute consumed by the post-pass that wires hyperlink rels  */
@@ -108,16 +108,12 @@ const buildParagraph = (doc: Document, p: Paragraph): Element => {
  */
 export const setShapeText = (shape: Element, text: RichText, append = false): void => {
     const doc = shape.ownerDocument as Document
-    const txBody = shape.getElementsByTagName("p:txBody").item(0) as Element | null
+    const txBody = firstElement(shape, "p:txBody")
     if (txBody === null)
         return
-    if (!append) {
-        let p = txBody.getElementsByTagName("a:p").item(0)
-        while (p !== null) {
+    if (!append)
+        for (const p of elements(txBody, "a:p"))
             txBody.removeChild(p)
-            p = txBody.getElementsByTagName("a:p").item(0)
-        }
-    }
     for (const paragraph of toParagraphs(text))
         txBody.appendChild(buildParagraph(doc, paragraph))
 }

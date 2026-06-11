@@ -9,7 +9,7 @@
 
 import { PptcError } from "../errors.js"
 import type { SlideAddOp } from "../../schema/ops.js"
-import type { OpHandler, PlanContext, SlidePlanEntry } from "./registry.js"
+import { newPlanEntry, type OpHandler, type PlanContext } from "./registry.js"
 import { planFill } from "./fill-common.js"
 
 /**  resolve a layout address (index or exact name) against the template  */
@@ -36,19 +36,7 @@ export const slideAdd: OpHandler<SlideAddOp> = {
     name: "slide.add",
     plan(ctx, op): void {
         const layoutIndex = resolveLayout(ctx, op.layout)
-        const entry: SlidePlanEntry = {
-            source: { kind: "seed", layoutIndex },
-            virtualId: ctx.nextVirtualId--,
-            title: null,
-            layoutIndex,
-            fills: [],
-            notes: null,
-            footer: null,
-            background: null,
-            elements: [],
-            setTexts: [],
-            removeNames: []
-        }
+        const entry = newPlanEntry({ kind: "seed", layoutIndex }, ctx.nextVirtualId--, null, layoutIndex)
         const at = Math.min(op.at ?? ctx.plan.entries.length, ctx.plan.entries.length)
         ctx.plan.entries.splice(at, 0, entry)
         if (op.ref !== undefined) {

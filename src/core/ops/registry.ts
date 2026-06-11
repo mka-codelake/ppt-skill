@@ -65,6 +65,34 @@ export interface SlidePlanEntry {
     removeNames: string[]
 }
 
+/**
+ *  Create a fresh plan entry with all mutation fields at their defaults.
+ *
+ *  @param source - where the slide content comes from
+ *  @param virtualId - virtual id during planning
+ *  @param title - tracked slide title, null when unknown
+ *  @param layoutIndex - layout index the slide uses (-1 when unknown)
+ *  @returns a plan entry with empty work lists
+ */
+export const newPlanEntry = (
+    source: SlidePlanEntry["source"],
+    virtualId: number,
+    title: string | null,
+    layoutIndex: number
+): SlidePlanEntry => ({
+    source,
+    virtualId,
+    title,
+    layoutIndex,
+    fills: [],
+    notes: null,
+    footer: null,
+    background: null,
+    elements: [],
+    setTexts: [],
+    removeNames: []
+})
+
 /**  the complete mutation plan an apply run executes  */
 export interface MutationPlan {
     /**  output slides in final order  */

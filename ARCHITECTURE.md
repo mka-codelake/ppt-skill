@@ -78,6 +78,12 @@ write       tmp file + rename (atomic), re-read → rev.after + ref→id map
   cloning, backgrounds, images into placeholders, hyperlink relationships or
   doc props. It operates on the written zip via DOM and runs before the
   atomic rename, so the all-or-nothing guarantee covers it.
+- **stdout is shielded during the engine pass.** automizer logs diagnostics
+  via `console.log`; the session diverts console output to stderr so the
+  one-JSON-envelope contract on stdout holds even on engine complaints.
+- **Garbage collection covers slide and notes parts only.** Media of removed
+  slides remains as unreferenced parts in the archive -- harmless for
+  correctness, slightly larger files after many removals.
 
 ## Extending: a new op
 

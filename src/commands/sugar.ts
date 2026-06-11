@@ -11,6 +11,7 @@
 
 import { PptcError } from "../core/errors.js"
 import type { Op } from "../schema/ops.js"
+import { DeckArchive, readDeckState } from "../engine/reader.js"
 import { parse, type Parsed } from "../cli/args.js"
 import { executeOps, type ExecuteResult } from "./apply.js"
 
@@ -22,15 +23,19 @@ const COMMON = {
     "dry-run": { type: "boolean" as const }
 }
 
-/**  run a single sugar-built op through the standard apply path  */
-const runOne = async (args: Parsed, deck: string, op: Op): Promise<ExecuteResult> =>
-    await executeOps(deck, { ops: [op] }, {
+/**  run sugar-built ops through the standard apply path  */
+const runOps = async (args: Parsed, deck: string, ops: Op[]): Promise<ExecuteResult> =>
+    await executeOps(deck, { ops }, {
         templatePath: null,
         dryRun: args.flag("dry-run"),
         strict: args.flag("strict"),
         expectRev: args.str("rev"),
         outFile: null
     })
+
+/**  run a single sugar-built op through the standard apply path  */
+const runOne = async (args: Parsed, deck: string, op: Op): Promise<ExecuteResult> =>
+    await runOps(args, deck, [op])
 
 /**
  *  CLI command `pptc text <deck> --slide SEL --ph KEY "text" [--append]`.
@@ -86,20 +91,13 @@ export const cmdFooter = async (argv: string[]): Promise<ExecuteResult> => {
         : []
     if (selector === null) {
         /*  one fill op per existing slide, addressed by stable index  */
-        const { DeckArchive, readDeckState } = await import("../engine/reader.js")
         const deckState = await readDeckState(await DeckArchive.open(deck))
         for (const slide of deckState.slides)
             ops.push({ op: "slide.fill", slide: `id:${slide.id}`, footer: text })
         if (ops.length === 0)
             throw new PptcError("E_ADDR_NOTFOUND", "deck has no slides")
     }
-    return await executeOps(deck, { ops }, {
-        templatePath: null,
-        dryRun: args.flag("dry-run"),
-        strict: args.flag("strict"),
-        expectRev: args.str("rev"),
-        outFile: null
-    })
+    return await runOps(args, deck, ops)
 }
 
 /**

@@ -45,6 +45,29 @@ export interface SessionResult {
 const partNumber = (part: string): number =>
     Number(/slide(\d+)\.xml$/.exec(part)?.[1] ?? "0")
 
+/**
+ *  Run a function with console output diverted to stderr. pptx-automizer
+ *  logs diagnostics via console.log; stdout belongs exclusively to the
+ *  envelope, so anything the engine prints must land on stderr.
+ *
+ *  @param fn - the function to run shielded
+ *  @returns the function's result
+ */
+const withStdoutShield = async <T>(fn: () => Promise<T>): Promise<T> => {
+    const original = { log: console.log, info: console.info, warn: console.warn }
+    console.log = (...args: unknown[]): void => { console.error(...args) }
+    console.info = (...args: unknown[]): void => { console.error(...args) }
+    console.warn = (...args: unknown[]): void => { console.error(...args) }
+    try {
+        return await fn()
+    }
+    finally {
+        console.log = original.log
+        console.info = original.info
+        console.warn = original.warn
+    }
+}
+
 /**  compose the automizer callback for one planned slide  */
 const slideCallback = (entry: SlidePlanEntry) =>
     (slide: {
@@ -71,6 +94,55 @@ const slideCallback = (entry: SlidePlanEntry) =>
                 planned.name ?? undefined)
     }
 
+/**  the two engine passes: automizer rebuild plus zip-level post work  */
+const executePlan = async (
+    deckFile: string,
+    outFile: string,
+    plan: MutationPlan,
+    seedPath: string | null,
+    tmpName: string,
+    tmpFile: string
+): Promise<SessionResult> => {
+    const automizer = new Automizer({
+        templateDir: "",
+        outputDir: cacheDir(),
+        removeExistingSlides: true,
+        verbosity: 0
+    })
+    let pres = automizer
+        .loadRoot(path.resolve(deckFile))
+        .load(path.resolve(deckFile), "self")
+    if (seedPath !== null)
+        pres = pres.load(seedPath, "seed")
+    for (const entry of plan.entries) {
+        const sourceNumber = entry.source.kind === "self"
+            ? partNumber(entry.source.part)
+            : entry.source.layoutIndex + 1
+        pres.addSlide(entry.source.kind, sourceNumber, slideCallback(entry))
+    }
+    await pres.write(tmpName)
+
+    const work: PostSlideWork[] = plan.entries.map((entry) => ({
+        notes: entry.notes,
+        footer: entry.footer,
+        background: entry.background,
+        images: entry.fills
+            .filter((f) => f.image !== undefined)
+            .map((f) => ({
+                phIdx: f.phIdx,
+                path: f.image as string,
+                ...(f.frame !== undefined && { frame: f.frame })
+            }))
+    }))
+    const finalBytes = await postProcess(readFileSync(tmpFile), work, plan.props)
+    atomicWrite(path.resolve(outFile), finalBytes)
+
+    const refIndexes: Record<string, number> = {}
+    for (const [name, entry] of plan.refs)
+        refIndexes[name] = plan.entries.indexOf(entry)
+    return { slideCount: plan.entries.length, refIndexes }
+}
+
 /**
  *  Execute a mutation plan against a deck file.
  *
@@ -94,49 +166,11 @@ export const runSession = async (
             "the ops document creates slides: pass --template <file.potx>")
     const seedPath = needsSeed ? await ensureSeed(templatePath as string) : null
 
-    /*  pass 1: automizer rebuild into a temp file  */
     const tmpName = `pptc-session-${process.pid}.pptx`
     const tmpFile = path.join(cacheDir(), tmpName)
     try {
-        const automizer = new Automizer({
-            templateDir: "",
-            outputDir: cacheDir(),
-            removeExistingSlides: true,
-            verbosity: 0
-        })
-        let pres = automizer
-            .loadRoot(path.resolve(deckFile))
-            .load(path.resolve(deckFile), "self")
-        if (seedPath !== null)
-            pres = pres.load(seedPath, "seed")
-        for (const entry of plan.entries) {
-            const sourceNumber = entry.source.kind === "self"
-                ? partNumber(entry.source.part)
-                : entry.source.layoutIndex + 1
-            pres.addSlide(entry.source.kind, sourceNumber, slideCallback(entry))
-        }
-        await pres.write(tmpName)
-
-        /*  pass 2: zip-level post work, then the atomic write  */
-        const work: PostSlideWork[] = plan.entries.map((entry) => ({
-            notes: entry.notes,
-            footer: entry.footer,
-            background: entry.background,
-            images: entry.fills
-                .filter((f) => f.image !== undefined)
-                .map((f) => ({
-                    phIdx: f.phIdx,
-                    path: f.image as string,
-                    ...(f.frame !== undefined && { frame: f.frame })
-                }))
-        }))
-        const finalBytes = await postProcess(readFileSync(tmpFile), work, plan.props)
-        atomicWrite(path.resolve(outFile), finalBytes)
-
-        const refIndexes: Record<string, number> = {}
-        for (const [name, entry] of plan.refs)
-            refIndexes[name] = plan.entries.indexOf(entry)
-        return { slideCount: plan.entries.length, refIndexes }
+        return await withStdoutShield(() =>
+            executePlan(deckFile, outFile, plan, seedPath, tmpName, tmpFile))
     }
     catch (err) {
         throw toPptcError(err)

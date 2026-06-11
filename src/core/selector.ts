@@ -38,9 +38,9 @@ export interface SelectableSlide {
 export const parseSelector = (selector: string): SlideSelector => {
     if (/^\d+$/.test(selector))
         return { kind: "index", index: Number(selector) }
-    if (selector.startsWith("id:"))
+    if (/^id:\d+$/.test(selector))
         return { kind: "id", id: Number(selector.slice(3)) }
-    if (selector.startsWith("index:"))
+    if (/^index:\d+$/.test(selector))
         return { kind: "index", index: Number(selector.slice(6)) }
     if (selector.startsWith("title:"))
         return { kind: "title", title: selector.slice(6) }
@@ -97,5 +97,11 @@ export const resolveSlide = (
         throw new PptcError("E_ADDR_NOTFOUND",
             `unknown ref '$${sel.ref}' (no earlier op defined it)`,
             { knownRefs: [...refs.keys()] })
-    return resolveSlide(`id:${id}`, slides, refs)
+    /*  resolve the ref's id directly: virtual ids of new slides are negative
+        and must not pass through the (non-negative) id-selector grammar  */
+    const slide = slides.find((s) => s.id === id)
+    if (slide === undefined)
+        throw new PptcError("E_ADDR_NOTFOUND", `ref '$${sel.ref}' points to a removed slide`,
+            { id })
+    return slide
 }

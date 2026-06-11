@@ -106,7 +106,9 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
     let presRels = await get("ppt/_rels/presentation.xml.rels")
 
     /*  drop existing slides and notes completely  */
-    pres = pres.replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>")
+    pres = pres
+        .replace(/<p:sldIdLst\s*\/>/, "<p:sldIdLst></p:sldIdLst>")
+        .replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>")
     if (!pres.includes("<p:sldIdLst>"))
         pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>")
     presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "")

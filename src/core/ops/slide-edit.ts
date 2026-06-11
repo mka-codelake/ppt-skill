@@ -54,7 +54,9 @@ export const slideCopy: OpHandler<Extract<Op, { op: "slide.copy" }>> = {
             ...source,
             virtualId: ctx.nextVirtualId--,
             fills: [...source.fills],
-            elements: [...source.elements],
+            /*  deep-copy planned elements: a later el.set on the copy must
+                not patch the original's planned spec through aliasing  */
+            elements: source.elements.map((e) => ({ name: e.name, spec: structuredClone(e.spec) })),
             setTexts: [...source.setTexts],
             removeNames: [...source.removeNames]
         }

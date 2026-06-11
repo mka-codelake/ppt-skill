@@ -11,8 +11,10 @@
 import { PptcError } from "../errors.js"
 import type { Op } from "../../schema/ops.js"
 import type { ElementSpec } from "../../schema/payloads.js"
-import type { OpHandler } from "./registry.js"
+import type { ShapeInfo } from "../model.js"
+import type { OpHandler, PlanContext, SlidePlanEntry } from "./registry.js"
 import { entryLayout, resolveEntry } from "./fill-common.js"
+import { richTextToPlain } from "../lint.js"
 
 /**  shape-name prefix of generated prompt boxes (removable via el.rm)  */
 export const PROMPT_BOX_PREFIX = "PptcPromptBox"
@@ -27,19 +29,54 @@ export const elAdd: OpHandler<Extract<Op, { op: "el.add" }>> = {
     }
 }
 
+/**
+ *  Match a shape name against an addressed element name. The engine appends
+ *  a UUID to generated shape names ("LinkBox-1d22c8b0-..."), so an address
+ *  matches exactly or as the prefix before such a suffix.
+ *
+ *  @param shapeName - actual shape name on the slide
+ *  @param address - element name given in the op
+ *  @returns true when the shape is addressed by the name
+ */
+const nameMatches = (shapeName: string, address: string): boolean =>
+    shapeName === address || shapeName.startsWith(`${address}-`)
+
+/**  existing shapes of a kept slide, empty for new (seed) slides  */
+const existingShapes = (ctx: PlanContext, entry: SlidePlanEntry): ShapeInfo[] => {
+    if (entry.source.kind !== "self")
+        return []
+    const part = entry.source.part
+    return ctx.deck.slides.find((s) => s.part === part)?.shapes ?? []
+}
+
 /**  op handler: el.set  */
 export const elSet: OpHandler<Extract<Op, { op: "el.set" }>> = {
     name: "el.set",
     plan(ctx, op): void {
         const entry = resolveEntry(ctx, op.slide)
-        if (entry.source.kind === "self") {
-            const slide = ctx.deck.slides.find((s) => s.part === (entry.source as { part: string }).part)
-            if (slide !== undefined && !slide.shapes.some((sh) => sh.name === op.name))
-                throw new PptcError("E_ADDR_NOTFOUND",
-                    `slide has no element named '${op.name}'`,
-                    { available: slide.shapes.map((sh) => sh.name) })
+        /*  an element generated earlier in the same run: patch its spec  */
+        const planned = entry.elements.find((e) => e.name !== null && nameMatches(e.name, op.name))
+        if (planned !== undefined) {
+            if (planned.spec.type === "textbox")
+                planned.spec.text = op.text
+            else if (planned.spec.type === "shape")
+                planned.spec.text = richTextToPlain(op.text).join("\n")
+            else
+                throw new PptcError("E_SCHEMA",
+                    `element '${op.name}' is a ${planned.spec.type} -- only textbox and shape text can be set`)
+            return
         }
-        entry.setTexts.push({ name: op.name, text: op.text })
+        /*  otherwise the element must already exist on the slide  */
+        const matches = existingShapes(ctx, entry).filter((sh) => nameMatches(sh.name, op.name))
+        if (matches.length === 0)
+            throw new PptcError("E_ADDR_NOTFOUND",
+                `slide has no element named '${op.name}'`,
+                { available: existingShapes(ctx, entry).map((sh) => sh.name) })
+        if (matches.length > 1)
+            throw new PptcError("E_ADDR_AMBIGUOUS",
+                `'${op.name}' matches ${matches.length} elements`,
+                { candidates: matches.map((sh) => sh.name) })
+        entry.setTexts.push({ name: (matches[0] as ShapeInfo).name, text: op.text })
     }
 }
 
@@ -47,7 +84,20 @@ export const elSet: OpHandler<Extract<Op, { op: "el.set" }>> = {
 export const elRm: OpHandler<Extract<Op, { op: "el.rm" }>> = {
     name: "el.rm",
     plan(ctx, op): void {
-        resolveEntry(ctx, op.slide).removeNames.push(op.name)
+        const entry = resolveEntry(ctx, op.slide)
+        /*  cancel elements generated earlier in the same run  */
+        const plannedBefore = entry.elements.length
+        entry.elements = entry.elements.filter((e) =>
+            e.name === null || !nameMatches(e.name, op.name))
+        const cancelled = plannedBefore - entry.elements.length
+        /*  remove all matching existing elements (full names, incl. UUID suffix)  */
+        const matches = existingShapes(ctx, entry).filter((sh) => nameMatches(sh.name, op.name))
+        for (const shape of matches)
+            entry.removeNames.push(shape.name)
+        if (cancelled === 0 && matches.length === 0)
+            throw new PptcError("E_ADDR_NOTFOUND",
+                `slide has no element named '${op.name}'`,
+                { available: existingShapes(ctx, entry).map((sh) => sh.name) })
     }
 }
 

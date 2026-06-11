@@ -12,7 +12,7 @@
 import { PptcError } from "../errors.js"
 import type { Op, OpsDocument } from "../../schema/ops.js"
 import type { DeckState, Layout, TemplateInfo } from "../model.js"
-import type { MutationPlan, OpHandler, PlanContext, SlidePlanEntry } from "./registry.js"
+import { newPlanEntry, type MutationPlan, type OpHandler, type PlanContext, type SlidePlanEntry } from "./registry.js"
 import { slideAdd } from "./slide-add.js"
 import { slideCopy, slideFill, slideMove, slideRm } from "./slide-edit.js"
 import { elAdd, elRm, elSet, imgPrompts, metaProps } from "./elements.js"
@@ -46,19 +46,8 @@ export const planOps = (
             { expected: doc.expectRev, actual: deck.rev })
 
     /*  start from the deck as it exists: every slide is kept unchanged  */
-    const entries: SlidePlanEntry[] = deck.slides.map((slide) => ({
-        source: { kind: "self", part: slide.part },
-        virtualId: slide.id,
-        title: slide.title,
-        layoutIndex: slide.layoutIndex,
-        fills: [],
-        notes: null,
-        footer: null,
-        background: null,
-        elements: [],
-        setTexts: [],
-        removeNames: []
-    }))
+    const entries: SlidePlanEntry[] = deck.slides.map((slide) =>
+        newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex))
     const ctx: PlanContext = {
         plan: { entries, props: null, warnings: [], refs: new Map() },
         deck,
