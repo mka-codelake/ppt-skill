@@ -14,6 +14,14 @@
   ],
   "license": "MIT",
   "author": "Matthias Brusdeylins <brusdeylins@gmx.de>",
+  "homepage": "https://github.com/brusdeylins/ppt-skill",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brusdeylins/ppt-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brusdeylins/ppt-skill/issues"
+  },
   "type": "module",
   "bin": {
     "pptc": "dst/pptc.mjs"
