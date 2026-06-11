@@ -1,0 +1,68 @@
+/*
+**  pptc -- Deterministic PowerPoint CLI for LLM Agents
+**  Copyright (c) 2026 Matthias Brusdeylins
+**  Licensed under MIT license <https://spdx.org/licenses/MIT>
+**
+**  cli/args: argument parsing on top of node:util parseArgs -- positional
+**  extraction with usage errors, typed flag access. No CLI framework.
+*/
+
+import { parseArgs, type ParseArgsOptionsConfig } from "node:util"
+import { PptcError } from "../core/errors.js"
+
+/**  parsed command arguments: positionals plus typed flag accessors  */
+export interface Parsed {
+    /**  positional arguments in order  */
+    positionals: string[]
+    /**  string flag value or null  */
+    str(name: string): string | null
+    /**  string flag value, required  */
+    need(name: string): string
+    /**  boolean flag  */
+    flag(name: string): boolean
+}
+
+/**
+ *  Parse command arguments against a flag specification.
+ *
+ *  @param argv - raw arguments after the command name
+ *  @param spec - parseArgs option config (flag name to type/short)
+ *  @param positionalNames - names of expected positionals (for usage errors)
+ *  @param required - how many leading positionals are mandatory
+ *  @returns typed access to positionals and flags
+ *  @throws PptcError E_USAGE on unknown flags or missing positionals
+ */
+export const parse = (
+    argv: string[],
+    spec: ParseArgsOptionsConfig,
+    positionalNames: string[] = [],
+    required: number = positionalNames.length
+): Parsed => {
+    let values: Record<string, unknown>, positionals: string[]
+    try {
+        ({ values, positionals } = parseArgs({
+            args: argv, options: spec, allowPositionals: true, strict: true
+        }))
+    }
+    catch (err) {
+        throw new PptcError("E_USAGE", (err as Error).message)
+    }
+    if (positionals.length < required)
+        throw new PptcError("E_USAGE",
+            `missing argument <${positionalNames[positionals.length] ?? "arg"}>`,
+            { expected: positionalNames })
+    return {
+        positionals,
+        str: (name) => {
+            const v = values[name]
+            return typeof v === "string" ? v : null
+        },
+        need: (name) => {
+            const v = values[name]
+            if (typeof v !== "string")
+                throw new PptcError("E_USAGE", `missing required option --${name}`)
+            return v
+        },
+        flag: (name) => values[name] === true
+    }
+}

@@ -1,0 +1,154 @@
+/*
+**  pptc -- Deterministic PowerPoint CLI for LLM Agents
+**  Copyright (c) 2026 Matthias Brusdeylins
+**  Licensed under MIT license <https://spdx.org/licenses/MIT>
+**
+**  core/model: the engine-free domain model of pptc. These types describe
+**  decks, slides, placeholders and layouts as plain data. No OOXML, no
+**  automizer types ever appear above this layer.
+*/
+
+/**  Geometry of a box on a slide, in inches (origin: top-left of the slide).  */
+export interface Frame {
+    /**  distance from the left slide edge  */
+    x: number
+    /**  distance from the top slide edge  */
+    y: number
+    /**  box width  */
+    w: number
+    /**  box height  */
+    h: number
+}
+
+/**  Semantic kind of a placeholder, normalized from the OOXML `type` attribute.  */
+export type PlaceholderKind =
+    | "title" | "subtitle" | "body" | "picture" | "footer" | "slideNumber" | "date" | "other"
+
+/**  A placeholder as defined on a slide layout (or instantiated on a slide).  */
+export interface Placeholder {
+    /**  OOXML placeholder index (`idx` attribute, 0 for the title)  */
+    idx: number
+    /**  normalized placeholder kind  */
+    kind: PlaceholderKind
+    /**  shape name as shown in PowerPoint's selection pane  */
+    name: string
+    /**  resolved geometry in inches, null if fully inherited and unresolvable  */
+    frame: Frame | null
+    /**  estimated text capacity, null for non-text placeholders  */
+    capacity: TextCapacity | null
+}
+
+/**  Estimated text capacity of a text placeholder.  */
+export interface TextCapacity {
+    /**  approximate number of text lines that fit the box  */
+    lines: number
+    /**  approximate number of characters per line  */
+    charsPerLine: number
+    /**  font size in points the estimate is based on  */
+    fontSizePt: number
+}
+
+/**  One slide layout of a template, fully resolved for description and lint.  */
+export interface Layout {
+    /**  zero-based layout index in slide-master order (stable address)  */
+    index: number
+    /**  layout name as defined in the template  */
+    name: string
+    /**  placeholders in document order, footer/slide-number/date excluded  */
+    placeholders: Placeholder[]
+}
+
+/**  Template-wide data extracted from a .potx/.pptx file.  */
+export interface TemplateInfo {
+    /**  slide size in inches  */
+    slideSize: { w: number, h: number }
+    /**  major (heading) and minor (body) theme font names  */
+    fonts: { major: string, minor: string }
+    /**  theme color map: scheme name to RRGGBB hex  */
+    colors: Record<string, string>
+    /**  all layouts in slide-master order  */
+    layouts: Layout[]
+}
+
+/**  A shape found on an existing slide (read model).  */
+export interface ShapeInfo {
+    /**  shape name (selection pane)  */
+    name: string
+    /**  OOXML shape id within the slide  */
+    id: number
+    /**  shape classification  */
+    type: "placeholder" | "textbox" | "picture" | "table" | "chart" | "shape" | "connector" | "group" | "other"
+    /**  placeholder idx if the shape is a placeholder, otherwise null  */
+    placeholderIdx: number | null
+    /**  placeholder kind if the shape is a placeholder, otherwise null  */
+    placeholderKind: PlaceholderKind | null
+    /**  geometry in inches, null when inherited from the layout  */
+    frame: Frame | null
+    /**  plain text content, paragraphs joined by newlines, null if none  */
+    text: string | null
+    /**  table cell texts (rows x cols) when the shape is a table  */
+    table?: string[][]
+}
+
+/**  One slide of an existing deck (read model).  */
+export interface SlideInfo {
+    /**  stable OOXML slide id from `p:sldIdLst` (canonical address)  */
+    id: number
+    /**  zero-based position in the deck  */
+    index: number
+    /**  slide title (text of placeholder idx 0), null if empty  */
+    title: string | null
+    /**  name of the layout this slide uses  */
+    layoutName: string
+    /**  zero-based layout index in the deck's master, -1 if unresolvable  */
+    layoutIndex: number
+    /**  all shapes on the slide  */
+    shapes: ShapeInfo[]
+    /**  speaker notes text, null if none  */
+    notes: string | null
+    /**  archive part path of the slide (engine address, e.g. "ppt/slides/slide3.xml")  */
+    part: string
+}
+
+/**  Complete read model of a deck, the agent's source of truth.  */
+export interface DeckState {
+    /**  absolute path of the deck file  */
+    file: string
+    /**  revision token (content hash) for optimistic locking  */
+    rev: string
+    /**  slide size in inches  */
+    slideSize: { w: number, h: number }
+    /**  all slides in presentation order  */
+    slides: SlideInfo[]
+}
+
+/**
+ *  Deterministic shape name of a placeholder on a seed slide. Seed slides are
+ *  pptc's own artifact, so placeholder names are normalized -- fills address
+ *  them independently of how the template names its shapes.
+ *
+ *  @param idx - OOXML placeholder idx
+ *  @returns the normalized shape name
+ */
+export const seedPlaceholderName = (idx: number): string => `PptcPh-${idx}`
+
+/**  EMU (English Metric Units) per inch, the OOXML length base unit.  */
+export const EMU_PER_INCH = 914400
+
+/**
+ *  Convert EMU to inches, rounded to two decimals for stable output.
+ *
+ *  @param emu - length in English Metric Units
+ *  @returns length in inches
+ */
+export const emuToInch = (emu: number): number =>
+    Math.round((emu / EMU_PER_INCH) * 100) / 100
+
+/**
+ *  Convert inches to EMU.
+ *
+ *  @param inch - length in inches
+ *  @returns length in English Metric Units
+ */
+export const inchToEmu = (inch: number): number =>
+    Math.round(inch * EMU_PER_INCH)

@@ -1,0 +1,53 @@
+{
+  "name": "@brusdeylins/pptc",
+  "version": "0.1.0",
+  "description": "Deterministic PowerPoint (PPTX) CLI for LLM agents: template-aware creation and editing with atomic, schema-validated operations",
+  "keywords": [
+    "pptx",
+    "powerpoint",
+    "cli",
+    "llm",
+    "agent",
+    "ooxml",
+    "presentation",
+    "template"
+  ],
+  "license": "MIT",
+  "author": "Matthias Brusdeylins <brusdeylins@gmx.de>",
+  "type": "module",
+  "bin": {
+    "pptc": "dst/pptc.mjs"
+  },
+  "files": [
+    "dst",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "lint": "eslint src test && tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "pretest": "npm run build"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.0",
+    "jszip": "^3.10.1",
+    "pptx-automizer": "^0.8.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-tsdoc": "^0.4.0",
+    "pptxgenjs": "^4.0.1",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

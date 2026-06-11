@@ -1,0 +1,101 @@
+/*
+**  pptc -- Deterministic PowerPoint CLI for LLM Agents
+**  Copyright (c) 2026 Matthias Brusdeylins
+**  Licensed under MIT license <https://spdx.org/licenses/MIT>
+**
+**  Integration: build a deck from the neutral fixture template via the real
+**  write path (executeOps), re-read it, and verify content, structure, rev
+**  semantics and the all-or-nothing failure guarantee.
+*/
+
+import { beforeAll, describe, expect, it } from "vitest"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { buildEmptyDeck } from "../../src/engine/seed.js"
+import { DeckArchive, readDeckState, readTemplateInfo } from "../../src/engine/reader.js"
+import { executeOps } from "../../src/commands/apply.js"
+import { PptcError } from "../../src/core/errors.js"
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const TEMPLATE = path.join(here, "..", "fixtures", "neutral-template.pptx")
+const TMP = path.join(here, "..", "tmp")
+const DECK = path.join(TMP, "integration.pptx")
+
+const opts = { templatePath: TEMPLATE, dryRun: false, strict: false, expectRev: null, outFile: null }
+
+beforeAll(async () => {
+    mkdirSync(TMP, { recursive: true })
+    writeFileSync(DECK, await buildEmptyDeck(TEMPLATE))
+})
+
+describe("roundtrip against the fixture template", () => {
+    it("describes the template layouts generically", async () => {
+        const info = await readTemplateInfo(await DeckArchive.open(TEMPLATE))
+        expect(info.layouts.length).toBeGreaterThanOrEqual(3)
+        const twoCol = info.layouts.find((l) => l.name === "TWO_COLUMN")
+        expect(twoCol).toBeDefined()
+        expect(twoCol?.placeholders.filter((p) => p.kind === "body")).toHaveLength(2)
+    })
+
+    it("builds slides with fills, elements, notes and refs", async () => {
+        const result = await executeOps(DECK, {
+            ops: [
+                { op: "slide.add", ref: "first", layout: "CONTENT",
+                    placeholders: { title: { text: "Erste Folie" }, body: { text: "Inhalt A\nInhalt B" } },
+                    notes: "Notiztext" },
+                { op: "slide.add", layout: "TWO_COLUMN",
+                    placeholders: { title: { text: "Spalten" } } },
+                { op: "el.add", slide: "title:Spalten", elements: [
+                    { type: "table", frame: { x: 1, y: 2, w: 11 },
+                        data: { headers: ["A", "B"], rows: [["1", "2"]] } }
+                ] },
+                { op: "slide.move", slide: "$first", to: 1 }
+            ]
+        }, opts)
+        expect(result.result.applied).toBe(4)
+        expect(result.result.slideCount).toBe(2)
+        expect(result.result.slides["first"]).toMatchObject({ index: 1 })
+
+        const state = await readDeckState(await DeckArchive.open(DECK))
+        expect(state.slides).toHaveLength(2)
+        expect(state.slides[0]?.title).toBe("Spalten")
+        expect(state.slides[1]?.title).toBe("Erste Folie")
+        expect(state.slides[1]?.notes).toBe("Notiztext")
+        expect(state.slides[0]?.shapes.some((s) => s.type === "table")).toBe(true)
+        expect(state.rev).toBe(result.rev.after)
+    })
+
+    it("enforces the optimistic lock", async () => {
+        await expect(executeOps(DECK,
+            { expectRev: "wrong-rev-0000", ops: [{ op: "slide.rm", slide: "index:0" }] }, opts))
+            .rejects.toSatisfy((err: unknown) => (err as PptcError).code === "E_REV_CONFLICT")
+    })
+
+    it("leaves the deck untouched when an op fails", async () => {
+        const before = readFileSync(DECK)
+        await expect(executeOps(DECK, {
+            ops: [
+                { op: "slide.fill", slide: "index:0", placeholders: { title: { text: "geändert" } } },
+                { op: "slide.rm", slide: "id:424242" }
+            ]
+        }, opts)).rejects.toSatisfy((err: unknown) =>
+            (err as PptcError).code === "E_ADDR_NOTFOUND"
+            && ((err as PptcError).details as { failedAt: number }).failedAt === 1)
+        expect(readFileSync(DECK).equals(before)).toBe(true)
+    })
+
+    it("does not write on --dry-run", async () => {
+        const before = readFileSync(DECK)
+        const result = await executeOps(DECK,
+            { ops: [{ op: "slide.rm", slide: "index:0" }] },
+            { ...opts, dryRun: true })
+        expect(result.result.dryRun).toBe(true)
+        expect(readFileSync(DECK).equals(before)).toBe(true)
+    })
+
+    it("rejects schema violations with issue paths", async () => {
+        await expect(executeOps(DECK, { ops: [{ op: "slide.fill" }] }, opts))
+            .rejects.toSatisfy((err: unknown) => (err as PptcError).code === "E_SCHEMA")
+    })
+})

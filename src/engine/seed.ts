@@ -1,0 +1,184 @@
+/*
+**  pptc -- Deterministic PowerPoint CLI for LLM Agents
+**  Copyright (c) 2026 Matthias Brusdeylins
+**  Licensed under MIT license <https://spdx.org/licenses/MIT>
+**
+**  engine/seed: the seed-deck factory. pptx-automizer imports slides, not
+**  layouts -- so for every template we derive a "seed deck" once: a .pptx
+**  containing exactly one empty slide per slide layout (placeholders cloned
+**  from the layout). `slide.add` then imports seed slide N+1 for layout N.
+**  Seeds are cached by template content hash.
+*/
+
+import JSZip from "jszip"
+import { readFileSync, writeFileSync, existsSync } from "node:fs"
+import path from "node:path"
+import type { Element } from "@xmldom/xmldom"
+import { PptcError } from "../core/errors.js"
+import { seedPlaceholderName } from "../core/model.js"
+import { cacheDir, contentHash } from "../infra/fs.js"
+import { NS_A, elements, firstElement, parseXml, serializeElement } from "./xml.js"
+
+/**  seed format generation: bump to invalidate all cached seeds  */
+const SEED_FORMAT = 2
+
+/**  clone the fillable placeholders of a layout onto an empty slide (DOM)  */
+const slideFromLayout = (layoutXml: string): string => {
+    const layout = parseXml(layoutXml)
+    const sps: string[] = []
+    let nextId = 2
+    for (const sp of elements(layout, "p:sp")) {
+        const ph = firstElement(sp, "p:ph")
+        if (ph === null)
+            continue
+        const type = ph.getAttribute("type") ?? "body"
+        if (type === "ftr" || type === "sldNum" || type === "dt")
+            continue
+        const clone = sp.cloneNode(true) as Element
+        const cNvPr = firstElement(clone, "p:cNvPr")
+        cNvPr?.setAttribute("id", String(nextId++))
+        cNvPr?.setAttribute("name", seedPlaceholderName(Number(ph.getAttribute("idx") ?? "0")))
+        const txBody = firstElement(clone, "p:txBody")
+        const doc = clone.ownerDocument
+        if (txBody !== null && doc !== null) {
+            while (txBody.firstChild !== null)
+                txBody.removeChild(txBody.firstChild)
+            txBody.appendChild(doc.createElementNS(NS_A, "a:bodyPr"))
+            txBody.appendChild(doc.createElementNS(NS_A, "a:lstStyle"))
+            const p = doc.createElementNS(NS_A, "a:p")
+            p.appendChild(doc.createElementNS(NS_A, "a:endParaRPr"))
+            txBody.appendChild(p)
+        }
+        sps.push(serializeElement(clone))
+    }
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+        + "<p:sld xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\""
+        + " xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\""
+        + " xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\">"
+        + "<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
+        + "<p:grpSpPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/>"
+        + "<a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>"
+        + sps.join("")
+        + "</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
+}
+
+/**  layout part paths in slide-master order  */
+const layoutOrder = async (zip: JSZip): Promise<string[]> => {
+    const order: string[] = []
+    for (const masterPart of Object.keys(zip.files).filter((f) => /^ppt\/slideMasters\/slideMaster\d+\.xml$/.test(f)).sort()) {
+        const master = parseXml(await (zip.file(masterPart) as JSZip.JSZipObject).async("string"))
+        const relsFile = zip.file(`ppt/slideMasters/_rels/${path.posix.basename(masterPart)}.rels`)
+        if (relsFile === null)
+            continue
+        const rels = parseXml(await relsFile.async("string"))
+        const relMap = new Map(elements(rels, "Relationship")
+            .map((r) => [r.getAttribute("Id") ?? "", r.getAttribute("Target") ?? ""]))
+        for (const layoutId of elements(master, "p:sldLayoutId")) {
+            const target = relMap.get(layoutId.getAttribute("r:id") ?? "")
+            if (target !== undefined && target.includes("slideLayouts/"))
+                order.push(path.posix.normalize(path.posix.join("ppt/slideMasters", target)))
+        }
+    }
+    return order
+}
+
+/**
+ *  Build a seed deck from a template archive: convert .potx content types,
+ *  drop all existing slides/notes, then add one empty cloned-placeholder
+ *  slide per layout under the canonical names slide1..slideN.
+ *
+ *  @param templateBytes - raw bytes of the .potx/.pptx template
+ *  @returns seed deck bytes and the number of layouts
+ *  @throws PptcError E_TEMPLATE when the template has no layouts
+ */
+export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer, layoutCount: number }> => {
+    const zip = await JSZip.loadAsync(templateBytes)
+    const get = async (part: string): Promise<string> => {
+        const f = zip.file(part)
+        if (f === null)
+            throw new PptcError("E_TEMPLATE", `template is missing required part: ${part}`)
+        return await f.async("string")
+    }
+
+    let ct = (await get("[Content_Types].xml"))
+        .replace("presentationml.template.main+xml", "presentationml.presentation.main+xml")
+    let pres = await get("ppt/presentation.xml")
+    let presRels = await get("ppt/_rels/presentation.xml.rels")
+
+    /*  drop existing slides and notes completely  */
+    pres = pres.replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>")
+    if (!pres.includes("<p:sldIdLst>"))
+        pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>")
+    presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "")
+    for (const f of Object.keys(zip.files))
+        if (/^ppt\/(slides|notesSlides)\//.test(f))
+            zip.remove(f)
+    ct = ct.replace(/<Override PartName="\/ppt\/(slides|notesSlides)\/[^"]*"[^>]*\/>/g, "")
+
+    /*  one seed slide per layout  */
+    const order = await layoutOrder(zip)
+    if (order.length === 0)
+        throw new PptcError("E_TEMPLATE", "template contains no slide layouts")
+    let sldIds = "", rels = "", overrides = ""
+    for (let i = 0; i < order.length; i++) {
+        const n = i + 1
+        const layoutXml = await get(order[i] as string)
+        zip.file(`ppt/slides/slide${n}.xml`, slideFromLayout(layoutXml))
+        zip.file(`ppt/slides/_rels/slide${n}.xml.rels`,
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+            + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+            + `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../${(order[i] as string).substring(4)}"/>`
+            + "</Relationships>")
+        sldIds += `<p:sldId id="${9000 + n}" r:id="rIdPptcSeed${n}"/>`
+        rels += `<Relationship Id="rIdPptcSeed${n}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${n}.xml"/>`
+        overrides += `<Override PartName="/ppt/slides/slide${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
+    }
+    zip.file("[Content_Types].xml", ct.replace("</Types>", `${overrides}</Types>`))
+    zip.file("ppt/presentation.xml", pres.replace("<p:sldIdLst></p:sldIdLst>", `<p:sldIdLst>${sldIds}</p:sldIdLst>`))
+    zip.file("ppt/_rels/presentation.xml.rels", presRels.replace("</Relationships>", `${rels}</Relationships>`))
+
+    return {
+        bytes: await zip.generateAsync({ type: "nodebuffer" }),
+        layoutCount: order.length
+    }
+}
+
+/**
+ *  Get the cached seed deck for a template, building it on first use.
+ *  The cache key is the template's content hash, so template edits
+ *  invalidate the seed automatically.
+ *
+ *  @param templatePath - path of the .potx/.pptx template
+ *  @returns absolute path of the cached seed deck
+ */
+export const ensureSeed = async (templatePath: string): Promise<string> => {
+    const bytes = readFileSync(templatePath)
+    const seedPath = path.join(cacheDir(), `seed-${SEED_FORMAT}-${contentHash(bytes)}.pptx`)
+    if (!existsSync(seedPath)) {
+        const seed = await buildSeed(bytes)
+        writeFileSync(seedPath, seed.bytes)
+    }
+    return seedPath
+}
+
+/**
+ *  Create an empty deck from a template: the seed deck with the slide list
+ *  truncated and all seed slide parts removed. Used by `pptc new`.
+ *
+ *  @param templatePath - path of the .potx/.pptx template
+ *  @returns bytes of a valid, zero-slide .pptx carrying the template's design
+ */
+export const buildEmptyDeck = async (templatePath: string): Promise<Buffer> => {
+    const seed = await buildSeed(readFileSync(templatePath))
+    const zip = await JSZip.loadAsync(seed.bytes)
+    const pres = await (zip.file("ppt/presentation.xml") as JSZip.JSZipObject).async("string")
+    const presRels = await (zip.file("ppt/_rels/presentation.xml.rels") as JSZip.JSZipObject).async("string")
+    const ct = await (zip.file("[Content_Types].xml") as JSZip.JSZipObject).async("string")
+    zip.file("ppt/presentation.xml", pres.replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst/>"))
+    zip.file("ppt/_rels/presentation.xml.rels", presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, ""))
+    zip.file("[Content_Types].xml", ct.replace(/<Override PartName="\/ppt\/slides\/[^"]*"[^>]*\/>/g, ""))
+    for (const f of Object.keys(zip.files))
+        if (/^ppt\/slides\//.test(f))
+            zip.remove(f)
+    return await zip.generateAsync({ type: "nodebuffer" })
+}

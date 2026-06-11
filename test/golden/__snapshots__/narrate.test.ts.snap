@@ -1,0 +1,102 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tpl describe golden output > matches the pinned description for the fixture template 1`] = `
+"# Template: neutral-template.pptx
+
+Folienformat: 13.33" x 7.5" — Schriften: Calibri Light (Überschriften), Calibri (Text)
+Akzentfarben: #4472C4, #ED7D31, #A5A5A5
+
+Layouts: 4 — adressierbar in \`slide.add\` per Index oder Name.
+Placeholder werden in \`slide.fill\` über ihre \`idx\`-Nummer befüllt.
+
+## Layout 0: "DEFAULT"
+
+Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+
+## Layout 1: "TITLE_SLIDE"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|  ..................................  |
+|  .T:100............................  |
+|  .TXT:101..........................  |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`100\`, "Text 0") — volle Breite, mittlerer Bereich (18% der Folie)
+- Textfläche (idx \`101\`, "Text 0") — volle Breite, mittlerer Bereich (7% der Folie) — ~1 Zeilen à ~53 Zeichen
+
+## Layout 2: "CONTENT"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+|                                      |
+|  .T:100............................  |
+|                                      |
+|  ..................................  |
+|  .TXT:101                         .  |
+|  .                                .  |
+|  .                                .  |
+|  .                                .  |
+|  .                                .  |
+|  ..................................  |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`100\`, "Text 0") — volle Breite, oberer Bereich (12% der Folie)
+- Textfläche (idx \`101\`, "Text 0") — volle Breite, mittlerer Bereich (60% der Folie) — ~9 Zeilen à ~53 Zeichen
+
+## Layout 3: "TWO_COLUMN"
+
+Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
+
+\`\`\`
+----------------------------------------
+|                                      |
+|  .T:100............................  |
+|                                      |
+|  ................. ................  |
+|  .TXT:101        . .TXT:102       .  |
+|  .               . .              .  |
+|  .               . .              .  |
+|  .               . .              .  |
+|  .               . .              .  |
+|  ................. ................  |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`100\`, "Text 0") — volle Breite, oberer Bereich (12% der Folie)
+- Textfläche (idx \`101\`, "Text 0") — linke Hälfte, mittlerer Bereich (29% der Folie) — ~9 Zeilen à ~25 Zeichen
+- Textfläche (idx \`102\`, "Text 0") — rechte Hälfte, mittlerer Bereich (29% der Folie) — ~9 Zeilen à ~25 Zeichen"
+`;
