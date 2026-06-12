@@ -72,6 +72,10 @@ export const narrateLayout = (layout: Layout, info: TemplateInfo): string => {
         }
         if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
             parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`)
+        if (ph.overlays !== undefined && ph.overlays.length > 0)
+            parts.push("overlaid by "
+                + ph.overlays.map((o) => `${o.name} (${o.region})`).join(", ")
+                + " -- keep these regions calm in images")
         lines.push(parts.join(" — "))
     }
     return lines.join("\n")

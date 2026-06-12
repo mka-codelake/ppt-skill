@@ -24,6 +24,12 @@ Element rules
     (e.g. `soft diffused natural light`); apply template sidecar
     constraints here (e.g. `dark muted background` for title/closing
     layouts with a white line, when the style is illustration/render).
+-   **Overlay regions stay calm**: `tpl inspect`/`describe` report per
+    picture placeholder which text shapes sit on top and WHERE
+    (`overlays`: e.g. `Title (bottom area, left part)`). Translate every
+    overlay into a prompt clause such as `keep the bottom-left area calm
+    and free of relevant detail -- text sits there`. Never place the
+    subject, embedded text or bright highlights in an overlaid region.
 -   **Quality**: `sharp focus, 8k` plus style-appropriate terms.
 -   **Aspect**: state the placeholder's ratio as composition guidance,
     e.g. `2:3 portrait composition`, `16:9 wide composition`,

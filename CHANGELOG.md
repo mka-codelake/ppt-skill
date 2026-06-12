@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.11 (plugin 0.2.15)
+
+- Picture-placeholder overlay report: `tpl inspect` exposes per picture
+  placeholder which text shapes sit on top and where (`overlays`, region
+  relative to the image: "bottom area, left part"); `tpl describe`
+  narrates it ("keep these regions calm in images"). The skill turns
+  every overlay into an image-prompt clause so covered regions stay calm
+  and free of relevant detail.
+
 ## plugin 0.2.14 (CLI unchanged at 0.2.10)
 
 - Plugin-root `bin/pptc`: a thin PATH wrapper around the bundle in

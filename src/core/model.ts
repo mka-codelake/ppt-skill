@@ -36,6 +36,9 @@ export interface Placeholder {
     frame: Frame | null
     /**  estimated text capacity, null for non-text placeholders  */
     capacity: TextCapacity | null
+    /**  text shapes overlapping this PICTURE placeholder: image prompts
+         must keep these regions calm (text sits on top)  */
+    overlays?: { name: string, region: string }[]
 }
 
 /**  Estimated text capacity of a text placeholder.  */

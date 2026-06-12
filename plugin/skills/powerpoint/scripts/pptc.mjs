@@ -38798,7 +38798,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.10" : "0.0.0-dev";
+var VERSION = true ? "0.2.11" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54200,6 +54200,79 @@ var import_jszip = __toESM(require_lib3(), 1);
 import { readFileSync as readFileSync3 } from "node:fs";
 import path3 from "node:path";
 
+// src/core/describe/position.ts
+var horizontalBand = (frame, slideW) => {
+  const rel = frame.w / slideW;
+  const centerX = (frame.x + frame.w / 2) / slideW;
+  if (rel > 0.8)
+    return "full width";
+  if (rel > 0.42)
+    return centerX < 0.5 ? "left half" : "right half";
+  if (centerX < 0.37)
+    return "left column";
+  if (centerX > 0.63)
+    return "right column";
+  return "center column";
+};
+var verticalBand = (frame, slideH) => {
+  const rel = frame.h / slideH;
+  const centerY = (frame.y + frame.h / 2) / slideH;
+  if (rel > 0.8)
+    return "full height";
+  if (centerY < 0.33)
+    return "upper area";
+  if (centerY > 0.67)
+    return "lower area";
+  return "middle area";
+};
+var describePosition = (frame, slideW, slideH) => {
+  const area = Math.round(frame.w * frame.h / (slideW * slideH) * 100);
+  return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% of slide)`;
+};
+var regionWithin = (outer, inner) => {
+  const x = Math.max(inner.x, outer.x);
+  const y = Math.max(inner.y, outer.y);
+  const r = Math.min(inner.x + inner.w, outer.x + outer.w);
+  const b = Math.min(inner.y + inner.h, outer.y + outer.h);
+  if (r <= x || b <= y)
+    return null;
+  const relW = (r - x) / outer.w;
+  const relH = (b - y) / outer.h;
+  const cx = ((x + r) / 2 - outer.x) / outer.w;
+  const cy = ((y + b) / 2 - outer.y) / outer.h;
+  const hBand = relW > 0.8 ? "full width" : cx < 0.37 ? "left part" : cx > 0.63 ? "right part" : "center";
+  const vBand = relH > 0.8 ? "full height" : cy < 0.37 ? "top area" : cy > 0.63 ? "bottom area" : "middle area";
+  if (hBand === "full width" && vBand === "full height")
+    return "entire image";
+  if (hBand === "full width")
+    return vBand;
+  if (vBand === "full height")
+    return hBand;
+  return `${vBand}, ${hBand}`;
+};
+var nearestAspect = (frame) => {
+  if (frame.h === 0)
+    return "16:9";
+  const ratio = frame.w / frame.h;
+  const known = [
+    ["1:1", 1],
+    ["4:3", 4 / 3],
+    ["3:4", 3 / 4],
+    ["3:2", 3 / 2],
+    ["2:3", 2 / 3],
+    ["16:9", 16 / 9],
+    ["9:16", 9 / 16],
+    ["21:9", 21 / 9],
+    ["2:1", 2],
+    ["1:2", 0.5]
+  ];
+  let best = known[0];
+  for (const k of known)
+    if (Math.abs(k[1] - ratio) < Math.abs(best[1] - ratio))
+      best = k;
+  return best[0];
+};
+
 // src/engine/xml.ts
 var import_xmldom = __toESM(require_lib4(), 1);
 var NS_A = "http://schemas.openxmlformats.org/drawingml/2006/main";
@@ -54446,6 +54519,25 @@ var readTemplateInfo = async (archive) => {
         frame,
         capacity: frame !== null && ph.kind !== "picture" ? estimateCapacity(frame, fontSize) : null
       });
+    }
+    for (const pic of placeholders) {
+      if (pic.kind !== "picture" || pic.frame === null)
+        continue;
+      const overlays = [];
+      for (const other of placeholders) {
+        if (other === pic || other.kind === "picture" || other.frame === null)
+          continue;
+        const region = regionWithin(pic.frame, other.frame);
+        if (region !== null)
+          overlays.push({ name: other.name, region });
+      }
+      for (const f of reserved) {
+        const region = regionWithin(pic.frame, f);
+        if (region !== null)
+          overlays.push({ name: "footer/slide-number", region });
+      }
+      if (overlays.length > 0)
+        pic.overlays = overlays;
     }
     layouts.push({ index, name, placeholders, reserved });
   }
@@ -55780,58 +55872,6 @@ var cmdMove = async (argv) => {
 import { readdirSync, existsSync as existsSync4, readFileSync as readFileSync7 } from "node:fs";
 import path8 from "node:path";
 
-// src/core/describe/position.ts
-var horizontalBand = (frame, slideW) => {
-  const rel = frame.w / slideW;
-  const centerX = (frame.x + frame.w / 2) / slideW;
-  if (rel > 0.8)
-    return "full width";
-  if (rel > 0.42)
-    return centerX < 0.5 ? "left half" : "right half";
-  if (centerX < 0.37)
-    return "left column";
-  if (centerX > 0.63)
-    return "right column";
-  return "center column";
-};
-var verticalBand = (frame, slideH) => {
-  const rel = frame.h / slideH;
-  const centerY = (frame.y + frame.h / 2) / slideH;
-  if (rel > 0.8)
-    return "full height";
-  if (centerY < 0.33)
-    return "upper area";
-  if (centerY > 0.67)
-    return "lower area";
-  return "middle area";
-};
-var describePosition = (frame, slideW, slideH) => {
-  const area = Math.round(frame.w * frame.h / (slideW * slideH) * 100);
-  return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% of slide)`;
-};
-var nearestAspect = (frame) => {
-  if (frame.h === 0)
-    return "16:9";
-  const ratio = frame.w / frame.h;
-  const known = [
-    ["1:1", 1],
-    ["4:3", 4 / 3],
-    ["3:4", 3 / 4],
-    ["3:2", 3 / 2],
-    ["2:3", 2 / 3],
-    ["16:9", 16 / 9],
-    ["9:16", 9 / 16],
-    ["21:9", 21 / 9],
-    ["2:1", 2],
-    ["1:2", 0.5]
-  ];
-  let best = known[0];
-  for (const k of known)
-    if (Math.abs(k[1] - ratio) < Math.abs(best[1] - ratio))
-      best = k;
-  return best[0];
-};
-
 // src/core/describe/minimap.ts
 var MAP_W = 40;
 var MAP_H = 13;
@@ -55910,6 +55950,8 @@ var narrateLayout = (layout, info) => {
     }
     if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
       parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`);
+    if (ph.overlays !== void 0 && ph.overlays.length > 0)
+      parts.push("overlaid by " + ph.overlays.map((o) => `${o.name} (${o.region})`).join(", ") + " -- keep these regions calm in images");
     lines.push(parts.join(" \u2014 "));
   }
   return lines.join("\n");

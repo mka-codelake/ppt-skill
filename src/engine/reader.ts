@@ -15,6 +15,7 @@ import type { Document, Element } from "@xmldom/xmldom"
 import { PptcError } from "../core/errors.js"
 import { contentHash, requireFile } from "../infra/fs.js"
 import { estimateCapacity } from "../core/describe/capacity.js"
+import { regionWithin } from "../core/describe/position.js"
 import { elements, firstElement, drawingText, parseXml } from "./xml.js"
 import { emuToInch } from "../core/model.js"
 import type {
@@ -271,6 +272,28 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
                     ? estimateCapacity(frame, fontSize)
                     : null
             })
+        }
+        /*  picture placeholders: record which text shapes sit on top
+            (title over a fullscreen background, footer over the image
+            edge, ...) so image prompts keep those regions calm  */
+        for (const pic of placeholders) {
+            if (pic.kind !== "picture" || pic.frame === null)
+                continue
+            const overlays: { name: string, region: string }[] = []
+            for (const other of placeholders) {
+                if (other === pic || other.kind === "picture" || other.frame === null)
+                    continue
+                const region = regionWithin(pic.frame, other.frame)
+                if (region !== null)
+                    overlays.push({ name: other.name, region })
+            }
+            for (const f of reserved) {
+                const region = regionWithin(pic.frame, f)
+                if (region !== null)
+                    overlays.push({ name: "footer/slide-number", region })
+            }
+            if (overlays.length > 0)
+                pic.overlays = overlays
         }
         layouts.push({ index, name, placeholders, reserved })
     }

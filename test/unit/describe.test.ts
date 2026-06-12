@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest"
 import { estimateCapacity, estimateUsedLines } from "../../src/core/describe/capacity.js"
-import { describePosition, horizontalBand, nearestAspect, verticalBand } from "../../src/core/describe/position.js"
+import { describePosition, horizontalBand, nearestAspect, regionWithin, verticalBand } from "../../src/core/describe/position.js"
 import { renderMinimap } from "../../src/core/describe/minimap.js"
 import { suitabilityHint } from "../../src/core/describe/narrate.js"
 import { lintPlaceholderText } from "../../src/core/lint.js"
@@ -87,5 +87,18 @@ describe("lint", () => {
     it("stays silent when the text fits", () => {
         const target = ph(13, "body", { x: 0, y: 0, w: 12, h: 5 })
         expect(lintPlaceholderText("kurz", target, { id: 1, index: 0, title: null })).toBeNull()
+    })
+})
+
+describe("regionWithin (picture overlay regions)", () => {
+    const pic = { x: 0, y: 0, w: 13.33, h: 7.5 }
+    it("classifies bands relative to the picture", () => {
+        expect(regionWithin(pic, { x: 0.7, y: 5.6, w: 6, h: 1.4 })).toBe("bottom area, left part")
+        expect(regionWithin(pic, { x: 0, y: 0, w: 13.33, h: 1.2 })).toBe("top area")
+        expect(regionWithin(pic, { x: 0, y: 0, w: 13.33, h: 7.5 })).toBe("entire image")
+        expect(regionWithin(pic, { x: 5, y: 3, w: 3, h: 1.5 })).toBe("middle area, center")
+    })
+    it("returns null for disjoint boxes", () => {
+        expect(regionWithin({ x: 0, y: 0, w: 5, h: 7.5 }, { x: 6, y: 1, w: 4, h: 1 })).toBeNull()
     })
 })

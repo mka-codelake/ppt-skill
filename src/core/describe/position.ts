@@ -64,6 +64,39 @@ export const describePosition = (frame: Frame, slideW: number, slideH: number): 
 }
 
 /**
+ *  Classify where an overlapping box sits WITHIN an outer box -- tells an
+ *  image prompt which regions of a picture must stay calm because text
+ *  sits on top ("top area", "bottom area, left part", ...).
+ *
+ *  @param outer - the picture frame
+ *  @param inner - the overlapping shape's frame
+ *  @returns region label relative to the outer box, null when disjoint
+ */
+export const regionWithin = (outer: Frame, inner: Frame): string | null => {
+    const x = Math.max(inner.x, outer.x)
+    const y = Math.max(inner.y, outer.y)
+    const r = Math.min(inner.x + inner.w, outer.x + outer.w)
+    const b = Math.min(inner.y + inner.h, outer.y + outer.h)
+    if (r <= x || b <= y)
+        return null
+    const relW = (r - x) / outer.w
+    const relH = (b - y) / outer.h
+    const cx = ((x + r) / 2 - outer.x) / outer.w
+    const cy = ((y + b) / 2 - outer.y) / outer.h
+    const hBand = relW > 0.8 ? "full width"
+        : cx < 0.37 ? "left part" : cx > 0.63 ? "right part" : "center"
+    const vBand = relH > 0.8 ? "full height"
+        : cy < 0.37 ? "top area" : cy > 0.63 ? "bottom area" : "middle area"
+    if (hBand === "full width" && vBand === "full height")
+        return "entire image"
+    if (hBand === "full width")
+        return vBand
+    if (vBand === "full height")
+        return hBand
+    return `${vBand}, ${hBand}`
+}
+
+/**
  *  Express a box's aspect ratio as the nearest common photo/screen ratio.
  *
  *  @param frame - box geometry in inches
