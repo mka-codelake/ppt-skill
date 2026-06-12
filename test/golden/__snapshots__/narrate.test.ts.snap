@@ -38,22 +38,22 @@ Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
+| ..........................           |
+| .T:0......................           |
 |                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
+| ..........................           |
+| .TXT:1                   .           |
+| .                        .           |
+| .                        .           |
+| .                        .           |
+| .                        .           |
+| ..........................           |
 |                                      |
 ----------------------------------------
 \`\`\`
 
-- Title (idx \`0\`, "Title 1")
-- Text area (idx \`1\`, "Content Placeholder 2")
+- Title (idx \`0\`, "Title 1") — left half, upper area (11% of slide)
+- Text area (idx \`1\`, "Content Placeholder 2") — left half, middle area (45% of slide) — ~8 lines of ~39 chars
 
 ## Layout 2: "Section Header"
 
@@ -84,8 +84,8 @@ Suitability: 2 text columns -- comparison/juxtaposition
 
 \`\`\`
 ----------------------------------------
-|                                      |
-|                                      |
+| ..........................           |
+| .T:0......................           |
 |                                      |
 | ..........................           |
 | .TXT:1      ..TXT:2      .           |
@@ -98,7 +98,7 @@ Suitability: 2 text columns -- comparison/juxtaposition
 ----------------------------------------
 \`\`\`
 
-- Title (idx \`0\`, "Title 1")
+- Title (idx \`0\`, "Title 1") — left half, upper area (11% of slide)
 - Text area (idx \`1\`, "Content Placeholder 2") — left column, middle area (22% of slide) — ~8 lines of ~18 chars
 - Text area (idx \`2\`, "Content Placeholder 3") — center column, middle area (22% of slide) — ~8 lines of ~18 chars
 
@@ -108,8 +108,8 @@ Suitability: 4 parallel text areas -- list of equal-rank aspects
 
 \`\`\`
 ----------------------------------------
-|                                      |
-|                                      |
+| ..........................           |
+| .T:0......................           |
 | .TXT:1........TXT:3.......           |
 | ..........................           |
 | .TXT:2      ..TXT:4      .           |
@@ -122,7 +122,7 @@ Suitability: 4 parallel text areas -- list of equal-rank aspects
 ----------------------------------------
 \`\`\`
 
-- Title (idx \`0\`, "Title 1")
+- Title (idx \`0\`, "Title 1") — left half, upper area (11% of slide)
 - Text area (idx \`1\`, "Text Placeholder 2") — left column, upper area (3% of slide) — ~1 lines of ~18 chars
 - Text area (idx \`2\`, "Content Placeholder 3") — left column, middle area (19% of slide) — ~7 lines of ~18 chars
 - Text area (idx \`3\`, "Text Placeholder 4") — center column, upper area (3% of slide) — ~1 lines of ~18 chars
@@ -134,8 +134,8 @@ Suitability: key message or section break (title/subtitle only)
 
 \`\`\`
 ----------------------------------------
-|                                      |
-|                                      |
+| ..........................           |
+| .T:0......................           |
 |                                      |
 |                                      |
 |                                      |
@@ -148,7 +148,7 @@ Suitability: key message or section break (title/subtitle only)
 ----------------------------------------
 \`\`\`
 
-- Title (idx \`0\`, "Title 1")
+- Title (idx \`0\`, "Title 1") — left half, upper area (11% of slide)
 
 ## Layout 6: "DEFAULT"
 
@@ -225,22 +225,22 @@ Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
+| ..........................           |
+| .T:0......................           |
 |                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
+| ..........................           |
+| .TXT:1                   .           |
+| .                        .           |
+| .                        .           |
+| .                        .           |
+| .                        .           |
+| ..........................           |
 |                                      |
 ----------------------------------------
 \`\`\`
 
-- Title (idx \`0\`, "Title 1")
-- Text area (idx \`1\`, "Vertical Text Placeholder 2")
+- Title (idx \`0\`, "Title 1") — left half, upper area (11% of slide)
+- Text area (idx \`1\`, "Vertical Text Placeholder 2") — left half, middle area (45% of slide) — ~8 lines of ~39 chars
 
 ## Layout 10: "Vertical Title and Text"
 

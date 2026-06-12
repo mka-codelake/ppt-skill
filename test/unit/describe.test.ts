@@ -55,7 +55,7 @@ const ph = (idx: number, kind: Placeholder["kind"], frame: Placeholder["frame"])
 
 describe("minimap and suitability", () => {
     const layout: Layout = {
-        index: 9, name: "Bild links",
+        index: 9, name: "Bild links", reserved: [],
         placeholders: [
             ph(0, "title", { x: 4.9, y: 0.6, w: 5, h: 0.8 }),
             ph(14, "picture", { x: 0, y: 0, w: 4.7, h: 7.5 }),
@@ -70,7 +70,7 @@ describe("minimap and suitability", () => {
     })
     it("derives a suitability hint from structure", () => {
         expect(suitabilityHint(layout)).toMatch(/picture/)
-        expect(suitabilityHint({ index: 0, name: "x", placeholders: [ph(0, "title", null)] }))
+        expect(suitabilityHint({ index: 0, name: "x", reserved: [], placeholders: [ph(0, "title", null)] }))
             .toMatch(/key message/)
     })
 })

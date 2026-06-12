@@ -38794,7 +38794,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.8" : "0.0.0-dev";
+var VERSION = true ? "0.2.9" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -38948,6 +38948,28 @@ var estimateUsedLines = (paragraphs, capacity) => {
 };
 
 // src/core/lint.ts
+var intersectionArea = (a, b) => {
+  if (a.w === void 0 || a.h === void 0 || b.w === void 0 || b.h === void 0)
+    return 0;
+  const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return w > 0 && h > 0 ? w * h : 0;
+};
+var lintElementOverlap = (name, frame, obstacles, slide) => {
+  for (const o of obstacles) {
+    const area = intersectionArea(frame, o.frame);
+    if (area > 0.05) {
+      return {
+        code: "W_ELEMENT_OVERLAP",
+        slide,
+        element: name,
+        covers: o.name,
+        message: `element '${name}' covers '${o.name}' by ~${area.toFixed(1)} in\xB2 -- reposition it`
+      };
+    }
+  }
+  return null;
+};
 var richTextToPlain = (text) => {
   if (typeof text === "string")
     return text.split("\n");
@@ -39177,12 +39199,54 @@ var slideCopy = {
 
 // src/core/ops/elements.ts
 var PROMPT_BOX_PREFIX = "PptcPromptBox";
+var specFrame = (spec) => {
+  if (spec.type === "connector")
+    return null;
+  const f = spec.frame;
+  return f.w !== void 0 && f.h !== void 0 ? { x: f.x, y: f.y, w: f.w, h: f.h } : null;
+};
+var overlapObstacles = (ctx, entry) => {
+  const obstacles = [];
+  const layout = entryLayout(ctx, entry);
+  if (layout !== null) {
+    for (const ph of layout.placeholders)
+      if (ph.kind !== "picture" && ph.frame !== null)
+        obstacles.push({ name: ph.name, frame: ph.frame });
+    for (const frame of layout.reserved)
+      obstacles.push({ name: "footer/slide-number/date area", frame });
+  }
+  if (entry.source.kind === "self") {
+    const part = entry.source.part;
+    for (const sh of ctx.deck.slides.find((s) => s.part === part)?.shapes ?? [])
+      if (sh.frame !== null && !sh.name.startsWith(PROMPT_BOX_PREFIX) && sh.placeholderKind !== "picture" && sh.type !== "picture" && sh.type !== "connector" && !entry.removeNames.some((rm) => nameMatches(sh.name, rm)))
+        obstacles.push({ name: sh.name, frame: sh.frame });
+  }
+  for (const planned of entry.elements) {
+    const frame = specFrame(planned.spec);
+    if (frame !== null && (planned.name === null || !planned.name.startsWith(PROMPT_BOX_PREFIX)))
+      obstacles.push({ name: planned.name ?? planned.spec.type, frame });
+  }
+  return obstacles;
+};
 var elAdd = {
   name: "el.add",
   plan(ctx, op) {
     const entry = resolveEntry(ctx, op.slide);
-    for (const spec of op.elements)
+    for (const spec of op.elements) {
+      const frame = specFrame(spec);
+      const name = spec.name ?? spec.type;
+      if (frame !== null && !name.startsWith(PROMPT_BOX_PREFIX)) {
+        const slideAddr = {
+          id: entry.virtualId > 0 ? entry.virtualId : null,
+          index: ctx.plan.entries.indexOf(entry),
+          title: entry.title
+        };
+        const warning = lintElementOverlap(name, frame, overlapObstacles(ctx, entry), slideAddr);
+        if (warning !== null)
+          ctx.plan.warnings.push(warning);
+      }
       entry.elements.push({ name: spec.name ?? null, spec });
+    }
   }
 };
 var nameMatches = (shapeName, address) => shapeName === address || shapeName.startsWith(`${address}-`);
@@ -54278,10 +54342,27 @@ var layoutPartsInOrder = async (archive) => {
     for (const layoutId of elements(master, "p:sldLayoutId")) {
       const lt = relTarget(masterRels, layoutId.getAttribute("r:id") ?? "");
       if (lt !== null)
-        parts.push(path3.posix.normalize(path3.posix.join("ppt/slideMasters", lt)));
+        parts.push({
+          part: path3.posix.normalize(path3.posix.join("ppt/slideMasters", lt)),
+          master: masterPart
+        });
     }
   }
   return parts;
+};
+var masterFrameMap = async (archive, masterPart) => {
+  const map2 = /* @__PURE__ */ new Map();
+  const master = await archive.xml(masterPart);
+  for (const sp of elements(master, "p:sp")) {
+    const ph = phFacts(sp);
+    const frame = ph === null ? null : shapeFrame(sp);
+    if (ph === null || frame === null)
+      continue;
+    map2.set(`${ph.kind}:${ph.idx}`, frame);
+    if (!map2.has(ph.kind))
+      map2.set(ph.kind, frame);
+  }
+  return map2;
 };
 var masterFontSizes = async (archive) => {
   const fallback = { title: 36, body: 18 };
@@ -54329,15 +54410,28 @@ var readTemplateInfo = async (archive) => {
   const sizes = await masterFontSizes(archive);
   const layouts = [];
   const parts = await layoutPartsInOrder(archive);
+  const masterFrames = /* @__PURE__ */ new Map();
   for (let index = 0; index < parts.length; index++) {
-    const doc = await archive.xml(parts[index]);
+    const { part, master } = parts[index];
+    if (!masterFrames.has(master))
+      masterFrames.set(master, await masterFrameMap(archive, master));
+    const inherited = masterFrames.get(master);
+    const resolveFrame = (sp, kind, idx) => shapeFrame(sp) ?? inherited.get(`${kind}:${idx}`) ?? inherited.get(kind) ?? null;
+    const doc = await archive.xml(part);
     const name = firstElement(doc, "p:cSld")?.getAttribute("name") ?? `Layout ${index}`;
     const placeholders = [];
+    const reserved = [];
     for (const sp of elements(doc, "p:sp")) {
       const ph = phFacts(sp);
-      if (ph === null || ph.kind === "footer" || ph.kind === "slideNumber" || ph.kind === "date")
+      if (ph === null)
         continue;
-      const frame = shapeFrame(sp);
+      if (ph.kind === "footer" || ph.kind === "slideNumber" || ph.kind === "date") {
+        const f = resolveFrame(sp, ph.kind, ph.idx);
+        if (f !== null)
+          reserved.push(f);
+        continue;
+      }
+      const frame = resolveFrame(sp, ph.kind, ph.idx);
       const fontSize = ph.kind === "title" ? sizes.title : sizes.body;
       placeholders.push({
         idx: ph.idx,
@@ -54347,7 +54441,7 @@ var readTemplateInfo = async (archive) => {
         capacity: frame !== null && ph.kind !== "picture" ? estimateCapacity(frame, fontSize) : null
       });
     }
-    layouts.push({ index, name, placeholders });
+    layouts.push({ index, name, placeholders, reserved });
   }
   return { slideSize, fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors, layouts };
 };

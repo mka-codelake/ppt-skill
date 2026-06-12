@@ -11,21 +11,75 @@
 import { PptcError } from "../errors.js"
 import type { Op } from "../../schema/ops.js"
 import type { ElementSpec } from "../../schema/payloads.js"
-import type { ShapeInfo } from "../model.js"
+import type { Frame, ShapeInfo } from "../model.js"
 import type { OpHandler, PlanContext, SlidePlanEntry } from "./registry.js"
 import { entryLayout, resolveEntry } from "./fill-common.js"
-import { richTextToPlain } from "../lint.js"
+import { lintElementOverlap, richTextToPlain, type Obstacle } from "../lint.js"
 
 /**  shape-name prefix of generated prompt boxes (removable via el.rm)  */
 export const PROMPT_BOX_PREFIX = "PptcPromptBox"
+
+/**  the frame of an element spec; null for connectors (line geometry)
+     and for boxes without explicit extent (auto-height tables)  */
+const specFrame = (spec: ElementSpec): Frame | null => {
+    if (spec.type === "connector")
+        return null
+    const f = spec.frame
+    return f.w !== undefined && f.h !== undefined
+        ? { x: f.x, y: f.y, w: f.w, h: f.h }
+        : null
+}
+
+/**  text-bearing obstacles a new element must not cover: text placeholders
+     (incl. footer/slide-number/date), existing text shapes and elements
+     planned earlier -- picture placeholders and prompt boxes are exempt  */
+const overlapObstacles = (ctx: PlanContext, entry: SlidePlanEntry): Obstacle[] => {
+    const obstacles: Obstacle[] = []
+    const layout = entryLayout(ctx, entry)
+    if (layout !== null) {
+        for (const ph of layout.placeholders)
+            if (ph.kind !== "picture" && ph.frame !== null)
+                obstacles.push({ name: ph.name, frame: ph.frame })
+        for (const frame of layout.reserved)
+            obstacles.push({ name: "footer/slide-number/date area", frame })
+    }
+    if (entry.source.kind === "self") {
+        const part = entry.source.part
+        for (const sh of ctx.deck.slides.find((s) => s.part === part)?.shapes ?? [])
+            if (sh.frame !== null && !sh.name.startsWith(PROMPT_BOX_PREFIX)
+                && sh.placeholderKind !== "picture" && sh.type !== "picture"
+                && sh.type !== "connector"
+                /*  shapes removed earlier in the same document are gone  */
+                && !entry.removeNames.some((rm) => nameMatches(sh.name, rm)))
+                obstacles.push({ name: sh.name, frame: sh.frame })
+    }
+    for (const planned of entry.elements) {
+        const frame = specFrame(planned.spec)
+        if (frame !== null && (planned.name === null || !planned.name.startsWith(PROMPT_BOX_PREFIX)))
+            obstacles.push({ name: planned.name ?? planned.spec.type, frame })
+    }
+    return obstacles
+}
 
 /**  op handler: el.add  */
 export const elAdd: OpHandler<Extract<Op, { op: "el.add" }>> = {
     name: "el.add",
     plan(ctx, op): void {
         const entry = resolveEntry(ctx, op.slide)
-        for (const spec of op.elements)
+        for (const spec of op.elements) {
+            /*  warn when the new element covers a text-bearing shape
+                (prompt boxes are exempt -- they overlay by design)  */
+            const frame = specFrame(spec)
+            const name = spec.name ?? spec.type
+            if (frame !== null && !name.startsWith(PROMPT_BOX_PREFIX)) {
+                const slideAddr = { id: entry.virtualId > 0 ? entry.virtualId : null,
+                    index: ctx.plan.entries.indexOf(entry), title: entry.title }
+                const warning = lintElementOverlap(name, frame, overlapObstacles(ctx, entry), slideAddr)
+                if (warning !== null)
+                    ctx.plan.warnings.push(warning)
+            }
             entry.elements.push({ name: spec.name ?? null, spec })
+        }
     }
 }
 

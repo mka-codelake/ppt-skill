@@ -35,8 +35,16 @@ calling any image generator and without doing web research.
 - Execute each Bash call as a separate tool call.
 - Every pptc command emits exactly one JSON envelope on stdout; parse it.
   `"ok": false` carries a stable `error.code` -- react to it, do not retry
-  blindly. Exit 6 = revision conflict (re-read state), exit 7 = lint
-  failure (shorten or split content).
+  blindly. Exit 7 = lint failure: W_TEXT_OVERFLOW -> shorten or split,
+  W_ELEMENT_OVERLAP -> reposition the element.
+- **The user edits between turns.** Treat every deck as changed since you
+  last saw it: begin EVERY write with a fresh `state` (rev + structure),
+  and pass that rev to `apply --rev`. On exit 6 (E_REV_CONFLICT): re-read
+  `state`, re-verify your targets still exist (titles may have changed,
+  layout indices SHIFT when PowerPoint saves -- ids stay stable), rebuild
+  the ops document against the new rev, retry once. If a target vanished,
+  tell the user instead of guessing. Never cache revs or indices across
+  turns.
 - Three languages are independent of each other: respond to the user in
   the USER'S language; ALL deck content (titles, bullets, notes, footer,
   AI note) is in the DECK language <deck-lang/> fixed in STEP 2 --

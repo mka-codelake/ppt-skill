@@ -176,6 +176,68 @@ describe("write-path features", () => {
         expect(core).toContain("Variante")
     })
 
+    it("warns when a new element covers a text placeholder", async () => {
+        const result = await executeOps(DECK, {
+            ops: [
+                { op: "slide.add", layout: "CONTENT",
+                    placeholders: { title: { text: "Overlap-Probe" }, body: { text: "Inhalt" } } },
+                { op: "el.add", slide: "title:Overlap-Probe", elements: [
+                    { type: "textbox", name: "Ueberlappt",
+                        frame: { x: 1, y: 2, w: 8, h: 3 }, text: "sitzt auf dem Body" }
+                ] }
+            ]
+        }, opts)
+        const overlap = result.warnings.filter((w) => w.code === "W_ELEMENT_OVERLAP")
+        expect(overlap.length).toBeGreaterThan(0)
+        expect(overlap[0]?.element).toBe("Ueberlappt")
+    })
+
+    it("escalates the overlap warning under --strict", async () => {
+        await expect(executeOps(DECK, {
+            ops: [{ op: "el.add", slide: "title:Overlap-Probe", elements: [
+                { type: "textbox", name: "NochEiner", frame: { x: 1, y: 2, w: 8, h: 3 }, text: "x" }
+            ] }]
+        }, { ...opts, strict: true })).rejects.toSatisfy((err: unknown) =>
+            (err as PptcError).code === "E_LINT")
+    })
+
+    it("does not warn for prompt boxes or picture-area placement", async () => {
+        const result = await executeOps(DECK, {
+            ops: [
+                { op: "slide.add", layout: "PICTURE",
+                    placeholders: { title: { text: "Bildfrei" } } },
+                /*  prompt box overlays the picture placeholder by design  */
+                { op: "img.prompts", slide: "title:Bildfrei", prompts: "p" },
+                /*  a free element over the PICTURE area is fine too  */
+                { op: "el.add", slide: "title:Bildfrei", elements: [
+                    { type: "textbox", name: "AiNote",
+                        frame: { x: 1, y: 2.2, w: 2, h: 0.3 }, text: "AI-generated" }
+                ] }
+            ]
+        }, opts)
+        expect(result.warnings.filter((w) => w.code === "W_ELEMENT_OVERLAP")).toHaveLength(0)
+    })
+
+    it("replacing an element (el.rm + el.add) does not warn against itself", async () => {
+        await executeOps(DECK, {
+            ops: [
+                { op: "slide.add", layout: "DEFAULT", ref: "leer", at: 0 },
+                { op: "el.add", slide: "$leer", elements: [
+                    { type: "textbox", name: "Ersatz", frame: { x: 1, y: 1, w: 4, h: 2 }, text: "alt" }
+                ] }
+            ]
+        }, opts)
+        const result = await executeOps(DECK, {
+            ops: [
+                { op: "el.rm", slide: "index:0", name: "Ersatz" },
+                { op: "el.add", slide: "index:0", elements: [
+                    { type: "textbox", name: "Ersatz", frame: { x: 1, y: 1, w: 4, h: 2 }, text: "neu" }
+                ] }
+            ]
+        }, { ...opts, strict: true })
+        expect(result.warnings.filter((w) => w.code === "W_ELEMENT_OVERLAP")).toHaveLength(0)
+    })
+
     it("written decks pass the file-integrity validation", async () => {
         await expectIntact(DECK)
         await expectIntact(path.join(TMP, "variant-out.pptx"))

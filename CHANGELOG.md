@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.9 (plugin 0.2.11)
+
+- New lint `W_ELEMENT_OVERLAP`: an `el.add` element that covers a
+  text-bearing shape (placeholders incl. the footer/slide-number area,
+  textboxes, tables, charts) is reported with the covered shape's name;
+  `--strict` escalates to exit 7. Prompt boxes and picture areas are
+  exempt; shapes removed earlier in the same ops document do not count.
+- Reader: layout placeholders without their own geometry now inherit
+  the master's matching placeholder frame -- capacity and overlap lint
+  work on inheritance-based templates (e.g. Office default); layouts
+  expose the reserved footer/slide-number/date frames.
+- Plugin: element-placement rule (never cover text fields) and the
+  concurrent-edit protocol (fresh `state` before every write, exit-6
+  recovery: re-read, re-verify targets, rebuild, retry once).
+
 ## 0.2.8 (plugin 0.2.10)
 
 - The image-prompt box label is English ("IMAGE PROMPT"); the box

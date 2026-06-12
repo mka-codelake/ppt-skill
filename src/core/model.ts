@@ -56,6 +56,8 @@ export interface Layout {
     name: string
     /**  placeholders in document order, footer/slide-number/date excluded  */
     placeholders: Placeholder[]
+    /**  frames of footer/slide-number/date placeholders (overlap lint)  */
+    reserved: Frame[]
 }
 
 /**  Template-wide data extracted from a .potx/.pptx file.  */

@@ -58,6 +58,12 @@ Elements (tables, charts, free shapes)
     failing that, the layout whose only placeholder is the title.
 -   Position elements inside the empty area with explicit `frame`
     coordinates (inches); leave breathing room to the title.
+-   **Never cover existing text fields** (placeholders incl. the
+    footer/slide-number area, textboxes, tables, charts) with a new
+    element -- prompt boxes are the only sanctioned overlay. pptc
+    enforces this: `W_ELEMENT_OVERLAP` names the covered shape; under
+    `--strict` the apply fails (exit 7). On a finding, REPOSITION the
+    element, never ignore it.
 
 Speaker notes
 -------------

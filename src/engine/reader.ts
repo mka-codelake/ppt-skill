@@ -127,7 +127,7 @@ const phFacts = (sp: Element): { idx: number, kind: PlaceholderKind } | null => 
 }
 
 /**  resolve the layout part paths of all masters, in master order  */
-const layoutPartsInOrder = async (archive: DeckArchive): Promise<string[]> => {
+const layoutPartsInOrder = async (archive: DeckArchive): Promise<{ part: string, master: string }[]> => {
     const presRels = await archive.xml("ppt/_rels/presentation.xml.rels")
     const pres = await archive.xml("ppt/presentation.xml")
     const relTarget = (rels: Document, rid: string): string | null => {
@@ -136,7 +136,7 @@ const layoutPartsInOrder = async (archive: DeckArchive): Promise<string[]> => {
                 return rel.getAttribute("Target")
         return null
     }
-    const parts: string[] = []
+    const parts: { part: string, master: string }[] = []
     for (const masterId of elements(pres, "p:sldMasterId")) {
         const target = relTarget(presRels, masterId.getAttribute("r:id") ?? "")
         if (target === null)
@@ -148,10 +148,29 @@ const layoutPartsInOrder = async (archive: DeckArchive): Promise<string[]> => {
         for (const layoutId of elements(master, "p:sldLayoutId")) {
             const lt = relTarget(masterRels, layoutId.getAttribute("r:id") ?? "")
             if (lt !== null)
-                parts.push(path.posix.normalize(path.posix.join("ppt/slideMasters", lt)))
+                parts.push({
+                    part: path.posix.normalize(path.posix.join("ppt/slideMasters", lt)),
+                    master: masterPart
+                })
         }
     }
     return parts
+}
+
+/**  placeholder frames of a master, keyed by "kind:idx" and "kind"  */
+const masterFrameMap = async (archive: DeckArchive, masterPart: string): Promise<Map<string, Frame>> => {
+    const map = new Map<string, Frame>()
+    const master = await archive.xml(masterPart)
+    for (const sp of elements(master, "p:sp")) {
+        const ph = phFacts(sp)
+        const frame = ph === null ? null : shapeFrame(sp)
+        if (ph === null || frame === null)
+            continue
+        map.set(`${ph.kind}:${ph.idx}`, frame)
+        if (!map.has(ph.kind))
+            map.set(ph.kind, frame)
+    }
+    return map
 }
 
 /**  read default font sizes (pt) for title and body from the master text styles  */
@@ -217,15 +236,31 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
     const sizes = await masterFontSizes(archive)
     const layouts: Layout[] = []
     const parts = await layoutPartsInOrder(archive)
+    const masterFrames = new Map<string, Map<string, Frame>>()
     for (let index = 0; index < parts.length; index++) {
-        const doc = await archive.xml(parts[index] as string)
+        const { part, master } = parts[index] as { part: string, master: string }
+        if (!masterFrames.has(master))
+            masterFrames.set(master, await masterFrameMap(archive, master))
+        const inherited = masterFrames.get(master) as Map<string, Frame>
+        /*  layout placeholders without their own xfrm inherit the
+            geometry of the master's matching placeholder  */
+        const resolveFrame = (sp: Element, kind: PlaceholderKind, idx: number): Frame | null =>
+            shapeFrame(sp) ?? inherited.get(`${kind}:${idx}`) ?? inherited.get(kind) ?? null
+        const doc = await archive.xml(part)
         const name = firstElement(doc, "p:cSld")?.getAttribute("name") ?? `Layout ${index}`
         const placeholders: Placeholder[] = []
+        const reserved: Frame[] = []
         for (const sp of elements(doc, "p:sp")) {
             const ph = phFacts(sp)
-            if (ph === null || ph.kind === "footer" || ph.kind === "slideNumber" || ph.kind === "date")
+            if (ph === null)
                 continue
-            const frame = shapeFrame(sp)
+            if (ph.kind === "footer" || ph.kind === "slideNumber" || ph.kind === "date") {
+                const f = resolveFrame(sp, ph.kind, ph.idx)
+                if (f !== null)
+                    reserved.push(f)
+                continue
+            }
+            const frame = resolveFrame(sp, ph.kind, ph.idx)
             const fontSize = ph.kind === "title" ? sizes.title : sizes.body
             placeholders.push({
                 idx: ph.idx,
@@ -237,7 +272,7 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
                     : null
             })
         }
-        layouts.push({ index, name, placeholders })
+        layouts.push({ index, name, placeholders, reserved })
     }
     return { slideSize, fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors, layouts }
 }
