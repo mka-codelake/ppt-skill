@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url"
 import JSZip from "jszip"
 import { buildEmptyDeck } from "../../src/engine/seed.js"
 import { DeckArchive, readDeckState } from "../../src/engine/reader.js"
+import { expectIntact } from "../util/integrity.js"
 import { executeOps, type ExecuteOptions } from "../../src/commands/apply.js"
 import { PptcError } from "../../src/core/errors.js"
 
@@ -173,5 +174,10 @@ describe("write-path features", () => {
         const zip = await JSZip.loadAsync(readFileSync(variant))
         const core = await (zip.file("docProps/core.xml") as JSZip.JSZipObject).async("string")
         expect(core).toContain("Variante")
+    })
+
+    it("written decks pass the file-integrity validation", async () => {
+        await expectIntact(DECK)
+        await expectIntact(path.join(TMP, "variant-out.pptx"))
     })
 })

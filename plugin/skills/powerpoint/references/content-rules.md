@@ -48,6 +48,17 @@ Language & footer
     placeholder (typically title/closing) get the note as a small
     discreet textbox near the bottom edge instead (`el.add`).
 
+Elements (tables, charts, free shapes)
+--------------------------------------
+
+-   Slides that receive free elements via `el.add` ALWAYS use a layout
+    WITHOUT text placeholders in the content area (role "blank" --
+    title plus empty surface). Elements must never sit on top of body
+    placeholders; that layout role comes from the template sidecar or,
+    failing that, the layout whose only placeholder is the title.
+-   Position elements inside the empty area with explicit `frame`
+    coordinates (inches); leave breathing room to the title.
+
 Speaker notes
 -------------
 

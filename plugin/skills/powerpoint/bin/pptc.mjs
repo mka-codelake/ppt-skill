@@ -38587,7 +38587,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.1" : "0.0.0-dev";
+var VERSION = true ? "0.2.2" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54511,7 +54511,7 @@ var removeParts = async (zip, parts) => {
   for (const part of parts) {
     zip.remove(part);
     zip.remove(`${path4.posix.dirname(part)}/_rels/${path4.posix.basename(part)}.rels`);
-    ct = ct.replace(new RegExp(`<Override PartName="/${part.replace(/[.\\/]/g, "\\$&")}"[^>]*/>`), "");
+    ct = ct.replace(new RegExp(`<Override PartName="/${part.replace(/[.\\/]/g, "\\$&")}"[^>]*/>`, "g"), "");
   }
   zip.file("[Content_Types].xml", ct);
 };
@@ -54558,6 +54558,21 @@ var gcParts = async (zip, kept) => {
   }
   if (pruned)
     zip.file(presRelsPart, serializeXml(presRels));
+};
+var cleanContentTypes = async (zip) => {
+  const ct = parseXml(await partText(zip, "[Content_Types].xml"));
+  const seen = /* @__PURE__ */ new Set();
+  let changed = false;
+  for (const o of elements(ct, "Override")) {
+    const part = (o.getAttribute("PartName") ?? "").replace(/^\//, "");
+    if (zip.file(part) === null || seen.has(part)) {
+      o.parentNode?.removeChild(o);
+      changed = true;
+    } else
+      seen.add(part);
+  }
+  if (changed)
+    zip.file("[Content_Types].xml", serializeXml(ct));
 };
 var uniquifyShapeIds = (slide) => {
   const all = elements(slide, "p:cNvPr");
@@ -54832,6 +54847,7 @@ var postProcess = async (bytes, work, props) => {
   }
   if (props !== null)
     await setProps(zip, props);
+  await cleanContentTypes(zip);
   return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 };
 
@@ -54938,6 +54954,7 @@ var buildSeed = async (templateBytes) => {
   zip.file("[Content_Types].xml", ct.replace("</Types>", `${overrides}</Types>`));
   zip.file("ppt/presentation.xml", pres.replace("<p:sldIdLst></p:sldIdLst>", `<p:sldIdLst>${sldIds}</p:sldIdLst>`));
   zip.file("ppt/_rels/presentation.xml.rels", presRels.replace("</Relationships>", `${rels}</Relationships>`));
+  await cleanContentTypes(zip);
   return {
     bytes: await zip.generateAsync({ type: "nodebuffer" }),
     layoutCount: order.length

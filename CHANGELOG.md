@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.2
+
+- Engine: sweep stale and duplicate content-type overrides (another
+  PowerPoint "repair" trigger) -- in the post-pass after every apply and
+  in the seed builder, so templates carrying override debris of their own
+  produce clean decks; `removeParts` now strips ALL matching overrides.
+- Tests: new file-integrity validator (`test/util/integrity.ts`) asserting
+  every written deck against the known repair triggers -- well-formed XML,
+  unique shape ids, no dead relationship targets, no dead/duplicate
+  content-type overrides, full content-type coverage, resolvable sldIds;
+  wired into the integration, elements and contract suites.
+- Test fixture: removed phantom slideMaster2/3 overrides from
+  `neutral-template.pptx`.
+- Plugin: element slides (tables/charts/shapes via `el.add`) always use
+  the blank-role layout (title + empty surface), never layouts with text
+  placeholders in the content area.
+
 ## 0.2.1
 
 - Plugin: the skill no longer bundles a template -- it works exclusively

@@ -101,9 +101,10 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
     -   <colors/> = `result.colors` (theme palette; prefix `#` when used).
     -   Layout-role map: identify title / chapter / agenda / content /
-        keymessage / contacts / closing layouts **by layout NAME and
-        placeholder composition, never by index** (indices vary between
-        templates). Source of truth: the template sidecar `<tpl>.md` if
+        keymessage / contacts / closing / **blank** (title + empty
+        surface, target for `el.add` elements) layouts **by layout NAME
+        and placeholder composition, never by index** (indices vary
+        between templates). Source of truth: the template sidecar `<tpl>.md` if
         present; otherwise name heuristics; otherwise ask the user.
     -   Per picture placeholder: frame geometry → nearest aspect ratio.
     -   Per text placeholder: capacity (`~N Zeilen à ~M Zeichen`).
@@ -171,6 +172,10 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         derives from chapter titles -- when chapters change
         (add/rename/remove), include the agenda `slide.fill` in the SAME
         ops document.
+    -   **Elements on blank layouts**: slides receiving `el.add` content
+        (tables, charts, shapes) use the blank-role layout (title + empty
+        surface, no body placeholders in the content area) -- elements
+        never overlap text placeholders.
     -   **Footer on every slide** (via the `footer` field): follow the
         template's footer pattern (see sidecar) with <deck-title/> and
         the CURRENT year -- never keep the template's placeholder title

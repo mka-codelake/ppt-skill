@@ -63,7 +63,7 @@ const removeParts = async (zip: JSZip, parts: string[]): Promise<void> => {
     for (const part of parts) {
         zip.remove(part)
         zip.remove(`${path.posix.dirname(part)}/_rels/${path.posix.basename(part)}.rels`)
-        ct = ct.replace(new RegExp(`<Override PartName="/${part.replace(/[.\\/]/g, "\\$&")}"[^>]*/>`), "")
+        ct = ct.replace(new RegExp(`<Override PartName="/${part.replace(/[.\\/]/g, "\\$&")}"[^>]*/>`, "g"), "")
     }
     zip.file("[Content_Types].xml", ct)
 }
@@ -117,6 +117,24 @@ const gcParts = async (zip: JSZip, kept: string[]): Promise<void> => {
     }
     if (pruned)
         zip.file(presRelsPart, serializeXml(presRels))
+}
+
+/**  drop content-type overrides that are duplicates or whose part vanished  */
+export const cleanContentTypes = async (zip: JSZip): Promise<void> => {
+    const ct = parseXml(await partText(zip, "[Content_Types].xml"))
+    const seen = new Set<string>()
+    let changed = false
+    for (const o of elements(ct, "Override")) {
+        const part = (o.getAttribute("PartName") ?? "").replace(/^\//, "")
+        if (zip.file(part) === null || seen.has(part)) {
+            o.parentNode?.removeChild(o)
+            changed = true
+        }
+        else
+            seen.add(part)
+    }
+    if (changed)
+        zip.file("[Content_Types].xml", serializeXml(ct))
 }
 
 /**  make cNvPr shape ids unique within a slide (duplicates trigger repair)  */
@@ -432,5 +450,8 @@ export const postProcess = async (
     }
     if (props !== null)
         await setProps(zip, props)
+    /*  final sweep: stale or duplicate content-type overrides accumulate
+        across applies (automizer renames parts) and trigger repair  */
+    await cleanContentTypes(zip)
     return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
 }

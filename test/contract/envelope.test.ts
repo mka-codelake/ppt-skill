@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { buildEmptyDeck } from "../../src/engine/seed.js"
+import { expectIntact } from "../util/integrity.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const BIN = path.join(here, "..", "..", "dst", "pptc.mjs")
@@ -62,5 +63,8 @@ describe("envelope and exit-code contract", () => {
         const { exit, envelope } = run("frobnicate")
         expect(exit).toBe(2)
         expect(envelope).toMatchObject({ ok: false, error: { code: "E_USAGE" } })
+    })
+    it("empty deck from buildEmptyDeck passes the file-integrity validation", async () => {
+        await expectIntact(DECK)
     })
 })

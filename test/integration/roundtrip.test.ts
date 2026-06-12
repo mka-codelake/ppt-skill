@@ -14,6 +14,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import JSZip from "jszip"
 import { buildEmptyDeck, buildSeed } from "../../src/engine/seed.js"
+import { expectIntact } from "../util/integrity.js"
 import { DeckArchive, readDeckState, readTemplateInfo } from "../../src/engine/reader.js"
 import { executeOps } from "../../src/commands/apply.js"
 import { PptcError } from "../../src/core/errors.js"
@@ -115,6 +116,10 @@ describe("roundtrip against the fixture template", () => {
         const slide = await (out.file("ppt/slides/slide1.xml") as JSZip.JSZipObject).async("string")
         expect(slide).toContain("type=\"sldNum\"")
         expect(slide).toContain("type=\"slidenum\"")
+    })
+
+    it("written deck passes the file-integrity validation", async () => {
+        await expectIntact(DECK)
     })
 
     it("strips a master-view lastView so decks open in normal view", async () => {

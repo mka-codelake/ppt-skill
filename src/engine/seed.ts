@@ -17,6 +17,7 @@ import type { Element } from "@xmldom/xmldom"
 import { PptcError } from "../core/errors.js"
 import { seedPlaceholderName } from "../core/model.js"
 import { cacheDir, contentHash } from "../infra/fs.js"
+import { cleanContentTypes } from "./post.js"
 import { NS_A, elements, firstElement, parseXml, serializeElement } from "./xml.js"
 
 /**  seed format generation: bump to invalidate all cached seeds  */
@@ -158,6 +159,10 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
     zip.file("[Content_Types].xml", ct.replace("</Types>", `${overrides}</Types>`))
     zip.file("ppt/presentation.xml", pres.replace("<p:sldIdLst></p:sldIdLst>", `<p:sldIdLst>${sldIds}</p:sldIdLst>`))
     zip.file("ppt/_rels/presentation.xml.rels", presRels.replace("</Relationships>", `${rels}</Relationships>`))
+
+    /*  templates may carry stale or duplicate content-type overrides
+        of their own -- sweep them so every derived deck starts clean  */
+    await cleanContentTypes(zip)
 
     return {
         bytes: await zip.generateAsync({ type: "nodebuffer" }),
