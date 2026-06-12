@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="pptc logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/Brusdeylins/ppt-skill/main/logo.png" alt="pptc logo" width="200"/>
 </p>
 
 # pptc
