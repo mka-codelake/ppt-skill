@@ -460,9 +460,10 @@ git). `plugin/skills/powerpoint/scripts/VERSION` records which pptc build is
 bundled in the plugin.
 
 - **Skill-only change** (SKILL.md, references, meta): bump the plugin and
-  marketplace version, add a CHANGELOG entry, commit and push `main` --
-  done. No tag, no GitHub release, no npm; marketplace users update via
-  `/plugin marketplace update`.
+  marketplace version, add a CHANGELOG entry, commit and push `main`,
+  tag `plugin-v<version>` and create a GitHub release from the CHANGELOG
+  notes (visibility of the version history). No npm; marketplace users
+  update via `/plugin marketplace update`.
 - **CLI/engine change**: bump `package.json`, run `npm run plugin:sync`
   and bump the plugin version too (a new bundle is a new plugin release).
   CHANGELOG entry, commit, tag `v<version>`, push `main` + tag, GitHub
