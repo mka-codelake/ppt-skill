@@ -353,7 +353,29 @@ npm install        # dependencies
 npm test           # build + vitest (unit, golden, integration, contract)
 npm run lint       # eslint (incl. TSDoc) + tsc --noEmit
 npm run build      # esbuild bundle -> dst/pptc.mjs
+npm run plugin:sync # rebuild + copy the bundle into the plugin (bin/VERSION)
 ```
+
+### Versioning & release rule
+
+This repo carries two independently versioned artifacts: the **pptc CLI**
+(`package.json`, published to npm) and the **Claude Code plugin**
+(`plugin/.claude-plugin/plugin.json` + marketplace entry, distributed via
+git). `plugin/skills/powerpoint/bin/VERSION` records which pptc build is
+bundled in the plugin.
+
+- **Skill-only change** (SKILL.md, references, meta): bump the plugin and
+  marketplace version, add a CHANGELOG entry, commit and push `main` --
+  done. No tag, no GitHub release, no npm; marketplace users update via
+  `/plugin marketplace update`.
+- **CLI/engine change**: bump `package.json`, run `npm run plugin:sync`
+  and bump the plugin version too (a new bundle is a new plugin release).
+  CHANGELOG entry, commit, tag `v<version>`, push `main` + tag, GitHub
+  release -- and `npm publish --access public` once the package is live
+  (`prepublishOnly` enforces lint + tests + build).
+
+CLI change ⇒ plugin release, but skill change ⇏ CLI release. Lint and the
+test suite must be green before any push.
 
 ## License
 
