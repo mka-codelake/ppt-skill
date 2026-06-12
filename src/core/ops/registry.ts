@@ -9,6 +9,7 @@
 **  interprets the finished plan in one pass -- ops never touch files.
 */
 
+import { PptcError } from "../errors.js"
 import type { Op } from "../../schema/ops.js"
 import type { ElementSpec, RichText } from "../../schema/payloads.js"
 import type { DeckState, Layout, TemplateInfo } from "../model.js"
@@ -145,3 +146,19 @@ export const selectableEntries = (ctx: PlanContext): (SelectableSlide & { entry:
         title: entry.title,
         entry
     }))
+
+/**
+ *  Register a document-local ref against a plan entry, rejecting duplicates.
+ *
+ *  @param ctx - planning context
+ *  @param ref - the ref name, or undefined when the op declares none
+ *  @param entry - the plan entry the ref points at
+ *  @throws PptcError E_SCHEMA on a duplicate ref
+ */
+export const registerRef = (ctx: PlanContext, ref: string | undefined, entry: SlidePlanEntry): void => {
+    if (ref === undefined)
+        return
+    if (ctx.plan.refs.has(ref))
+        throw new PptcError("E_SCHEMA", `duplicate ref '${ref}' in ops document`)
+    ctx.plan.refs.set(ref, entry)
+}

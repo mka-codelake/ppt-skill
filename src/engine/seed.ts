@@ -20,7 +20,7 @@ import { cacheDir, contentHash } from "../infra/fs.js"
 import { NS_A, elements, firstElement, parseXml, serializeElement } from "./xml.js"
 
 /**  seed format generation: bump to invalidate all cached seeds  */
-const SEED_FORMAT = 2
+const SEED_FORMAT = 4
 
 /**  clone the fillable placeholders of a layout onto an empty slide (DOM)  */
 const slideFromLayout = (layoutXml: string): string => {
@@ -32,11 +32,16 @@ const slideFromLayout = (layoutXml: string): string => {
         if (ph === null)
             continue
         const type = ph.getAttribute("type") ?? "body"
-        if (type === "ftr" || type === "sldNum" || type === "dt")
-            continue
         const clone = sp.cloneNode(true) as Element
         const cNvPr = firstElement(clone, "p:cNvPr")
         cNvPr?.setAttribute("id", String(nextId++))
+        if (type === "ftr" || type === "sldNum" || type === "dt") {
+            /*  header/footer placeholders: keep the layout content (footer
+                text, slidenum/datetime fields) so slides show footer and
+                page number exactly like PowerPoint-inserted slides  */
+            sps.push(serializeElement(clone))
+            continue
+        }
         cNvPr?.setAttribute("name", seedPlaceholderName(Number(ph.getAttribute("idx") ?? "0")))
         const txBody = firstElement(clone, "p:txBody")
         const doc = clone.ownerDocument
@@ -61,6 +66,14 @@ const slideFromLayout = (layoutXml: string): string => {
         + sps.join("")
         + "</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
 }
+
+/**  strip every slide relationship, slide content-type override and slide part from a deck zip  */
+const stripSlides = (
+    presRels: string, ct: string
+): { presRels: string, ct: string } => ({
+    presRels: presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, ""),
+    ct: ct.replace(/<Override PartName="\/ppt\/slides\/[^"]*"[^>]*\/>/g, "")
+})
 
 /**  layout part paths in slide-master order  */
 const layoutOrder = async (zip: JSZip): Promise<string[]> => {
@@ -116,6 +129,13 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
         if (/^ppt\/(slides|notesSlides)\//.test(f))
             zip.remove(f)
     ct = ct.replace(/<Override PartName="\/ppt\/(slides|notesSlides)\/[^"]*"[^>]*\/>/g, "")
+
+    /*  templates saved in master/layout view carry that view along --
+        drop lastView so the produced deck opens in normal view  */
+    const viewPr = zip.file("ppt/viewProps.xml")
+    if (viewPr !== null)
+        zip.file("ppt/viewProps.xml",
+            (await viewPr.async("string")).replace(/ lastView="[^"]*"/, ""))
 
     /*  one seed slide per layout  */
     const order = await layoutOrder(zip)
@@ -177,8 +197,9 @@ export const buildEmptyDeck = async (templatePath: string): Promise<Buffer> => {
     const presRels = await (zip.file("ppt/_rels/presentation.xml.rels") as JSZip.JSZipObject).async("string")
     const ct = await (zip.file("[Content_Types].xml") as JSZip.JSZipObject).async("string")
     zip.file("ppt/presentation.xml", pres.replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst/>"))
-    zip.file("ppt/_rels/presentation.xml.rels", presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, ""))
-    zip.file("[Content_Types].xml", ct.replace(/<Override PartName="\/ppt\/slides\/[^"]*"[^>]*\/>/g, ""))
+    const stripped = stripSlides(presRels, ct)
+    zip.file("ppt/_rels/presentation.xml.rels", stripped.presRels)
+    zip.file("[Content_Types].xml", stripped.ct)
     for (const f of Object.keys(zip.files))
         if (/^ppt\/slides\//.test(f))
             zip.remove(f)

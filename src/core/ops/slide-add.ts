@@ -9,7 +9,7 @@
 
 import { PptcError } from "../errors.js"
 import type { SlideAddOp } from "../../schema/ops.js"
-import { newPlanEntry, type OpHandler, type PlanContext } from "./registry.js"
+import { newPlanEntry, registerRef, type OpHandler, type PlanContext } from "./registry.js"
 import { planFill } from "./fill-common.js"
 
 /**  resolve a layout address (index or exact name) against the template  */
@@ -39,11 +39,7 @@ export const slideAdd: OpHandler<SlideAddOp> = {
         const entry = newPlanEntry({ kind: "seed", layoutIndex }, ctx.nextVirtualId--, null, layoutIndex)
         const at = Math.min(op.at ?? ctx.plan.entries.length, ctx.plan.entries.length)
         ctx.plan.entries.splice(at, 0, entry)
-        if (op.ref !== undefined) {
-            if (ctx.plan.refs.has(op.ref))
-                throw new PptcError("E_SCHEMA", `duplicate ref '${op.ref}' in ops document`)
-            ctx.plan.refs.set(op.ref, entry)
-        }
+        registerRef(ctx, op.ref, entry)
         planFill(ctx, entry, op)
     }
 }

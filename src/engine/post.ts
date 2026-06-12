@@ -74,7 +74,8 @@ const gcParts = async (zip: JSZip, kept: string[]): Promise<void> => {
     const orphanSlides = Object.keys(zip.files)
         .filter((f) => /^ppt\/slides\/slide\d+\.xml$/.test(f) && !keptSet.has(f))
     await removeParts(zip, orphanSlides)
-    /*  notes slides referenced from kept slides survive  */
+    /*  notes slides referenced from kept slides survive; their slide
+        back-reference must follow the (possibly renamed) parent part  */
     const referencedNotes = new Set<string>()
     for (const slide of kept) {
         const relsPart = `ppt/slides/_rels/${path.posix.basename(slide)}.rels`
@@ -82,13 +83,60 @@ const gcParts = async (zip: JSZip, kept: string[]): Promise<void> => {
         if (relsText === undefined)
             continue
         for (const rel of elements(parseXml(relsText), "Relationship"))
-            if ((rel.getAttribute("Type") ?? "").endsWith("/notesSlide"))
-                referencedNotes.add(path.posix.normalize(
-                    path.posix.join("ppt/slides", rel.getAttribute("Target") ?? "")))
+            if ((rel.getAttribute("Type") ?? "").endsWith("/notesSlide")) {
+                const notesPart = path.posix.normalize(
+                    path.posix.join("ppt/slides", rel.getAttribute("Target") ?? ""))
+                referencedNotes.add(notesPart)
+                const noteRelsPart = `ppt/notesSlides/_rels/${path.posix.basename(notesPart)}.rels`
+                const noteRelsText = await zip.file(noteRelsPart)?.async("string")
+                if (noteRelsText === undefined)
+                    continue
+                const noteRels = parseXml(noteRelsText)
+                for (const back of elements(noteRels, "Relationship"))
+                    if ((back.getAttribute("Type") ?? "").endsWith("/slide"))
+                        back.setAttribute("Target", `../slides/${path.posix.basename(slide)}`)
+                zip.file(noteRelsPart, serializeXml(noteRels))
+            }
     }
     const orphanNotes = Object.keys(zip.files)
         .filter((f) => /^ppt\/notesSlides\/notesSlide[^/]*\.xml$/.test(f) && !referencedNotes.has(f))
     await removeParts(zip, orphanNotes)
+    /*  drop presentation relationships whose target part vanished
+        (stale slide rels from a previous apply trigger a repair)  */
+    const presRelsPart = "ppt/_rels/presentation.xml.rels"
+    const presRels = parseXml(await partText(zip, presRelsPart))
+    let pruned = false
+    for (const rel of elements(presRels, "Relationship")) {
+        if (rel.getAttribute("TargetMode") === "External")
+            continue
+        const target = path.posix.normalize(path.posix.join("ppt", rel.getAttribute("Target") ?? ""))
+        if (zip.file(target) === null) {
+            rel.parentNode?.removeChild(rel)
+            pruned = true
+        }
+    }
+    if (pruned)
+        zip.file(presRelsPart, serializeXml(presRels))
+}
+
+/**  make cNvPr shape ids unique within a slide (duplicates trigger repair)  */
+const uniquifyShapeIds = (slide: Document): boolean => {
+    const all = elements(slide, "p:cNvPr")
+    let max = 0
+    for (const el of all)
+        max = Math.max(max, Number(el.getAttribute("id") ?? "0"))
+    const seen = new Set<number>()
+    let changed = false
+    for (const el of all) {
+        const id = Number(el.getAttribute("id") ?? "0")
+        if (seen.has(id)) {
+            el.setAttribute("id", String(++max))
+            changed = true
+        }
+        else
+            seen.add(id)
+    }
+    return changed
 }
 
 /**  next unique pptc relationship id within a rels document  */
@@ -349,35 +397,38 @@ export const postProcess = async (
     for (let i = 0; i < slides.length; i++) {
         const slidePart = slides[i] as string
         const job = work[i]
-        if (job === undefined)
-            continue
         const relsPart = `ppt/slides/_rels/${path.posix.basename(slidePart)}.rels`
         const slide = parseXml(await partText(zip, slidePart))
         const slideRels = parseXml(await partText(zip, relsPart))
 
-        if (job.background !== null)
-            setBackground(slide, job.background)
-        if (job.footer !== null)
-            await setFooter(zip, slidePart, slide, job.footer)
-        for (const img of job.images) {
-            const ext = path.extname(img.path).slice(1).toLowerCase() || "png"
-            const mediaPart = `ppt/media/pptcImage${mediaSeq++}.${ext}`
-            zip.file(mediaPart, readFileSync(img.path))
-            await ensureImageDefault(zip, ext)
-            const rid = nextRid(post)
-            addRel(slideRels, rid,
-                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
-                `../media/${path.posix.basename(mediaPart)}`)
-            if (!fillPicturePlaceholder(slide, rid, img.phIdx, img.frame))
-                throw new PptcError("E_ADDR_NOTFOUND",
-                    `slide ${i}: no empty picture placeholder idx ${img.phIdx}`)
+        if (job !== undefined) {
+            if (job.background !== null)
+                setBackground(slide, job.background)
+            if (job.footer !== null)
+                await setFooter(zip, slidePart, slide, job.footer)
+            for (const img of job.images) {
+                const ext = path.extname(img.path).slice(1).toLowerCase() || "png"
+                const mediaPart = `ppt/media/pptcImage${mediaSeq++}.${ext}`
+                zip.file(mediaPart, readFileSync(img.path))
+                await ensureImageDefault(zip, ext)
+                const rid = nextRid(post)
+                addRel(slideRels, rid,
+                    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+                    `../media/${path.posix.basename(mediaPart)}`)
+                if (!fillPicturePlaceholder(slide, rid, img.phIdx, img.frame))
+                    throw new PptcError("E_ADDR_NOTFOUND",
+                        `slide ${i}: no empty picture placeholder idx ${img.phIdx}`)
+            }
+            if (job.notes !== null)
+                await setNotes(post, slidePart, slideRels, job.notes)
+            wireHyperlinks(post, slide, slideRels)
         }
-        if (job.notes !== null)
-            await setNotes(post, slidePart, slideRels, job.notes)
-        wireHyperlinks(post, slide, slideRels)
+        const idsChanged = uniquifyShapeIds(slide)
 
-        zip.file(slidePart, serializeXml(slide))
-        zip.file(relsPart, serializeXml(slideRels))
+        if (job !== undefined || idsChanged) {
+            zip.file(slidePart, serializeXml(slide))
+            zip.file(relsPart, serializeXml(slideRels))
+        }
     }
     if (props !== null)
         await setProps(zip, props)

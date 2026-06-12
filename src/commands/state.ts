@@ -63,7 +63,7 @@ export const cmdState = async (argv: string[]): Promise<Record<string, unknown>>
     const selector = args.str("slide")
     const slides = selector === null
         ? deck.slides
-        : [deck.slides[resolveSlide(selector, deck.slides, new Map()).index] as SlideInfo]
+        : [deck.slides[resolveSlide(selector, deck.slides, new Map<string, number>()).index] as SlideInfo]
     return {
         file: deck.file,
         rev: deck.rev,

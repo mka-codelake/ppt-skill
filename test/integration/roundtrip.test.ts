@@ -12,7 +12,8 @@ import { beforeAll, describe, expect, it } from "vitest"
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { buildEmptyDeck } from "../../src/engine/seed.js"
+import JSZip from "jszip"
+import { buildEmptyDeck, buildSeed } from "../../src/engine/seed.js"
 import { DeckArchive, readDeckState, readTemplateInfo } from "../../src/engine/reader.js"
 import { executeOps } from "../../src/commands/apply.js"
 import { PptcError } from "../../src/core/errors.js"
@@ -97,5 +98,32 @@ describe("roundtrip against the fixture template", () => {
     it("rejects schema violations with issue paths", async () => {
         await expect(executeOps(DECK, { ops: [{ op: "slide.fill" }] }, opts))
             .rejects.toSatisfy((err: unknown) => (err as PptcError).code === "E_SCHEMA")
+    })
+
+    it("keeps footer and slide-number placeholders on seed slides", async () => {
+        const zip = await JSZip.loadAsync(readFileSync(TEMPLATE))
+        const layoutPart = "ppt/slideLayouts/slideLayout1.xml"
+        const layout = await (zip.file(layoutPart) as JSZip.JSZipObject).async("string")
+        const sldNumSp = "<p:sp><p:nvSpPr><p:cNvPr id=\"90\" name=\"Foliennummer\"/><p:cNvSpPr/>"
+            + "<p:nvPr><p:ph type=\"sldNum\" sz=\"quarter\" idx=\"90\"/></p:nvPr></p:nvSpPr><p:spPr/>"
+            + "<p:txBody><a:bodyPr/><a:lstStyle/><a:p>"
+            + "<a:fld id=\"{11111111-2222-3333-4444-555555555555}\" type=\"slidenum\"><a:t>1</a:t></a:fld>"
+            + "</a:p></p:txBody></p:sp>"
+        zip.file(layoutPart, layout.replace("</p:spTree>", `${sldNumSp}</p:spTree>`))
+        const seed = await buildSeed(await zip.generateAsync({ type: "nodebuffer" }))
+        const out = await JSZip.loadAsync(seed.bytes)
+        const slide = await (out.file("ppt/slides/slide1.xml") as JSZip.JSZipObject).async("string")
+        expect(slide).toContain("type=\"sldNum\"")
+        expect(slide).toContain("type=\"slidenum\"")
+    })
+
+    it("strips a master-view lastView so decks open in normal view", async () => {
+        const zip = await JSZip.loadAsync(readFileSync(TEMPLATE))
+        const viewPr = await (zip.file("ppt/viewProps.xml") as JSZip.JSZipObject).async("string")
+        zip.file("ppt/viewProps.xml", viewPr.replace("<p:viewPr ", "<p:viewPr lastView=\"sldMasterView\" "))
+        const seed = await buildSeed(await zip.generateAsync({ type: "nodebuffer" }))
+        const out = await JSZip.loadAsync(seed.bytes)
+        const outViewPr = await (out.file("ppt/viewProps.xml") as JSZip.JSZipObject).async("string")
+        expect(outViewPr).not.toContain("lastView=")
     })
 })

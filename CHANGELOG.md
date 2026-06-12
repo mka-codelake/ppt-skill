@@ -1,5 +1,20 @@
 # Changelog
 
+## unreleased
+
+- Engine fixes (PowerPoint "repair" triggers): drop stale presentation
+  relationships after re-apply slide renames, re-point notesSlide
+  back-references at the renamed parent slide, and make `cNvPr` shape
+  ids unique per slide.
+- Built slides now keep the layout's footer, slide-number and date
+  placeholders with their content (footer text, `slidenum` field), so
+  decks show footer and page number like PowerPoint-inserted slides.
+- Decks built from templates saved in master/layout view now open in
+  normal view (`lastView` stripped); seed format bumped to 4.
+- Claude Code plugin: new `plugin/skills/powerpoint` skill (template-aware
+  deck building plus color-faithful image prompts) with bundled `pptc.mjs`,
+  marketplace/plugin manifests and the `plugin:sync` npm script.
+
 ## 0.1.0
 
 Initial release.

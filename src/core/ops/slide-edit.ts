@@ -9,7 +9,7 @@
 
 import { PptcError } from "../errors.js"
 import type { SlideFillOp, Op } from "../../schema/ops.js"
-import type { OpHandler, SlidePlanEntry } from "./registry.js"
+import { registerRef, type OpHandler, type SlidePlanEntry } from "./registry.js"
 import { planFill, resolveEntry } from "./fill-common.js"
 
 /**  op handler: slide.fill  */
@@ -61,10 +61,6 @@ export const slideCopy: OpHandler<Extract<Op, { op: "slide.copy" }>> = {
             removeNames: [...source.removeNames]
         }
         ctx.plan.entries.splice(ctx.plan.entries.indexOf(source) + 1, 0, copy)
-        if (op.ref !== undefined) {
-            if (ctx.plan.refs.has(op.ref))
-                throw new PptcError("E_SCHEMA", `duplicate ref '${op.ref}' in ops document`)
-            ctx.plan.refs.set(op.ref, copy)
-        }
+        registerRef(ctx, op.ref, copy)
     }
 }
