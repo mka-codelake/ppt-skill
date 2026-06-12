@@ -103,6 +103,14 @@ describe("sugar and read-command happy paths (built bundle)", () => {
         await expectIntact(SUGAR)
     })
 
+    it.skipIf(!existsSync(BIN))("tpl describe --plain prints raw markdown, no envelope", () => {
+        const proc = spawnSync("node", [BIN, "tpl", "describe", TEMPLATE, "--plain"], { encoding: "utf8" })
+        expect(proc.status).toBe(0)
+        expect(proc.stdout).toContain("# Template:")
+        expect(proc.stdout).toContain("\n")
+        expect(proc.stdout.trimStart().startsWith("{")).toBe(false)
+    })
+
     it.skipIf(!existsSync(BIN))("tpl list, tpl validate and schema respond ok", () => {
         const list = run("tpl", "list", path.dirname(TEMPLATE))
         expect(list.exit).toBe(0)

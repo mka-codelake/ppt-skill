@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 (plugin 0.2.5)
+
+- `tpl describe --plain` prints the raw Markdown without the JSON
+  envelope -- a human console escape hatch (agents keep the envelope).
+
 ## plugin 0.2.4 (CLI unchanged at 0.2.3)
 
 - The skill bundles a NEUTRAL fallback template (Microsoft's default

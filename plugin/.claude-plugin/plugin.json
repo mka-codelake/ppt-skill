@@ -1,6 +1,6 @@
 {
   "name": "powerpoint",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Template-aware PowerPoint skill: builds and edits PPTX decks via the bundled pptc CLI and writes color-faithful image prompts into picture placeholders",
   "author": {
     "name": "Matthias Brusdeylins",

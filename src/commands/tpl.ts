@@ -61,19 +61,23 @@ export const cmdTplList = (argv: string[]): Record<string, unknown> => {
 }
 
 /**
- *  CLI command `pptc tpl describe <template> [--layout SEL] [--format text|json]`.
+ *  CLI command `pptc tpl describe <template> [--layout SEL] [--format text|json] [--plain]`.
  *
  *  @param argv - raw arguments after the subcommand
- *  @returns Markdown description (text mode) or the raw data (json mode)
+ *  @returns Markdown description (text mode), the raw data (json mode),
+ *           or a `plain` payload printing raw Markdown without the envelope
  */
 export const cmdTplDescribe = async (argv: string[]): Promise<Record<string, unknown>> => {
     const args = parse(argv, {
         "layout": { type: "string" },
-        "format": { type: "string" }
+        "format": { type: "string" },
+        "plain": { type: "boolean" }
     }, ["template"])
     const file = args.positionals[0] as string
     const { info, sidecar } = await loadTemplate(file)
     const filtered = filterLayouts(info, args.str("layout"))
+    if (args.flag("plain"))
+        return { plain: narrateTemplate(filtered, path.basename(file), sidecar) }
     if ((args.str("format") ?? "text") === "json")
         return { file: path.resolve(file), result: filtered }
     return {

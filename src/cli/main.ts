@@ -83,6 +83,13 @@ const main = async (): Promise<void> => {
             throw new PptcError("E_USAGE", `unknown command '${name}'`,
                 { usage: USAGE.split("\n") })
         const payload = (await handler(argv)) as Record<string, unknown>
+        /*  human escape hatch: a `plain` payload bypasses the JSON
+            envelope and prints raw text (e.g. `tpl describe --plain`)  */
+        if (typeof payload["plain"] === "string") {
+            process.stdout.write(`${payload["plain"]}\n`)
+            process.exitCode = 0
+            return
+        }
         const update = await checkForUpdate()
         emit({
             ok: true,

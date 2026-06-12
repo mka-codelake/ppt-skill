@@ -122,7 +122,7 @@ Inventory of all `.potx`/`.pptx` files in a directory, sorted, each with a
 `sidecar` flag telling whether a human-curated `<name>.md` companion file
 exists next to it.
 
-#### `pptc tpl describe <tpl> [--layout SEL] [--format text|json]`
+#### `pptc tpl describe <tpl> [--layout SEL] [--format text|json] [--plain]`
 
 The LLM-facing template description. For every layout: an ASCII minimap of
 the placeholder geometry, semantic positions ("linke Spalte, volle Höhe"),
@@ -133,6 +133,8 @@ constraints) is included verbatim in the header.
 
 - `--layout SEL` -- restrict to one layout (zero-based index or exact name)
 - `--format json` -- return the raw `TemplateInfo` data instead of Markdown
+- `--plain` -- print the Markdown directly WITHOUT the JSON envelope
+  (human console use; agents should stick to the envelope)
 
 #### `pptc tpl inspect <tpl> [--layout SEL]`
 

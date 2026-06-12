@@ -38587,7 +38587,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.3" : "0.0.0-dev";
+var VERSION = true ? "0.2.4" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54981,7 +54981,7 @@ var buildSeed = async (templateBytes) => {
   if (viewPr !== null)
     zip.file(
       "ppt/viewProps.xml",
-      (await viewPr.async("string")).replace(/ lastView="[^"]*"/, "")
+      (await viewPr.async("string")).replace(/ lastView="[^"]*"/g, "")
     );
   const order = await layoutOrder(zip);
   if (order.length === 0)
@@ -55625,11 +55625,14 @@ var cmdTplList = (argv) => {
 var cmdTplDescribe = async (argv) => {
   const args = parse3(argv, {
     "layout": { type: "string" },
-    "format": { type: "string" }
+    "format": { type: "string" },
+    "plain": { type: "boolean" }
   }, ["template"]);
   const file2 = args.positionals[0];
   const { info, sidecar } = await loadTemplate(file2);
   const filtered = filterLayouts(info, args.str("layout"));
+  if (args.flag("plain"))
+    return { plain: narrateTemplate(filtered, path8.basename(file2), sidecar) };
   if ((args.str("format") ?? "text") === "json")
     return { file: path8.resolve(file2), result: filtered };
   return {
@@ -55756,6 +55759,12 @@ var main = async () => {
         { usage: USAGE.split("\n") }
       );
     const payload = await handler(argv);
+    if (typeof payload["plain"] === "string") {
+      process.stdout.write(`${payload["plain"]}
+`);
+      process.exitCode = 0;
+      return;
+    }
     const update = await checkForUpdate();
     emit({
       ok: true,
