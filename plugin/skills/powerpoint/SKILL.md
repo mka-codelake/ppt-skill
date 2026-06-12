@@ -78,8 +78,9 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
 1.  <step id="STEP 1: Template">
 
-    Determine the template. The skill ships NO template of its own --
-    it always works with an external `.potx`/`.pptx` the user provides:
+    Determine the template. The skill prefers an external `.potx`/`.pptx`
+    from the user; it ships only a NEUTRAL fallback (Microsoft's default
+    Office design -- no corporate material):
 
     -   If the user names a template path, use it.
     -   Else if the user names a directory (or the project documents a
@@ -87,8 +88,9 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         <if condition="scan finds exactly one template">use it silently.</if>
         <if condition="scan finds several">present a selection menu
         (file + sidecar availability) and let the user choose.</if>
-    -   Else ASK the user for a template file or directory before doing
-        anything else.
+    -   Else fall back to `<skill-dir/>/assets/neutral-template.pptx`
+        and TELL the user the neutral default design is in use and that
+        a corporate template can be supplied instead at any time.
 
     A sidecar Markdown next to the template (`<name>.md` beside
     `<name>.potx`) carries template-specific knowledge -- layout-role

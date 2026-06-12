@@ -1,5 +1,13 @@
 # Changelog
 
+## plugin 0.2.4 (CLI unchanged at 0.2.3)
+
+- The skill bundles a NEUTRAL fallback template (Microsoft's default
+  Office design, same provenance as the test fixture) with a sidecar:
+  used when the user names no template, always announced as the neutral
+  default with a hint that a corporate template can be supplied instead.
+  No corporate material involved.
+
 ## 0.2.3
 
 - Engine: two more repair triggers eliminated -- (1) `CT_Presentation`
