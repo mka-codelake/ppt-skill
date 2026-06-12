@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 (plugin 0.2.10)
+
+- The image-prompt box label is English ("IMAGE PROMPT"); the box
+  border, the schema error example and the default chart palette use
+  neutral Office colors instead of leftover corporate values.
+
 ## plugin 0.2.9 (CLI unchanged at 0.2.7)
 
 - Deck sidecar: the skill persists the deck setup (title, topic, deck

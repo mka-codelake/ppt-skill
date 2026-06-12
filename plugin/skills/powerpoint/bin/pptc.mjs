@@ -38794,7 +38794,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.7" : "0.0.0-dev";
+var VERSION = true ? "0.2.8" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -39244,7 +39244,7 @@ var elRm = {
   }
 };
 var PROMPT_FILL = "FFFBE6";
-var PROMPT_BORDER = "A01441";
+var PROMPT_BORDER = "C00000";
 var imgPrompts = {
   name: "img.prompts",
   plan(ctx, op) {
@@ -39271,7 +39271,7 @@ var imgPrompts = {
         type: "textbox",
         frame: { x: frame.x, y: frame.y, w: Math.max(frame.w * 0.5, 2), h: Math.max(frame.h * 0.4, 0.8) },
         text: [
-          { text: `BILD-PROMPT (idx ${pic.idx})`, bold: true, size: 9, color: PROMPT_BORDER },
+          { text: `IMAGE PROMPT (idx ${pic.idx})`, bold: true, size: 9, color: PROMPT_BORDER },
           { text, size: 9, color: "4A4A4A" }
         ],
         fill: PROMPT_FILL,
@@ -53857,7 +53857,7 @@ function date4(params) {
 config(en_default());
 
 // src/schema/payloads.ts
-var ColorSchema = external_exports.string().regex(/^#?[0-9a-fA-F]{6}$/, "expected 6-digit hex color like '#A01441'").transform((s) => s.replace("#", "").toUpperCase());
+var ColorSchema = external_exports.string().regex(/^#?[0-9a-fA-F]{6}$/, "expected 6-digit hex color like '#1F4E79'").transform((s) => s.replace("#", "").toUpperCase());
 var FrameSchema = external_exports.object({
   x: external_exports.number().min(0),
   y: external_exports.number().min(0),
@@ -54525,7 +54525,7 @@ var genTableRows = (data) => {
   });
   return rows;
 };
-var DEFAULT_COLORS = ["A01441", "139EAD", "F5B510", "70DC51", "5866E3", "D74B97"];
+var DEFAULT_COLORS = ["4F81BD", "C0504D", "9BBB59", "8064A2", "4BACC6", "F79646"];
 var addElement = (slide, gen, el) => {
   if (el.type === "connector") {
     const x = Math.min(el.from[0], el.to[0]);

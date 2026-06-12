@@ -103,7 +103,7 @@ export const elRm: OpHandler<Extract<Op, { op: "el.rm" }>> = {
 
 /**  visual style of prompt boxes (light yellow, accent border)  */
 const PROMPT_FILL = "FFFBE6"
-const PROMPT_BORDER = "A01441"
+const PROMPT_BORDER = "C00000"
 
 /**  op handler: img.prompts  */
 export const imgPrompts: OpHandler<Extract<Op, { op: "img.prompts" }>> = {
@@ -129,7 +129,7 @@ export const imgPrompts: OpHandler<Extract<Op, { op: "img.prompts" }>> = {
                 type: "textbox",
                 frame: { x: frame.x, y: frame.y, w: Math.max(frame.w * 0.5, 2), h: Math.max(frame.h * 0.4, 0.8) },
                 text: [
-                    { text: `BILD-PROMPT (idx ${pic.idx})`, bold: true, size: 9, color: PROMPT_BORDER },
+                    { text: `IMAGE PROMPT (idx ${pic.idx})`, bold: true, size: 9, color: PROMPT_BORDER },
                     { text, size: 9, color: "4A4A4A" }
                 ],
                 fill: PROMPT_FILL,

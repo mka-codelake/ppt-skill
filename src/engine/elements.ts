@@ -103,7 +103,7 @@ const genTableRows = (data: TableData): unknown[][] => {
 }
 
 /**  default series color cycle when the payload specifies none  */
-const DEFAULT_COLORS = ["A01441", "139EAD", "F5B510", "70DC51", "5866E3", "D74B97"]
+const DEFAULT_COLORS = ["4F81BD", "C0504D", "9BBB59", "8064A2", "4BACC6", "F79646"]
 
 /**
  *  Render one validated element onto a PptxGenJS slide.

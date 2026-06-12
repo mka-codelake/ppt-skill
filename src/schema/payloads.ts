@@ -14,7 +14,7 @@ import { z } from "zod"
 /**  6-digit hex color, with or without leading `#`, normalized to RRGGBB.  */
 export const ColorSchema = z
     .string()
-    .regex(/^#?[0-9a-fA-F]{6}$/, "expected 6-digit hex color like '#A01441'")
+    .regex(/^#?[0-9a-fA-F]{6}$/, "expected 6-digit hex color like '#1F4E79'")
     .transform((s) => s.replace("#", "").toUpperCase())
 
 /**  Geometry of a box in inches; `x`/`y` are required, size may be omitted.  */
