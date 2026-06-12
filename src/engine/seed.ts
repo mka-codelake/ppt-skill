@@ -125,6 +125,15 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
         .replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>")
     if (!pres.includes("<p:sldIdLst>"))
         pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>")
+
+    /*  CT_Presentation is an ordered sequence: notesMasterIdLst (and
+        handoutMasterIdLst) MUST precede sldIdLst -- sloppy templates
+        violate this and PowerPoint answers with the repair dialog  */
+    for (const lst of ["handoutMasterIdLst", "notesMasterIdLst"]) {
+        const el = new RegExp(`<p:${lst}>.*?</p:${lst}>|<p:${lst}\\s*/>`, "s").exec(pres)
+        if (el !== null && pres.indexOf(el[0]) > pres.indexOf("<p:sldIdLst"))
+            pres = pres.replace(el[0], "").replace(/<p:sldIdLst/, `${el[0]}<p:sldIdLst`)
+    }
     presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "")
     for (const f of Object.keys(zip.files))
         if (/^ppt\/(slides|notesSlides)\//.test(f))

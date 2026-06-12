@@ -11,7 +11,8 @@
 */
 
 import { beforeAll, describe, expect, it } from "vitest"
-import { mkdirSync, writeFileSync } from "node:fs"
+import JSZip from "jszip"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { buildEmptyDeck } from "../../src/engine/seed.js"
@@ -123,6 +124,15 @@ describe("multi-apply stress with per-apply integrity", () => {
         expect(state.slides.length).toBeGreaterThanOrEqual(4)
         expect(state.slides[0]?.title).toBe("Runde 3")
         expect(state.slides[0]?.notes).toBe("Notiz der Runde 3")
+
+        /*  re-applies must not multiply chart/embedding parts (one chart
+            was added once -- exactly one part of each may survive)  */
+        const zip = await JSZip.loadAsync(readFileSync(DECK))
+        const charts = Object.keys(zip.files).filter((f) => /^ppt\/charts\/chart\d+\.xml$/.test(f))
+        const sheets = Object.keys(zip.files).filter((f) =>
+            f.startsWith("ppt/embeddings/") && !f.endsWith("/"))
+        expect(charts).toHaveLength(1)
+        expect(sheets.length).toBeLessThanOrEqual(1)
     }, 120000)
 
     it("escapes XML special characters end to end", async () => {

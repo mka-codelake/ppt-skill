@@ -137,6 +137,59 @@ export const cleanContentTypes = async (zip: JSZip): Promise<void> => {
         zip.file("[Content_Types].xml", serializeXml(ct))
 }
 
+/**  rel types that are never referenced from the slide XML itself  */
+const STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"]
+
+/**  drop slide relationships whose id no longer occurs in the slide XML
+     (automizer accumulates one stale chart/image rel per re-import)  */
+const pruneUnusedSlideRels = (slide: Document, slideRels: Document): boolean => {
+    const xml = serializeXml(slide)
+    let changed = false
+    for (const rel of elements(slideRels, "Relationship")) {
+        const type = rel.getAttribute("Type") ?? ""
+        if (STRUCTURAL_RELS.some((k) => type.endsWith(k)))
+            continue
+        if (!xml.includes(`"${rel.getAttribute("Id") ?? ""}"`)) {
+            rel.parentNode?.removeChild(rel)
+            changed = true
+        }
+    }
+    return changed
+}
+
+/**  GC charts, embeddings and media unreachable from any live part --
+     automizer re-imports duplicate chart parts on every apply, so without
+     this the archive doubles its charts per round  */
+const gcAssets = async (zip: JSZip): Promise<void> => {
+    const isAsset = (f: string): boolean =>
+        /^ppt\/(charts|embeddings|media)\//.test(f) && !f.endsWith("/") && !f.includes("/_rels/")
+    const assets = Object.keys(zip.files).filter(isAsset)
+    if (assets.length === 0)
+        return
+    const live = new Set<string>()
+    const queue = Object.keys(zip.files).filter((f) =>
+        f.endsWith(".rels") && !/^ppt\/(charts|embeddings|media)\//.test(f))
+    while (queue.length > 0) {
+        const relsPart = queue.pop() as string
+        const relsText = await zip.file(relsPart)?.async("string")
+        if (relsText === undefined)
+            continue
+        const base = path.posix.dirname(path.posix.dirname(relsPart))
+        for (const rel of elements(parseXml(relsText), "Relationship")) {
+            if (rel.getAttribute("TargetMode") === "External")
+                continue
+            const target = path.posix.normalize(path.posix.join(base, rel.getAttribute("Target") ?? ""))
+            if (isAsset(target) && !live.has(target)) {
+                live.add(target)
+                const tRels = `${path.posix.dirname(target)}/_rels/${path.posix.basename(target)}.rels`
+                if (zip.file(tRels) !== null)
+                    queue.push(tRels)
+            }
+        }
+    }
+    await removeParts(zip, assets.filter((a) => !live.has(a)))
+}
+
 /**  make cNvPr shape ids unique within a slide (duplicates trigger repair)  */
 const uniquifyShapeIds = (slide: Document): boolean => {
     const all = elements(slide, "p:cNvPr")
@@ -442,16 +495,18 @@ export const postProcess = async (
             wireHyperlinks(post, slide, slideRels)
         }
         const idsChanged = uniquifyShapeIds(slide)
+        const relsChanged = pruneUnusedSlideRels(slide, slideRels)
 
-        if (job !== undefined || idsChanged) {
+        if (job !== undefined || idsChanged || relsChanged) {
             zip.file(slidePart, serializeXml(slide))
             zip.file(relsPart, serializeXml(slideRels))
         }
     }
     if (props !== null)
         await setProps(zip, props)
-    /*  final sweep: stale or duplicate content-type overrides accumulate
-        across applies (automizer renames parts) and trigger repair  */
+    /*  final sweeps: orphan assets and stale or duplicate content-type
+        overrides accumulate across applies and trigger repair  */
+    await gcAssets(zip)
     await cleanContentTypes(zip)
     return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
 }

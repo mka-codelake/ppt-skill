@@ -91,6 +91,38 @@ export const integrityFindings = async (file: string): Promise<string[]> => {
             findings.push(`presentation.xml: sldId ${m[1]} does not resolve to a slide part`)
     }
 
+    /*  7. CT_Presentation is an ordered sequence: master id lists must
+        precede sldIdLst (violations trigger the repair dialog)  */
+    const seq = [...pres.matchAll(/<p:(sldMasterIdLst|notesMasterIdLst|handoutMasterIdLst|sldIdLst|sldSz|notesSz)[ >/]/g)]
+        .map((m) => m[1] as string)
+    const sldAt = seq.indexOf("sldIdLst")
+    if (sldAt >= 0)
+        for (const lst of ["notesMasterIdLst", "handoutMasterIdLst"])
+            if (seq.includes(lst) && seq.indexOf(lst) > sldAt)
+                findings.push(`presentation.xml: ${lst} appears after sldIdLst (schema order violated)`)
+    if (seq.includes("sldSz") && seq.includes("notesSz")
+        && seq.indexOf("sldSz") > seq.indexOf("notesSz"))
+        findings.push("presentation.xml: sldSz appears after notesSz (schema order violated)")
+
+    /*  8. charts, embeddings and media must be reachable from some part
+        (orphans accumulate over applies and bloat or break the file)  */
+    const isAsset = (f: string): boolean =>
+        /^ppt\/(charts|embeddings|media)\//.test(f) && !f.includes("/_rels/")
+    const live = new Set<string>()
+    for (const n of names)
+        if (n.endsWith(".rels")) {
+            const base = path.posix.dirname(path.posix.dirname(n))
+            for (const m of (await text(n)).matchAll(/<Relationship [^>]*?\/>/g)) {
+                if (m[0].includes("TargetMode=\"External\""))
+                    continue
+                const target = /Target="([^"]+)"/.exec(m[0])?.[1] ?? ""
+                live.add(path.posix.normalize(path.posix.join(base, target)))
+            }
+        }
+    for (const n of names)
+        if (isAsset(n) && !live.has(n))
+            findings.push(`${n}: orphan asset (not referenced from any part)`)
+
     return findings
 }
 

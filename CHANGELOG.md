@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.3
+
+- Engine: two more repair triggers eliminated -- (1) `CT_Presentation`
+  element order is normalized in the seed builder (notesMaster/handout
+  id lists must precede `sldIdLst`; sloppy templates violate this),
+  (2) charts, embeddings and media are garbage-collected: automizer
+  duplicates chart parts and accumulates stale slide relationships on
+  every re-apply (1 chart became 64 across 6 applies); unused slide
+  rels are pruned and unreachable assets removed. This also closes the
+  documented "media of removed slides remains" limitation.
+- Integrity validator: new checks for presentation element order and
+  orphan chart/embedding/media parts; stress suite asserts exactly one
+  chart part survives repeated applies.
+- Test fixture: presentation element order fixed.
+
 ## 0.2.2
 
 - Engine: sweep stale and duplicate content-type overrides (another

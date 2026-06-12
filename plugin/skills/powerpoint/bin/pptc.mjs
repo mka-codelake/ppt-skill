@@ -38587,7 +38587,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.2" : "0.0.0-dev";
+var VERSION = true ? "0.2.3" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54574,6 +54574,48 @@ var cleanContentTypes = async (zip) => {
   if (changed)
     zip.file("[Content_Types].xml", serializeXml(ct));
 };
+var STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"];
+var pruneUnusedSlideRels = (slide, slideRels) => {
+  const xml = serializeXml(slide);
+  let changed = false;
+  for (const rel of elements(slideRels, "Relationship")) {
+    const type = rel.getAttribute("Type") ?? "";
+    if (STRUCTURAL_RELS.some((k) => type.endsWith(k)))
+      continue;
+    if (!xml.includes(`"${rel.getAttribute("Id") ?? ""}"`)) {
+      rel.parentNode?.removeChild(rel);
+      changed = true;
+    }
+  }
+  return changed;
+};
+var gcAssets = async (zip) => {
+  const isAsset = (f) => /^ppt\/(charts|embeddings|media)\//.test(f) && !f.endsWith("/") && !f.includes("/_rels/");
+  const assets = Object.keys(zip.files).filter(isAsset);
+  if (assets.length === 0)
+    return;
+  const live = /* @__PURE__ */ new Set();
+  const queue = Object.keys(zip.files).filter((f) => f.endsWith(".rels") && !/^ppt\/(charts|embeddings|media)\//.test(f));
+  while (queue.length > 0) {
+    const relsPart = queue.pop();
+    const relsText = await zip.file(relsPart)?.async("string");
+    if (relsText === void 0)
+      continue;
+    const base = path4.posix.dirname(path4.posix.dirname(relsPart));
+    for (const rel of elements(parseXml(relsText), "Relationship")) {
+      if (rel.getAttribute("TargetMode") === "External")
+        continue;
+      const target = path4.posix.normalize(path4.posix.join(base, rel.getAttribute("Target") ?? ""));
+      if (isAsset(target) && !live.has(target)) {
+        live.add(target);
+        const tRels = `${path4.posix.dirname(target)}/_rels/${path4.posix.basename(target)}.rels`;
+        if (zip.file(tRels) !== null)
+          queue.push(tRels);
+      }
+    }
+  }
+  await removeParts(zip, assets.filter((a) => !live.has(a)));
+};
 var uniquifyShapeIds = (slide) => {
   const all = elements(slide, "p:cNvPr");
   let max = 0;
@@ -54840,13 +54882,15 @@ var postProcess = async (bytes, work, props) => {
       wireHyperlinks(post, slide, slideRels);
     }
     const idsChanged = uniquifyShapeIds(slide);
-    if (job !== void 0 || idsChanged) {
+    const relsChanged = pruneUnusedSlideRels(slide, slideRels);
+    if (job !== void 0 || idsChanged || relsChanged) {
       zip.file(slidePart, serializeXml(slide));
       zip.file(relsPart, serializeXml(slideRels));
     }
   }
   if (props !== null)
     await setProps(zip, props);
+  await gcAssets(zip);
   await cleanContentTypes(zip);
   return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 };
@@ -54923,6 +54967,11 @@ var buildSeed = async (templateBytes) => {
   pres = pres.replace(/<p:sldIdLst\s*\/>/, "<p:sldIdLst></p:sldIdLst>").replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>");
   if (!pres.includes("<p:sldIdLst>"))
     pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>");
+  for (const lst of ["handoutMasterIdLst", "notesMasterIdLst"]) {
+    const el = new RegExp(`<p:${lst}>.*?</p:${lst}>|<p:${lst}\\s*/>`, "s").exec(pres);
+    if (el !== null && pres.indexOf(el[0]) > pres.indexOf("<p:sldIdLst"))
+      pres = pres.replace(el[0], "").replace(/<p:sldIdLst/, `${el[0]}<p:sldIdLst`);
+  }
   presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "");
   for (const f of Object.keys(zip.files))
     if (/^ppt\/(slides|notesSlides)\//.test(f))
