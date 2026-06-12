@@ -31,7 +31,10 @@ calling any image generator and without doing web research.
   before commands (breaks permission matching).
 - Run pptc as: `node <skill-dir/>/scripts/pptc.mjs <command> ...`
   (requires Node >= 20; on failure of `node --version`, tell the user to
-  install Node 20+ and stop).
+  install Node 20+ and stop). When the plugin is installed as a plugin,
+  the plugin-root `bin/` also puts a `pptc` wrapper on the PATH -- handy
+  for the user's own terminal work; the skill itself keeps the explicit
+  path (deterministic in every install variant).
 - Execute each Bash call as a separate tool call.
 - Every pptc command emits exactly one JSON envelope on stdout; parse it.
   `"ok": false` carries a stable `error.code` -- react to it, do not retry

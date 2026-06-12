@@ -1,5 +1,12 @@
 # Changelog
 
+## plugin 0.2.14 (CLI unchanged at 0.2.10)
+
+- Plugin-root `bin/pptc`: a thin PATH wrapper around the bundle in
+  `skills/powerpoint/scripts/` -- `pptc <command>` works in the user's
+  shell while the plugin is enabled. The skill keeps invoking the
+  explicit scripts path (deterministic in every install variant).
+
 ## 0.2.10 (plugin 0.2.13)
 
 - Engine fix (repair trigger): the post-pass relationship-id counter now
