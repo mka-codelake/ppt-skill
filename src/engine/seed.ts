@@ -145,7 +145,7 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
     const viewPr = zip.file("ppt/viewProps.xml")
     if (viewPr !== null)
         zip.file("ppt/viewProps.xml",
-            (await viewPr.async("string")).replace(/ lastView="[^"]*"/, ""))
+            (await viewPr.async("string")).replace(/ lastView="[^"]*"/g, ""))
 
     /*  one seed slide per layout  */
     const order = await layoutOrder(zip)

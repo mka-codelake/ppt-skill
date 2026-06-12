@@ -51,7 +51,7 @@ describe("multi-apply stress with per-apply integrity", () => {
         /*  round 1: deck skeleton with notes, footer and special chars  */
         await applyIntact(DECK, { ops: [
             { op: "slide.add", ref: "intro", layout: "TITLE_SLIDE",
-                placeholders: { title: { text: "Stressdeck" }, body: { text: "Untertitel" } },
+                placeholders: { title: { text: "Stressdeck" }, subtitle: { text: "Untertitel" } },
                 notes: "Begrüßung mit Umlauten: äöü & <spitzen> Klammern." },
             { op: "slide.add", ref: "inhalt", layout: "CONTENT",
                 placeholders: { title: { text: "Inhalt" }, body: { text: "Punkt A\nPunkt B" } },
@@ -89,11 +89,11 @@ describe("multi-apply stress with per-apply integrity", () => {
         /*  round 3: picture placeholder fill + image prompts  */
         await applyIntact(DECK, { ops: [
             { op: "slide.fill", slide: "title:Bildfolie",
-                placeholders: { "103": { image: PNG } } },
+                placeholders: { "image": { image: PNG } } },
             { op: "slide.add", ref: "bild2", layout: "PICTURE",
                 placeholders: { title: { text: "Promptfolie" } } },
             { op: "img.prompts", slide: "$bild2",
-                prompts: { "103": "deep blue (#1F4E79) accent, 4:3 composition, sharp focus" } }
+                prompts: "deep blue (#1F4E79) accent, 4:3 composition, sharp focus" }
         ] })
 
         /*  round 4: edit churn -- append, retext, remove, copy, move, rm  */

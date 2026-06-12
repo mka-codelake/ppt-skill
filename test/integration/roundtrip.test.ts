@@ -125,7 +125,9 @@ describe("roundtrip against the fixture template", () => {
     it("strips a master-view lastView so decks open in normal view", async () => {
         const zip = await JSZip.loadAsync(readFileSync(TEMPLATE))
         const viewPr = await (zip.file("ppt/viewProps.xml") as JSZip.JSZipObject).async("string")
-        zip.file("ppt/viewProps.xml", viewPr.replace("<p:viewPr ", "<p:viewPr lastView=\"sldMasterView\" "))
+        zip.file("ppt/viewProps.xml", viewPr
+            .replace(/ lastView="[^"]*"/g, "")
+            .replace("<p:viewPr ", "<p:viewPr lastView=\"sldMasterView\" "))
         const seed = await buildSeed(await zip.generateAsync({ type: "nodebuffer" }))
         const out = await JSZip.loadAsync(seed.bytes)
         const outViewPr = await (out.file("ppt/viewProps.xml") as JSZip.JSZipObject).async("string")

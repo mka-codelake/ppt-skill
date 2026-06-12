@@ -3,13 +3,154 @@
 exports[`tpl describe golden output > matches the pinned description for the fixture template 1`] = `
 "# Template: neutral-template.pptx
 
-Folienformat: 13.33" x 7.5" — Schriften: Calibri Light (Überschriften), Calibri (Text)
-Akzentfarben: #4472C4, #ED7D31, #A5A5A5
+Folienformat: 13.33" x 7.5" — Schriften: Calibri (Überschriften), Calibri (Text)
+Akzentfarben: #4F81BD, #C0504D, #9BBB59
 
-Layouts: 5 — adressierbar in \`slide.add\` per Index oder Name.
+Layouts: 11 — adressierbar in \`slide.add\` per Index oder Name.
 Placeholder werden in \`slide.fill\` über ihre \`idx\`-Nummer befüllt.
 
-## Layout 0: "DEFAULT"
+## Layout 0: "TITLE_SLIDE"
+
+Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|  ........................            |
+|  .T:0                   .            |
+|  ........................            |
+|    ....................              |
+|    .S:1               .              |
+|    ....................              |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1") — linke Hälfte, mittlerer Bereich (14% der Folie)
+- Untertitel (idx \`1\`, "Subtitle 2") — linke Hälfte, unterer Bereich (13% der Folie) — ~3 Zeilen à ~30 Zeichen
+
+## Layout 1: "CONTENT"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1")
+- Textfläche (idx \`1\`, "Content Placeholder 2")
+
+## Layout 2: "Section Header"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|  ........................            |
+|  .TXT:1..................            |
+|  ........................            |
+|  .T:0....................            |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1") — linke Hälfte, unterer Bereich (13% der Folie)
+- Textfläche (idx \`1\`, "Text Placeholder 2") — linke Hälfte, mittlerer Bereich (14% der Folie) — ~2 Zeilen à ~37 Zeichen
+
+## Layout 3: "TWO_COLUMN"
+
+Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+| ..........................           |
+| .TXT:1      ..TXT:2      .           |
+| .           ..           .           |
+| .           ..           .           |
+| .           ..           .           |
+| .           ..           .           |
+| ..........................           |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1")
+- Textfläche (idx \`1\`, "Content Placeholder 2") — linke Spalte, mittlerer Bereich (22% der Folie) — ~8 Zeilen à ~18 Zeichen
+- Textfläche (idx \`2\`, "Content Placeholder 3") — mittlere Spalte, mittlerer Bereich (22% der Folie) — ~8 Zeilen à ~18 Zeichen
+
+## Layout 4: "Comparison"
+
+Eignung: 4 parallele Textbereiche – Aufzählung gleichrangiger Aspekte
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+| .TXT:1........TXT:3.......           |
+| ..........................           |
+| .TXT:2      ..TXT:4      .           |
+| .           ..           .           |
+| .           ..           .           |
+| .           ..           .           |
+| .           ..           .           |
+| ..........................           |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1")
+- Textfläche (idx \`1\`, "Text Placeholder 2") — linke Spalte, oberer Bereich (3% der Folie) — ~1 Zeilen à ~18 Zeichen
+- Textfläche (idx \`2\`, "Content Placeholder 3") — linke Spalte, mittlerer Bereich (19% der Folie) — ~7 Zeilen à ~18 Zeichen
+- Textfläche (idx \`3\`, "Text Placeholder 4") — mittlere Spalte, oberer Bereich (3% der Folie) — ~1 Zeilen à ~18 Zeichen
+- Textfläche (idx \`4\`, "Content Placeholder 5") — mittlere Spalte, mittlerer Bereich (19% der Folie) — ~7 Zeilen à ~18 Zeichen
+
+## Layout 5: "Title Only"
+
+Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1")
+
+## Layout 6: "DEFAULT"
 
 Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
 
@@ -30,96 +171,97 @@ Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
 \`\`\`
 
 
-## Layout 1: "TITLE_SLIDE"
-
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
-
-\`\`\`
-----------------------------------------
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-|  ..................................  |
-|  .T:100............................  |
-|  .TXT:101..........................  |
-|                                      |
-|                                      |
-|                                      |
-|                                      |
-----------------------------------------
-\`\`\`
-
-- Titel (idx \`100\`, "Body 2-2") — volle Breite, mittlerer Bereich (18% der Folie)
-- Textfläche (idx \`101\`, "Body 2-3") — volle Breite, mittlerer Bereich (7% der Folie) — ~1 Zeilen à ~53 Zeichen
-
-## Layout 2: "CONTENT"
-
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
-
-\`\`\`
-----------------------------------------
-|                                      |
-|  .T:100............................  |
-|                                      |
-|  ..................................  |
-|  .TXT:101                         .  |
-|  .                                .  |
-|  .                                .  |
-|  .                                .  |
-|  .                                .  |
-|  ..................................  |
-|                                      |
-----------------------------------------
-\`\`\`
-
-- Titel (idx \`100\`, "Body 3-2") — volle Breite, oberer Bereich (12% der Folie)
-- Textfläche (idx \`101\`, "Body 3-3") — volle Breite, mittlerer Bereich (60% der Folie) — ~9 Zeilen à ~53 Zeichen
-
-## Layout 3: "TWO_COLUMN"
+## Layout 7: "Content with Caption"
 
 Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
 
 \`\`\`
 ----------------------------------------
-|                                      |
-|  .T:100............................  |
-|                                      |
-|  ................. ................  |
-|  .TXT:101        . .TXT:102       .  |
-|  .               . .              .  |
-|  .               . .              .  |
-|  .               . .              .  |
-|  .               . .              .  |
-|  ................. ................  |
-|                                      |
-----------------------------------------
-\`\`\`
-
-- Titel (idx \`100\`, "Ph 4-2") — volle Breite, oberer Bereich (12% der Folie)
-- Textfläche (idx \`101\`, "Ph 4-3") — linke Hälfte, mittlerer Bereich (29% der Folie) — ~9 Zeilen à ~25 Zeichen
-- Textfläche (idx \`102\`, "Ph 4-4") — rechte Hälfte, mittlerer Bereich (29% der Folie) — ~9 Zeilen à ~25 Zeichen
-
-## Layout 4: "PICTURE"
-
-Eignung: Titel-, Kapitel- oder Schlussfolie mit Bildwirkung
-
-\`\`\`
-----------------------------------------
-|                                      |
-|  .T:100............................  |
-|                                      |
-|  ....................                |
-|  .IMG:103           .                |
-|  .                  .                |
-|  .                  .                |
-|  .                  .                |
-|  .                  .                |
-|  ....................                |
+| ..........................           |
+| .T:0.......TXT:1         .           |
+| ...........              .           |
+| .TXT:2   ..              .           |
+| .        ..              .           |
+| .        ..              .           |
+| .        ..              .           |
+| .        ..              .           |
+| .        ..              .           |
+| ..........................           |
 |                                      |
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`100\`, "Title") — volle Breite, oberer Bereich (12% der Folie)
-- Bild (idx \`103\`, "Picture") — linke Hälfte, mittlerer Bereich (35% der Folie) — Seitenverhältnis ~4:3"
+- Titel (idx \`0\`, "Title 1") — linke Spalte, oberer Bereich (4% der Folie)
+- Textfläche (idx \`1\`, "Content Placeholder 2") — mittlere Spalte, volle Höhe (36% der Folie) — ~11 Zeilen à ~24 Zeichen
+- Textfläche (idx \`2\`, "Text Placeholder 3") — linke Spalte, mittlerer Bereich (17% der Folie) — ~9 Zeilen à ~13 Zeichen
+
+## Layout 8: "PICTURE"
+
+Eignung: großes Bild + Text – Infografik mit Erläuterung
+
+\`\`\`
+----------------------------------------
+|                                      |
+|      .................               |
+|      .IMG:1          .               |
+|      .               .               |
+|      .               .               |
+|      .               .               |
+|      .               .               |
+|      .................               |
+|      .T:0.............               |
+|      .TXT:2...........               |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1") — linke Hälfte, unterer Bereich (4% der Folie)
+- Bild (idx \`1\`, "Picture Placeholder 2") — linke Hälfte, mittlerer Bereich (27% der Folie) — Seitenverhältnis ~4:3
+- Textfläche (idx \`2\`, "Text Placeholder 3") — linke Hälfte, unterer Bereich (5% der Folie) — ~1 Zeilen à ~26 Zeichen
+
+## Layout 9: "Title and Vertical Text"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Title 1")
+- Textfläche (idx \`1\`, "Vertical Text Placeholder 2")
+
+## Layout 10: "Vertical Title and Text"
+
+Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+
+\`\`\`
+----------------------------------------
+| ................... ......           |
+| .TXT:1            . .T:0 .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| .                 . .    .           |
+| ................... ......           |
+|                                      |
+----------------------------------------
+\`\`\`
+
+- Titel (idx \`0\`, "Vertical Title 1") — mittlere Spalte, volle Höhe (14% der Folie)
+- Textfläche (idx \`1\`, "Vertical Text Placeholder 2") — linke Hälfte, volle Höhe (42% der Folie) — ~11 Zeilen à ~28 Zeichen"
 `;
