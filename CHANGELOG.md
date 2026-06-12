@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.12 (plugin 0.2.17)
+
+- Documentation sync: README and `--help` now cover the 0.2.9-0.2.11
+  features (`W_ELEMENT_OVERLAP`, picture-placeholder `overlays`); the
+  README gained a "PowerPoint Skill" section with install instructions
+  and the plugin ships its own README. A new doc-sync contract test
+  fails the build when any command, op, lint code or the skill install
+  goes undocumented.
+
 ## plugin 0.2.16 (CLI unchanged at 0.2.11)
 
 - Image-prompt phrasing rules (research-backed, Google docs): overlay

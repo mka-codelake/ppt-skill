@@ -55,6 +55,31 @@ pptc --version
 
 Or without installing: `npx @brusdeylins/pptc ...`. Requires Node.js >= 20.
 
+## The PowerPoint Skill (Claude Code plugin)
+
+This repository also ships **`powerpoint`**, a Claude Code skill built on
+pptc. It turns Claude Code into a presentation engineer: template-aware
+deck building with an outline-first workflow, content guardrails (action
+titles, capacity-checked text, speaker notes, footer rules) and
+color-faithful image prompts written onto picture placeholders --
+overlay-aware, so covered regions become negative space.
+
+```
+/plugin marketplace add Brusdeylins/ppt-skill
+/plugin install powerpoint@ppt-skill
+```
+
+No further setup: the plugin bundles its own pptc build
+(`skills/powerpoint/scripts/pptc.mjs`) and a neutral fallback template;
+the plugin-root `bin/` puts a `pptc` command on the Bash tool's PATH
+while the plugin is enabled. Corporate templates stay external -- point
+the skill at any `.potx`/`.pptx`, optionally with a `<name>.md` sidecar
+for template-specific knowledge. Deck-level settings (language, image
+style, ...) persist in a `<deck>.md` sidecar next to the deck.
+
+The skill definition lives in
+[`plugin/skills/powerpoint/SKILL.md`](plugin/skills/powerpoint/SKILL.md).
+
 ## Quick Start
 
 ```bash
@@ -140,8 +165,9 @@ exists next to it.
 
 The LLM-facing template description. For every layout: an ASCII minimap of
 the placeholder geometry, semantic positions ("left column, full height"),
-text capacities (`~N lines of ~M chars`), image aspect ratios and a
-suitability hint -- all derived generically from OOXML geometry. A sidecar
+text capacities (`~N lines of ~M chars`), image aspect ratios, overlay
+warnings for picture placeholders and a suitability hint -- all derived
+generically from OOXML geometry. A sidecar
 `<tpl>.md` (template-specific notes: layout roles, footer pattern, design
 constraints) is included verbatim in the header.
 
@@ -155,7 +181,10 @@ constraints) is included verbatim in the header.
 The precise machine model: slide size, theme fonts, the full theme color map
 (`dk1`, `lt1`, `accent1`..`accent6`, ... as `RRGGBB`), and per layout every
 placeholder with OOXML `idx`, kind, shape name, frame (inches) and text
-capacity. Use this when you need exact values; use `describe` when an LLM
+capacity. Picture placeholders carry `overlays`: which text shapes sit on
+top of the image and where (region relative to the image, e.g. "bottom
+area, left part") -- so image prompts can keep those regions as negative
+space. Use this when you need exact values; use `describe` when an LLM
 should pick layouts.
 
 #### `pptc tpl validate <tpl>`
@@ -196,7 +225,11 @@ atomic write -- or nothing (`failedAt` in the error tells which op failed).
 - `--template <tpl>` -- required whenever the document contains `slide.add`
   (new slides are instantiated from the template's layouts)
 - `--dry-run` -- full validation and planning, no write; warnings included
-- `--strict` -- lint warnings (e.g. `W_TEXT_OVERFLOW`) become exit 7
+- `--strict` -- lint warnings become exit 7: `W_TEXT_OVERFLOW` (planned
+  text exceeds the placeholder capacity -- shorten or split) and
+  `W_ELEMENT_OVERLAP` (an `el.add` element covers a text-bearing shape,
+  incl. the footer/slide-number area -- reposition it; prompt boxes are
+  exempt)
 - `--rev R` -- optimistic lock: fail with exit 6 unless the deck still has
   revision `R` (alternative: `expectRev` inside the document)
 - `--out F` -- write the result to a new file, leave the input untouched
@@ -423,7 +456,7 @@ npm run plugin:sync # rebuild + copy the bundle into the plugin (bin/VERSION)
 This repo carries two independently versioned artifacts: the **pptc CLI**
 (`package.json`, published to npm) and the **Claude Code plugin**
 (`plugin/.claude-plugin/plugin.json` + marketplace entry, distributed via
-git). `plugin/skills/powerpoint/bin/VERSION` records which pptc build is
+git). `plugin/skills/powerpoint/scripts/VERSION` records which pptc build is
 bundled in the plugin.
 
 - **Skill-only change** (SKILL.md, references, meta): bump the plugin and

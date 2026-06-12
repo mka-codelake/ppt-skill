@@ -38540,7 +38540,9 @@ Options:
   -e '<op-json>'    exactly one inline op instead of --ops
   --template <tpl>  required when the document contains 'slide.add'
   --dry-run         validate and plan only, no write; warnings included
-  --strict          lint warnings (W_TEXT_OVERFLOW) become exit 7
+  --strict          lint warnings become exit 7: W_TEXT_OVERFLOW
+                    (shorten/split text), W_ELEMENT_OVERLAP (an el.add
+                    element covers a text shape -- reposition it)
   --rev R           optimistic lock: fail with exit 6 unless the deck
                     still has revision R (from 'pptc state')
   --out F           write the result to a new file, keep the input
@@ -38620,8 +38622,10 @@ Example:
 
 The LLM-facing template description: per layout an ASCII minimap,
 semantic positions, text capacities (~N lines of ~M chars), image
-aspect ratios and a suitability hint -- derived generically from the
-OOXML geometry. A sidecar <tpl>.md is included verbatim.
+aspect ratios, overlay warnings for picture placeholders ("overlaid
+by ... keep these regions calm in images") and a suitability hint --
+derived generically from the OOXML geometry. A sidecar <tpl>.md is
+included verbatim.
 
 Options:
   --layout SEL    restrict to one layout (zero-based index or exact name)
@@ -38635,6 +38639,9 @@ Example:
 The precise machine model: slide size, theme fonts, the full theme
 color map (dk1, lt1, accent1..accent6 as RRGGBB) and per layout every
 placeholder with OOXML idx, kind, name, frame (inches) and capacity.
+Picture placeholders carry 'overlays': which text shapes sit on top
+and where (region relative to the image) -- image prompts keep those
+regions as negative space.
 
 Example:
   pptc tpl inspect corporate.potx --layout TWO_COLUMN`,
@@ -38798,7 +38805,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.11" : "0.0.0-dev";
+var VERSION = true ? "0.2.12" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
