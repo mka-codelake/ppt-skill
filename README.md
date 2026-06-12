@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="pptc logo" width="200"/>
+</p>
+
 # pptc
 
 **Deterministic PowerPoint (PPTX) CLI for LLM agents.**
