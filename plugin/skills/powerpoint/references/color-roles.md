@@ -23,7 +23,7 @@ Usage rules
 -   Exactly ONE primary accent element per image; secondary colors
     only for graphics/diagrams (info-graphics may use 2-3 of them).
 -   Always write colors as `#RRGGBB` hex codes into the prompt, e.g.
-    `crimson red (#A01441)` -- name the hue AND give the code.
+    `deep blue (#1F4E79)` -- name the hue AND give the code.
 -   Primary slot default is `accent1`. If a template uses a different
     slot as its brand color, the template sidecar (or the user) may
     override the primary slot; everything else stays the same.

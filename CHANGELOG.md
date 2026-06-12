@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Plugin: the skill no longer bundles a template -- it works exclusively
+  with external `.potx`/`.pptx` templates (path, directory scan with
+  selection menu, or explicit ask). Template-specific knowledge lives in
+  a sidecar Markdown next to the template file.
+
 ## 0.2.0
 
 - Engine fixes (PowerPoint "repair" triggers): drop stale presentation

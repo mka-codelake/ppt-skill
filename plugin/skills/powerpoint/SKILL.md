@@ -6,7 +6,7 @@ description: >
   the user wants to create, edit, or modify presentations, slides, PPTX files,
   decks, chapters, or talks -- including adding text, images, charts, tables,
   speaker notes, or image-generation prompts for slide picture placeholders.
-# (c) Matthias Brusdeylins - msg systems - msg research (XT)
+# (c) Matthias Brusdeylins
 # 100% agentic coded (Claude Code)
 ---
 
@@ -78,14 +78,23 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
 1.  <step id="STEP 1: Template">
 
-    Determine the template:
+    Determine the template. The skill ships NO template of its own --
+    it always works with an external `.potx`/`.pptx` the user provides:
 
     -   If the user names a template path, use it.
-    -   Else if the user names a directory, run `tpl list` on it.
+    -   Else if the user names a directory (or the project documents a
+        template location, e.g. in `CLAUDE.md`), run `tpl list` on it.
         <if condition="scan finds exactly one template">use it silently.</if>
         <if condition="scan finds several">present a selection menu
         (file + sidecar availability) and let the user choose.</if>
-    -   Else default to `<skill-dir/>/assets/ai-master-msg.potx`.
+    -   Else ASK the user for a template file or directory before doing
+        anything else.
+
+    A sidecar Markdown next to the template (`<name>.md` beside
+    `<name>.potx`) carries template-specific knowledge -- layout-role
+    map, footer pattern, design constraints. `tpl describe` includes it
+    automatically. When none exists, derive roles via name heuristics
+    and offer to write a sidecar for next time.
 
     Run `tpl inspect` (JSON) and `tpl describe` on the chosen template.
     Record:

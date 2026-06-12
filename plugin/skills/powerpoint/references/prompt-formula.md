@@ -14,7 +14,7 @@ Element rules
     info-graphic style.
 -   **Subject with primary accent**: the main subject carries ONE
     visible element in the template's primary accent color, named with
-    hue and hex code, e.g. `a crimson red (#A01441) blazer`.
+    hue and hex code, e.g. `a deep blue (#1F4E79) blazer`.
 -   **Scene / text-in-image**: where the scene plausibly carries text
     (screens, banners, whiteboards, signs) -- and ALWAYS on title-role
     images -- embed the slide title or deck topic:
@@ -47,12 +47,12 @@ deliberately:
 Background-image layouts get calm, low-contrast motifs (text sits on
 top). Contact placeholders get neutral business portraits.
 
-Example (title role, 2:3, stock photo, accent1 = #A01441)
+Example (title role, 2:3, stock photo, accent1 = #1F4E79)
 ---------------------------------------------------------
 
 ```
 commercial photography, shot on Canon EOS R5 85mm f/1.4, professional
-business woman in a crimson red (#A01441) blazer standing in a modern
+business woman in a deep blue (#1F4E79) blazer standing in a modern
 glass office lobby, holding a tablet whose screen reads "AI Strategy",
 soft diffused natural light from floor-to-ceiling windows, shallow
 depth of field, professional color grading, sharp focus, 8k,
