@@ -51,6 +51,14 @@ Language & footer
 Elements (tables, charts, free shapes)
 --------------------------------------
 
+-   **Placeholders first.** Anything that is TEXT goes into a layout
+    placeholder via `slide.fill` -- rich text covers fonts (incl.
+    monospace for code/file trees), sizes, colors, bullets and
+    hyperlinks. Pick the layout whose placeholder fits the content
+    (`tpl describe` capacities) instead of placing a textbox on a
+    blank layout. `el.add` is ONLY for what placeholders cannot hold:
+    tables, charts, shapes, images, connectors -- and the sanctioned
+    overlays (prompt boxes, AI note where no footer placeholder exists).
 -   Slides that receive free elements via `el.add` ALWAYS use a layout
     WITHOUT text placeholders in the content area (role "blank" --
     title plus empty surface). Elements must never sit on top of body

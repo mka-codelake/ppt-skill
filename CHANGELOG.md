@@ -1,5 +1,12 @@
 # Changelog
 
+## plugin 0.2.12 (CLI unchanged at 0.2.9)
+
+- "Placeholders first" rule: text content always goes into layout
+  placeholders via slide.fill (rich text covers monospace, sizes,
+  colors, hyperlinks); el.add is reserved for tables/charts/shapes/
+  images/connectors and sanctioned overlays.
+
 ## 0.2.9 (plugin 0.2.11)
 
 - New lint `W_ELEMENT_OVERLAP`: an `el.add` element that covers a

@@ -192,10 +192,15 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         derives from chapter titles -- when chapters change
         (add/rename/remove), include the agenda `slide.fill` in the SAME
         ops document.
+    -   **Placeholders first**: anything that is TEXT goes into a layout
+        placeholder via `slide.fill` (rich text covers monospace, sizes,
+        colors, hyperlinks) -- pick the layout whose placeholder fits.
+        `el.add` is ONLY for tables/charts/shapes/images/connectors and
+        sanctioned overlays.
     -   **Elements on blank layouts**: slides receiving `el.add` content
         (tables, charts, shapes) use the blank-role layout (title + empty
         surface, no body placeholders in the content area) -- elements
-        never overlap text placeholders.
+        never overlap text placeholders (pptc warns: W_ELEMENT_OVERLAP).
     -   **Footer on every slide** (via the `footer` field): follow the
         template's footer pattern (see sidecar) with <deck-title/> and
         the CURRENT year -- never keep the template's placeholder title
