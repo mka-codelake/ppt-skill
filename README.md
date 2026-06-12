@@ -114,6 +114,11 @@ earlier in the same ops document).
 takes one inline op. Agents should write the file with their editor tool and
 pass `@file` -- that removes shell quoting from the threat model.
 
+**Human console:** `--plain` on the read commands (`help`, `state`,
+`tpl list`, `tpl describe`, `tpl validate`) prints readable text instead of
+the JSON envelope (whose strings escape newlines as `\n`). Agents should
+stick to the envelope; write commands are envelope-only by design.
+
 ### Read templates
 
 #### `pptc tpl list <dir>`

@@ -137,6 +137,20 @@ export const cleanContentTypes = async (zip: JSZip): Promise<void> => {
         zip.file("[Content_Types].xml", serializeXml(ct))
 }
 
+/**  drop section slide references whose sldId vanished (user-created
+     sections survive edits; stale refs would point at removed slides)  */
+const pruneSectionRefs = async (zip: JSZip): Promise<void> => {
+    const part = "ppt/presentation.xml"
+    const xml = await partText(zip, part)
+    if (!xml.includes("<p14:sectionLst"))
+        return
+    const ids = new Set([...xml.matchAll(/<p:sldId [^>]*\bid="(\d+)"/g)].map((m) => m[1] as string))
+    const out = xml.replace(/<p14:sldId id="(\d+)"[^>]*\/>/g,
+        (m, id: string) => ids.has(id) ? m : "")
+    if (out !== xml)
+        zip.file(part, out)
+}
+
 /**  rel types that are never referenced from the slide XML itself  */
 const STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"]
 
@@ -504,9 +518,10 @@ export const postProcess = async (
     }
     if (props !== null)
         await setProps(zip, props)
-    /*  final sweeps: orphan assets and stale or duplicate content-type
-        overrides accumulate across applies and trigger repair  */
+    /*  final sweeps: orphan assets, stale section refs and stale or
+        duplicate content-type overrides accumulate across applies  */
     await gcAssets(zip)
+    await pruneSectionRefs(zip)
     await cleanContentTypes(zip)
     return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
 }

@@ -111,6 +111,19 @@ describe("sugar and read-command happy paths (built bundle)", () => {
         expect(proc.stdout.trimStart().startsWith("{")).toBe(false)
     })
 
+    it.skipIf(!existsSync(BIN))("--plain works on help, state, tpl list and tpl validate", () => {
+        for (const argv of [
+            ["help", "--plain"],
+            ["state", SUGAR, "--plain"],
+            ["tpl", "list", path.dirname(TEMPLATE), "--plain"],
+            ["tpl", "validate", TEMPLATE, "--plain"]
+        ]) {
+            const proc = spawnSync("node", [BIN, ...argv], { encoding: "utf8" })
+            expect(proc.status, argv.join(" ")).toBe(0)
+            expect(proc.stdout.trimStart().startsWith("{"), argv.join(" ")).toBe(false)
+        }
+    })
+
     it.skipIf(!existsSync(BIN))("tpl list, tpl validate and schema respond ok", () => {
         const list = run("tpl", "list", path.dirname(TEMPLATE))
         expect(list.exit).toBe(0)

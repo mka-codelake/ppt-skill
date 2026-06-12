@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.5 (plugin 0.2.6)
+
+- Sections handling: `new` strips the template's PowerPoint sections
+  (they only group the stripped example slides); `apply` prunes section
+  slide references whose slide was removed, so user-created sections
+  survive edits without stale refs. Integrity validator checks section
+  references.
+- `--plain` extended to all read commands: `help`, `state`, `tpl list`
+  and `tpl validate` join `tpl describe` (readable text instead of the
+  JSON envelope; write commands stay envelope-only).
+
 ## 0.2.4 (plugin 0.2.5)
 
 - `tpl describe --plain` prints the raw Markdown without the JSON

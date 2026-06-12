@@ -46,7 +46,7 @@ const filterLayouts = (info: TemplateInfo, selector: string | null): TemplateInf
  *  @returns inventory of .potx/.pptx templates with sidecar availability
  */
 export const cmdTplList = (argv: string[]): Record<string, unknown> => {
-    const args = parse(argv, {}, ["dir"])
+    const args = parse(argv, { "plain": { type: "boolean" } }, ["dir"])
     const dir = args.positionals[0] as string
     if (!existsSync(dir))
         throw new PptcError("E_FILE", `directory not found: '${dir}'`)
@@ -57,6 +57,10 @@ export const cmdTplList = (argv: string[]): Record<string, unknown> => {
             file: path.join(dir, f),
             sidecar: existsSync(path.join(dir, f.replace(/\.(potx|pptx)$/i, ".md")))
         }))
+    if (args.flag("plain"))
+        return { plain: templates.length === 0
+            ? `(no templates in ${path.resolve(dir)})`
+            : templates.map((t) => `${t.file}${t.sidecar ? "  [+ sidecar]" : ""}`).join("\n") }
     return { result: { dir: path.resolve(dir), templates } }
 }
 
@@ -131,7 +135,7 @@ const validate = (info: TemplateInfo, hasNotesMaster: boolean): Issue[] => {
  *  @returns validation report; throws E_LINT when any check fails hard
  */
 export const cmdTplValidate = async (argv: string[]): Promise<Record<string, unknown>> => {
-    const args = parse(argv, {}, ["template"])
+    const args = parse(argv, { "plain": { type: "boolean" } }, ["template"])
     const file = args.positionals[0] as string
     const archive = await DeckArchive.open(file)
     const info = await readTemplateInfo(archive)
@@ -141,6 +145,11 @@ export const cmdTplValidate = async (argv: string[]): Promise<Record<string, unk
     const failed = issues.some((i) => i.severity === "fail")
     if (failed)
         throw new PptcError("E_LINT", "template validation failed", { issues })
+    if (args.flag("plain"))
+        return { plain: [
+            `${path.resolve(file)}: ${issues.length === 0 ? "ok" : "warn"} (${info.layouts.length} layouts)`,
+            ...issues.map((i) => `  ${i.severity}: ${i.message}`)
+        ].join("\n") }
     return {
         file: path.resolve(file),
         result: {

@@ -126,6 +126,13 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
     if (!pres.includes("<p:sldIdLst>"))
         pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>")
 
+    /*  drop PowerPoint sections: they group the template's example
+        slides, which are stripped -- stale section definitions would
+        reference removed sldIds  */
+    pres = pres
+        .replace(/<p:ext uri="\{521415D9-36F7-43E2-AB2F-B90AF26B5E84\}">.*?<\/p:ext>/s, "")
+        .replace(/<p:extLst>\s*<\/p:extLst>/, "")
+
     /*  CT_Presentation is an ordered sequence: notesMasterIdLst (and
         handoutMasterIdLst) MUST precede sldIdLst -- sloppy templates
         violate this and PowerPoint answers with the repair dialog  */

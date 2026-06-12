@@ -53,7 +53,8 @@ const renderSlide = (slide: SlideInfo, level: Level): Record<string, unknown> =>
 export const cmdState = async (argv: string[]): Promise<Record<string, unknown>> => {
     const args = parse(argv, {
         "slide": { type: "string" },
-        "level": { type: "string" }
+        "level": { type: "string" },
+        "plain": { type: "boolean" }
     }, ["deck"])
     const level = (args.str("level") ?? "text") as Level
     if (!["summary", "text", "full"].includes(level))
@@ -64,6 +65,13 @@ export const cmdState = async (argv: string[]): Promise<Record<string, unknown>>
     const slides = selector === null
         ? deck.slides
         : [deck.slides[resolveSlide(selector, deck.slides, new Map<string, number>()).index] as SlideInfo]
+    if (args.flag("plain"))
+        return { plain: [
+            `${deck.file}  rev:${deck.rev}  ${deck.slides.length} slide(s)`,
+            ...slides.map((s) =>
+                `  #${s.index} id:${s.id} '${s.title ?? ""}' (layout ${s.layoutIndex})`
+                + (s.notes !== null && s.notes !== "" ? "  [notes]" : ""))
+        ].join("\n") }
     return {
         file: deck.file,
         rev: deck.rev,

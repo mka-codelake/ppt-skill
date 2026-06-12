@@ -104,6 +104,12 @@ export const integrityFindings = async (file: string): Promise<string[]> => {
         && seq.indexOf("sldSz") > seq.indexOf("notesSz"))
         findings.push("presentation.xml: sldSz appears after notesSz (schema order violated)")
 
+    /*  7b. section slide references must resolve to existing sldIds  */
+    const realIds = new Set([...pres.matchAll(/<p:sldId [^>]*\bid="(\d+)"/g)].map((m) => m[1] as string))
+    for (const m of pres.matchAll(/<p14:sldId id="(\d+)"/g))
+        if (!realIds.has(m[1] as string))
+            findings.push(`presentation.xml: section references removed slide id ${m[1]}`)
+
     /*  8. charts, embeddings and media must be reachable from some part
         (orphans accumulate over applies and bloat or break the file)  */
     const isAsset = (f: string): boolean =>

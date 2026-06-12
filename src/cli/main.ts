@@ -28,6 +28,9 @@ Write decks:      new <deck> --template <tpl> [--ops @file]
 Micro edits:      text|note|footer|rm|move <deck> --slide SEL ...
 Self-description: schema [op] | help | update
 
+Human console:    --plain on help, state, tpl list, tpl describe and
+                  tpl validate prints readable text instead of the JSON envelope
+
 Slide selectors:  id:N | title:... | index:N | $ref | bare index
 Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint`
 
@@ -43,7 +46,9 @@ const COMMANDS: Record<string, (argv: string[]) => unknown> = {
     "footer": cmdFooter,
     "rm": cmdRm,
     "move": cmdMove,
-    "help": () => ({ result: { usage: USAGE } }),
+    "help": (argv: string[]) => argv.includes("--plain")
+        ? { plain: USAGE }
+        : { result: { usage: USAGE } },
     "--version": () => ({ result: { version: VERSION } })
 }
 

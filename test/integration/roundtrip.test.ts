@@ -122,6 +122,21 @@ describe("roundtrip against the fixture template", () => {
         await expectIntact(DECK)
     })
 
+    it("strips template sections (they only group the example slides)", async () => {
+        const zip = await JSZip.loadAsync(readFileSync(TEMPLATE))
+        const pres = await (zip.file("ppt/presentation.xml") as JSZip.JSZipObject).async("string")
+        const section = "<p:extLst><p:ext uri=\"{521415D9-36F7-43E2-AB2F-B90AF26B5E84}\">"
+            + "<p14:sectionLst xmlns:p14=\"http://schemas.microsoft.com/office/powerpoint/2010/main\">"
+            + "<p14:section name=\"Beispiele\" id=\"{11111111-2222-3333-4444-555555555555}\">"
+            + "<p14:sldIdLst><p14:sldId id=\"256\"/></p14:sldIdLst></p14:section>"
+            + "</p14:sectionLst></p:ext></p:extLst>"
+        zip.file("ppt/presentation.xml", pres.replace("</p:presentation>", `${section}</p:presentation>`))
+        const seed = await buildSeed(await zip.generateAsync({ type: "nodebuffer" }))
+        const out = await JSZip.loadAsync(seed.bytes)
+        const outPres = await (out.file("ppt/presentation.xml") as JSZip.JSZipObject).async("string")
+        expect(outPres).not.toContain("sectionLst")
+    })
+
     it("strips a master-view lastView so decks open in normal view", async () => {
         const zip = await JSZip.loadAsync(readFileSync(TEMPLATE))
         const viewPr = await (zip.file("ppt/viewProps.xml") as JSZip.JSZipObject).async("string")

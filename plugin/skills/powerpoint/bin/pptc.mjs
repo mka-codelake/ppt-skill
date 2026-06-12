@@ -38587,7 +38587,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.4" : "0.0.0-dev";
+var VERSION = true ? "0.2.5" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54574,6 +54574,19 @@ var cleanContentTypes = async (zip) => {
   if (changed)
     zip.file("[Content_Types].xml", serializeXml(ct));
 };
+var pruneSectionRefs = async (zip) => {
+  const part = "ppt/presentation.xml";
+  const xml = await partText(zip, part);
+  if (!xml.includes("<p14:sectionLst"))
+    return;
+  const ids = new Set([...xml.matchAll(/<p:sldId [^>]*\bid="(\d+)"/g)].map((m) => m[1]));
+  const out = xml.replace(
+    /<p14:sldId id="(\d+)"[^>]*\/>/g,
+    (m, id) => ids.has(id) ? m : ""
+  );
+  if (out !== xml)
+    zip.file(part, out);
+};
 var STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"];
 var pruneUnusedSlideRels = (slide, slideRels) => {
   const xml = serializeXml(slide);
@@ -54891,6 +54904,7 @@ var postProcess = async (bytes, work, props) => {
   if (props !== null)
     await setProps(zip, props);
   await gcAssets(zip);
+  await pruneSectionRefs(zip);
   await cleanContentTypes(zip);
   return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 };
@@ -54967,6 +54981,7 @@ var buildSeed = async (templateBytes) => {
   pres = pres.replace(/<p:sldIdLst\s*\/>/, "<p:sldIdLst></p:sldIdLst>").replace(/<p:sldIdLst>.*?<\/p:sldIdLst>/s, "<p:sldIdLst></p:sldIdLst>");
   if (!pres.includes("<p:sldIdLst>"))
     pres = pres.replace("</p:sldMasterIdLst>", "</p:sldMasterIdLst><p:sldIdLst></p:sldIdLst>");
+  pres = pres.replace(/<p:ext uri="\{521415D9-36F7-43E2-AB2F-B90AF26B5E84\}">.*?<\/p:ext>/s, "").replace(/<p:extLst>\s*<\/p:extLst>/, "");
   for (const lst of ["handoutMasterIdLst", "notesMasterIdLst"]) {
     const el = new RegExp(`<p:${lst}>.*?</p:${lst}>|<p:${lst}\\s*/>`, "s").exec(pres);
     if (el !== null && pres.indexOf(el[0]) > pres.indexOf("<p:sldIdLst"))
@@ -55340,7 +55355,8 @@ var renderSlide = (slide, level) => {
 var cmdState = async (argv) => {
   const args = parse3(argv, {
     "slide": { type: "string" },
-    "level": { type: "string" }
+    "level": { type: "string" },
+    "plain": { type: "boolean" }
   }, ["deck"]);
   const level = args.str("level") ?? "text";
   if (!["summary", "text", "full"].includes(level))
@@ -55348,6 +55364,11 @@ var cmdState = async (argv) => {
   const deck = await readDeckState(await DeckArchive.open(args.positionals[0]));
   const selector = args.str("slide");
   const slides = selector === null ? deck.slides : [deck.slides[resolveSlide(selector, deck.slides, /* @__PURE__ */ new Map()).index]];
+  if (args.flag("plain"))
+    return { plain: [
+      `${deck.file}  rev:${deck.rev}  ${deck.slides.length} slide(s)`,
+      ...slides.map((s) => `  #${s.index} id:${s.id} '${s.title ?? ""}' (layout ${s.layoutIndex})` + (s.notes !== null && s.notes !== "" ? "  [notes]" : ""))
+    ].join("\n") };
   return {
     file: deck.file,
     rev: deck.rev,
@@ -55612,7 +55633,7 @@ var filterLayouts = (info, selector) => {
   return { ...info, layouts };
 };
 var cmdTplList = (argv) => {
-  const args = parse3(argv, {}, ["dir"]);
+  const args = parse3(argv, { "plain": { type: "boolean" } }, ["dir"]);
   const dir = args.positionals[0];
   if (!existsSync4(dir))
     throw new PptcError("E_FILE", `directory not found: '${dir}'`);
@@ -55620,6 +55641,8 @@ var cmdTplList = (argv) => {
     file: path8.join(dir, f),
     sidecar: existsSync4(path8.join(dir, f.replace(/\.(potx|pptx)$/i, ".md")))
   }));
+  if (args.flag("plain"))
+    return { plain: templates.length === 0 ? `(no templates in ${path8.resolve(dir)})` : templates.map((t) => `${t.file}${t.sidecar ? "  [+ sidecar]" : ""}`).join("\n") };
   return { result: { dir: path8.resolve(dir), templates } };
 };
 var cmdTplDescribe = async (argv) => {
@@ -55667,7 +55690,7 @@ var validate = (info, hasNotesMaster) => {
   return issues;
 };
 var cmdTplValidate = async (argv) => {
-  const args = parse3(argv, {}, ["template"]);
+  const args = parse3(argv, { "plain": { type: "boolean" } }, ["template"]);
   const file2 = args.positionals[0];
   const archive = await DeckArchive.open(file2);
   const info = await readTemplateInfo(archive);
@@ -55676,6 +55699,11 @@ var cmdTplValidate = async (argv) => {
   const failed = issues.some((i) => i.severity === "fail");
   if (failed)
     throw new PptcError("E_LINT", "template validation failed", { issues });
+  if (args.flag("plain"))
+    return { plain: [
+      `${path8.resolve(file2)}: ${issues.length === 0 ? "ok" : "warn"} (${info.layouts.length} layouts)`,
+      ...issues.map((i) => `  ${i.severity}: ${i.message}`)
+    ].join("\n") };
   return {
     file: path8.resolve(file2),
     result: {
@@ -55712,6 +55740,9 @@ Write decks:      new <deck> --template <tpl> [--ops @file]
 Micro edits:      text|note|footer|rm|move <deck> --slide SEL ...
 Self-description: schema [op] | help | update
 
+Human console:    --plain on help, state, tpl list, tpl describe and
+                  tpl validate prints readable text instead of the JSON envelope
+
 Slide selectors:  id:N | title:... | index:N | $ref | bare index
 Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint`;
 var COMMANDS = {
@@ -55725,7 +55756,7 @@ var COMMANDS = {
   "footer": cmdFooter,
   "rm": cmdRm,
   "move": cmdMove,
-  "help": () => ({ result: { usage: USAGE } }),
+  "help": (argv) => argv.includes("--plain") ? { plain: USAGE } : { result: { usage: USAGE } },
   "--version": () => ({ result: { version: VERSION } })
 };
 var TPL_COMMANDS = {
