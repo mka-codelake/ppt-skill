@@ -29,7 +29,7 @@ calling any image generator and without doing web research.
 - `<skill-dir/>` is the absolute directory containing this SKILL.md.
   Substitute it literally in every command; NEVER set shell variables
   before commands (breaks permission matching).
-- Run pptc as: `node <skill-dir/>/bin/pptc.mjs <command> ...`
+- Run pptc as: `node <skill-dir/>/scripts/pptc.mjs <command> ...`
   (requires Node >= 20; on failure of `node --version`, tell the user to
   install Node 20+ and stop).
 - Execute each Bash call as a separate tool call.
@@ -59,18 +59,18 @@ calling any image generator and without doing web research.
 
 ```bash
 # templates
-node <skill-dir>/bin/pptc.mjs tpl list <dir>                  # scan dir for .potx/.pptx
-node <skill-dir>/bin/pptc.mjs tpl describe <tpl>              # LLM-readable description (uses <tpl>.md sidecar)
-node <skill-dir>/bin/pptc.mjs tpl inspect <tpl>               # precise JSON: colors, layouts, placeholders, capacity
+node <skill-dir>/scripts/pptc.mjs tpl list <dir>                  # scan dir for .potx/.pptx
+node <skill-dir>/scripts/pptc.mjs tpl describe <tpl>              # LLM-readable description (uses <tpl>.md sidecar)
+node <skill-dir>/scripts/pptc.mjs tpl inspect <tpl>               # precise JSON: colors, layouts, placeholders, capacity
 
 # decks
-node <skill-dir>/bin/pptc.mjs new <deck.pptx> --template <tpl>
-node <skill-dir>/bin/pptc.mjs state <deck.pptx>               # slides + rev token
-node <skill-dir>/bin/pptc.mjs apply <deck.pptx> --ops @<ops.json> --rev <rev> [--dry-run] [--strict] [--template <tpl>]
-node <skill-dir>/bin/pptc.mjs schema                          # ops JSON schema
+node <skill-dir>/scripts/pptc.mjs new <deck.pptx> --template <tpl>
+node <skill-dir>/scripts/pptc.mjs state <deck.pptx>               # slides + rev token
+node <skill-dir>/scripts/pptc.mjs apply <deck.pptx> --ops @<ops.json> --rev <rev> [--dry-run] [--strict] [--template <tpl>]
+node <skill-dir>/scripts/pptc.mjs schema                          # ops JSON schema
 
 # quick edits (no ops document)
-node <skill-dir>/bin/pptc.mjs text|note|footer|rm|move ...
+node <skill-dir>/scripts/pptc.mjs text|note|footer|rm|move ...
 ```
 
 Ops (in one JSON document, applied atomically): `slide.add`, `slide.fill`,

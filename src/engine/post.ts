@@ -159,11 +159,20 @@ const STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"]
 const pruneUnusedSlideRels = (slide: Document, slideRels: Document): boolean => {
     const xml = serializeXml(slide)
     let changed = false
+    const seen = new Set<string>()
     for (const rel of elements(slideRels, "Relationship")) {
+        const id = rel.getAttribute("Id") ?? ""
+        /*  duplicate ids (left by the pre-0.2.10 rid counter) heal here  */
+        if (seen.has(id)) {
+            rel.parentNode?.removeChild(rel)
+            changed = true
+            continue
+        }
+        seen.add(id)
         const type = rel.getAttribute("Type") ?? ""
         if (STRUCTURAL_RELS.some((k) => type.endsWith(k)))
             continue
-        if (!xml.includes(`"${rel.getAttribute("Id") ?? ""}"`)) {
+        if (!xml.includes(`"${id}"`)) {
             rel.parentNode?.removeChild(rel)
             changed = true
         }
@@ -474,7 +483,15 @@ export const postProcess = async (
     props: Record<string, string> | null
 ): Promise<Buffer> => {
     const zip = await JSZip.loadAsync(bytes)
-    const post: Post = { zip, rid: 9001 }
+    /*  the rid counter must clear every rIdPptc left by EARLIER applies,
+        or re-wiring (e.g. refilled hyperlinks) collides with old ids  */
+    let maxRid = 9000
+    for (const relsPart of Object.keys(zip.files).filter((f) => f.endsWith(".rels"))) {
+        const text = await zip.file(relsPart)?.async("string") ?? ""
+        for (const m of text.matchAll(/"rIdPptc(\d+)"/g))
+            maxRid = Math.max(maxRid, Number(m[1]))
+    }
+    const post: Post = { zip, rid: maxRid + 1 }
     const slides = await referencedSlides(zip)
     await gcParts(zip, slides)
 

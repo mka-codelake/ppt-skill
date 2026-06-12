@@ -1,6 +1,6 @@
 {
   "name": "@brusdeylins/pptc",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Deterministic PowerPoint (PPTX) CLI for LLM agents: template-aware creation and editing with atomic, schema-validated operations",
   "keywords": [
     "pptx",
@@ -37,7 +37,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "plugin:sync": "npm run build && cp dst/pptc.mjs plugin/skills/powerpoint/bin/pptc.mjs && node -e \"require('fs').writeFileSync('plugin/skills/powerpoint/bin/VERSION', require('./package.json').version + '\\n')\"",
+    "plugin:sync": "npm run build && cp dst/pptc.mjs plugin/skills/powerpoint/scripts/pptc.mjs && node -e \"require('fs').writeFileSync('plugin/skills/powerpoint/scripts/VERSION', require('./package.json').version + '\\n')\"",
     "test": "vitest run",
     "lint": "eslint src test && tsc --noEmit",
     "prepublishOnly": "npm run lint && npm run test && npm run build",

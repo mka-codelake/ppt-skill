@@ -135,6 +135,20 @@ describe("multi-apply stress with per-apply integrity", () => {
         expect(sheets.length).toBeLessThanOrEqual(1)
     }, 120000)
 
+    it("re-wiring hyperlinks across applies never duplicates rel ids", async () => {
+        const link = (label: string): { runs: { text: string, hyperlink: string }[] }[] =>
+            [{ runs: [{ text: label, hyperlink: "https://example.com/docs" }] }]
+        /*  two applies that each (re)write a hyperlink into the same
+            placeholder: the second re-wires and must not collide with
+            the rIdPptc left by the first (the probe.pptx repair bug)  */
+        await applyIntact(DECK, { ops: [
+            { op: "slide.fill", slide: "title:Inhalt", placeholders: { body: { text: link("erster Link") } } }
+        ] })
+        await applyIntact(DECK, { ops: [
+            { op: "slide.fill", slide: "title:Inhalt", placeholders: { body: { text: link("zweiter Link") } } }
+        ] })
+    })
+
     it("escapes XML special characters end to end", async () => {
         const state = await readDeckState(await DeckArchive.open(DECK))
         const intro = state.slides.find((s) => s.title === "Stressdeck")

@@ -48,9 +48,13 @@ export const integrityFindings = async (file: string): Promise<string[]> => {
                 findings.push(`${n}: duplicate cNvPr ids ${dup.join(",")}`)
         }
 
-    /*  3. every internal relationship target must exist  */
+    /*  3. every internal relationship target must exist; rel ids unique  */
     for (const n of names)
         if (n.endsWith(".rels")) {
+            const relIds = [...(await text(n)).matchAll(/<Relationship Id="([^"]+)"/g)].map((m) => m[1])
+            const dupIds = [...new Set(relIds.filter((id) => relIds.indexOf(id) !== relIds.lastIndexOf(id)))]
+            if (dupIds.length > 0)
+                findings.push(`${n}: duplicate relationship ids ${dupIds.join(",")}`)
             const base = path.posix.dirname(path.posix.dirname(n))
             for (const m of (await text(n)).matchAll(/<Relationship [^>]*?\/>/g)) {
                 if (m[0].includes("TargetMode=\"External\""))

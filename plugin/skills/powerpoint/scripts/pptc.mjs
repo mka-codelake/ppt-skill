@@ -18,7 +18,11 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
 var __commonJS = (cb, mod) => function __require2() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -10356,7 +10360,7 @@ var require_dom = __commonJS({
     var isHTMLVoidElement = conventions.isHTMLVoidElement;
     var MIME_TYPE = conventions.MIME_TYPE;
     var NAMESPACE = conventions.NAMESPACE;
-    var PDC = Symbol();
+    var PDC = /* @__PURE__ */ Symbol();
     var errors = require_errors();
     var DOMException = errors.DOMException;
     var DOMExceptionName = errors.DOMExceptionName;
@@ -11593,7 +11597,7 @@ var require_dom = __commonJS({
         }
       }
     }
-    walkDOM.STOP = Symbol("walkDOM.STOP");
+    walkDOM.STOP = /* @__PURE__ */ Symbol("walkDOM.STOP");
     walkDOM.ENTER = 0;
     walkDOM.EXIT = 1;
     function Document(symbol2, options) {
@@ -32248,7 +32252,7 @@ var require_define_properties = __commonJS({
   "node_modules/define-properties/index.js"(exports, module) {
     "use strict";
     var keys = require_object_keys();
-    var hasSymbols = typeof Symbol === "function" && typeof Symbol("foo") === "symbol";
+    var hasSymbols = typeof Symbol === "function" && typeof /* @__PURE__ */ Symbol("foo") === "symbol";
     var toStr = Object.prototype.toString;
     var concat = Array.prototype.concat;
     var defineDataProperty = require_define_data_property();
@@ -32419,7 +32423,7 @@ var require_shams = __commonJS({
         return true;
       }
       var obj = {};
-      var sym = Symbol("test");
+      var sym = /* @__PURE__ */ Symbol("test");
       var symObj = Object(sym);
       if (typeof sym === "string") {
         return false;
@@ -32478,7 +32482,7 @@ var require_has_symbols = __commonJS({
       if (typeof origSymbol("foo") !== "symbol") {
         return false;
       }
-      if (typeof Symbol("bar") !== "symbol") {
+      if (typeof /* @__PURE__ */ Symbol("bar") !== "symbol") {
         return false;
       }
       return hasSymbolSham();
@@ -38794,7 +38798,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.9" : "0.0.0-dev";
+var VERSION = true ? "0.2.10" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -39985,7 +39989,7 @@ function $constructor(name, initializer3, params) {
   Object.defineProperty(_, "name", { value: name });
   return _;
 }
-var $brand = Symbol("zod_brand");
+var $brand = /* @__PURE__ */ Symbol("zod_brand");
 var $ZodAsyncError = class extends Error {
   constructor() {
     super(`Encountered Promise during synchronous parse. Use .parseAsync() instead.`);
@@ -49728,8 +49732,8 @@ function yo_default() {
 
 // node_modules/zod/v4/core/registries.js
 var _a2;
-var $output = Symbol("ZodOutput");
-var $input = Symbol("ZodInput");
+var $output = /* @__PURE__ */ Symbol("ZodOutput");
+var $input = /* @__PURE__ */ Symbol("ZodInput");
 var $ZodRegistry = class {
   constructor() {
     this._map = /* @__PURE__ */ new WeakMap();
@@ -54228,6 +54232,8 @@ var DeckArchive = class _DeckArchive {
     this.zip = zip;
     this.file = file2;
   }
+  zip;
+  file;
   cache = /* @__PURE__ */ new Map();
   /**
    *  Open a .pptx or .potx file.
@@ -54892,11 +54898,19 @@ var STRUCTURAL_RELS = ["/slideLayout", "/notesSlide"];
 var pruneUnusedSlideRels = (slide, slideRels) => {
   const xml = serializeXml(slide);
   let changed = false;
+  const seen = /* @__PURE__ */ new Set();
   for (const rel of elements(slideRels, "Relationship")) {
+    const id = rel.getAttribute("Id") ?? "";
+    if (seen.has(id)) {
+      rel.parentNode?.removeChild(rel);
+      changed = true;
+      continue;
+    }
+    seen.add(id);
     const type = rel.getAttribute("Type") ?? "";
     if (STRUCTURAL_RELS.some((k) => type.endsWith(k)))
       continue;
-    if (!xml.includes(`"${rel.getAttribute("Id") ?? ""}"`)) {
+    if (!xml.includes(`"${id}"`)) {
       rel.parentNode?.removeChild(rel);
       changed = true;
     }
@@ -55158,7 +55172,13 @@ var setProps = async (zip, props) => {
 };
 var postProcess = async (bytes, work, props) => {
   const zip = await import_jszip2.default.loadAsync(bytes);
-  const post = { zip, rid: 9001 };
+  let maxRid = 9e3;
+  for (const relsPart of Object.keys(zip.files).filter((f) => f.endsWith(".rels"))) {
+    const text = await zip.file(relsPart)?.async("string") ?? "";
+    for (const m of text.matchAll(/"rIdPptc(\d+)"/g))
+      maxRid = Math.max(maxRid, Number(m[1]));
+  }
+  const post = { zip, rid: maxRid + 1 };
   const slides = await referencedSlides(zip);
   await gcParts(zip, slides);
   let mediaSeq = 1;

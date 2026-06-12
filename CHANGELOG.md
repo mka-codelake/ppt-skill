@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.10 (plugin 0.2.13)
+
+- Engine fix (repair trigger): the post-pass relationship-id counter now
+  starts above every `rIdPptc` left by earlier applies -- re-wiring
+  hyperlinks (e.g. refilling a placeholder that contains links) used to
+  collide with ids from the previous apply, producing duplicate
+  relationship ids. Existing duplicates self-heal on the next apply;
+  the integrity validator now checks rel-id uniqueness.
+- Plugin: the bundled CLI moved from `skills/powerpoint/bin/` to
+  `skills/powerpoint/scripts/` -- `scripts/` is the documented
+  supporting-file convention, and `bin/` officially denotes the
+  plugin-root PATH directory.
+
 ## plugin 0.2.12 (CLI unchanged at 0.2.9)
 
 - "Placeholders first" rule: text content always goes into layout
