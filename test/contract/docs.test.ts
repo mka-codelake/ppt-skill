@@ -24,7 +24,7 @@ const readme = readFileSync(path.join(root, "README.md"), "utf8")
 
 /**  command names parsed from the dispatch tables in main.ts  */
 const commands = (): string[] => {
-    const top = [...mainSrc.matchAll(/^    "([a-z-]+)": /gm)]
+    const top = [...mainSrc.matchAll(/^ {4}"([a-z-]+)": /gm)]
         .map((m) => m[1] as string)
         .filter((c) => c !== "--version")
     const tplBlock = /TPL_COMMANDS[^}]*}/s.exec(mainSrc)?.[0] ?? ""
