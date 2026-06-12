@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.7 (plugin 0.2.8)
+
+- English throughout: the `tpl describe` narration (suitability hints,
+  positions, capacities -- previously German), all help/README examples
+  and the skill's output templates are now English. Deck content and
+  user-facing skill responses still follow the deck/user language;
+  German strings remain only as deliberate language examples and
+  unicode-escaping test data.
+
 ## 0.2.6 (plugin 0.2.7)
 
 - Detailed CLI help: every command documented with options and an

@@ -17,27 +17,27 @@ import { renderMinimap } from "./minimap.js"
  *  Derive a suitability hint for a layout from its placeholder structure.
  *
  *  @param layout - the layout to judge
- *  @returns a short German usage hint ("Vergleich/Gegenüberstellung", ...)
+ *  @returns a short usage hint ("comparison/juxtaposition", ...)
  */
 export const suitabilityHint = (layout: Layout): string => {
     const text = layout.placeholders.filter((p) => p.kind === "body")
     const pics = layout.placeholders.filter((p) => p.kind === "picture")
     const bigPic = pics.some((p) => p.frame !== null && p.frame.w * p.frame.h > 20)
     if (text.length === 0 && pics.length === 0)
-        return "Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)"
+        return "key message or section break (title/subtitle only)"
     if (text.length === 0 && pics.length > 0)
-        return "Titel-, Kapitel- oder Schlussfolie mit Bildwirkung"
+        return "title, chapter or closing slide with visual impact"
     if (text.length >= 3)
-        return `${text.length} parallele Textbereiche – Aufzählung gleichrangiger Aspekte`
+        return `${text.length} parallel text areas -- list of equal-rank aspects`
     if (text.length === 2 && pics.length === 0)
-        return "2 Textspalten – Vergleich/Gegenüberstellung"
+        return "2 text columns -- comparison/juxtaposition"
     if (text.length >= 1 && bigPic)
-        return "großes Bild + Text – Infografik mit Erläuterung"
+        return "large picture + text -- infographic with explanation"
     if (text.length === 1 && pics.length === 1)
-        return "Text und Bild nebeneinander – erklärter Sachverhalt"
+        return "text and picture side by side -- explained subject"
     if (text.length === 1 && pics.length === 0)
-        return "eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm"
-    return "Mischlayout – Inhalte frei kombinierbar"
+        return "one content area -- prose, bullets, table or chart"
+    return "mixed layout -- contents freely combinable"
 }
 
 /**
@@ -52,7 +52,7 @@ export const narrateLayout = (layout: Layout, info: TemplateInfo): string => {
     const lines: string[] = []
     lines.push(`## Layout ${layout.index}: "${layout.name}"`)
     lines.push("")
-    lines.push(`Eignung: ${suitabilityHint(layout)}`)
+    lines.push(`Suitability: ${suitabilityHint(layout)}`)
     lines.push("")
     lines.push("```")
     lines.push(renderMinimap(layout, w, h))
@@ -61,17 +61,17 @@ export const narrateLayout = (layout: Layout, info: TemplateInfo): string => {
     for (const ph of layout.placeholders) {
         const addr = `\`${ph.idx}\``
         const kind =
-            ph.kind === "title" ? "Titel" :
-            ph.kind === "subtitle" ? "Untertitel" :
-            ph.kind === "picture" ? "Bild" : "Textfläche"
+            ph.kind === "title" ? "Title" :
+            ph.kind === "subtitle" ? "Subtitle" :
+            ph.kind === "picture" ? "Picture" : "Text area"
         const parts: string[] = [`- ${kind} (idx ${addr}, "${ph.name}")`]
         if (ph.frame !== null) {
             parts.push(describePosition(ph.frame, w, h))
             if (ph.kind === "picture")
-                parts.push(`Seitenverhältnis ~${nearestAspect(ph.frame)}`)
+                parts.push(`aspect ratio ~${nearestAspect(ph.frame)}`)
         }
         if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
-            parts.push(`~${ph.capacity.lines} Zeilen à ~${ph.capacity.charsPerLine} Zeichen`)
+            parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`)
         lines.push(parts.join(" — "))
     }
     return lines.join("\n")
@@ -89,18 +89,18 @@ export const narrateTemplate = (info: TemplateInfo, source: string, sidecar: str
     const head: string[] = []
     head.push(`# Template: ${source}`)
     head.push("")
-    head.push(`Folienformat: ${info.slideSize.w}" x ${info.slideSize.h}" — Schriften: ${info.fonts.major} (Überschriften), ${info.fonts.minor} (Text)`)
+    head.push(`Slide size: ${info.slideSize.w}" x ${info.slideSize.h}" -- fonts: ${info.fonts.major} (headings), ${info.fonts.minor} (body)`)
     const accents = ["accent1", "accent2", "accent3"]
         .map((k) => info.colors[k])
         .filter((c): c is string => c !== undefined)
     if (accents.length > 0)
-        head.push(`Akzentfarben: ${accents.map((c) => `#${c}`).join(", ")}`)
+        head.push(`Accent colors: ${accents.map((c) => `#${c}`).join(", ")}`)
     head.push("")
-    head.push(`Layouts: ${info.layouts.length} — adressierbar in \`slide.add\` per Index oder Name.`)
-    head.push("Placeholder werden in `slide.fill` über ihre `idx`-Nummer befüllt.")
+    head.push(`Layouts: ${info.layouts.length} -- addressable in \`slide.add\` by index or name.`)
+    head.push("Placeholders are filled in `slide.fill` via their `idx` number.")
     if (sidecar !== null) {
         head.push("")
-        head.push("## Hinweise aus der Template-Dokumentation")
+        head.push("## Notes from the template documentation")
         head.push("")
         head.push(sidecar.trim())
     }

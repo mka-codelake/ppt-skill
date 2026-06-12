@@ -3,15 +3,15 @@
 exports[`tpl describe golden output > matches the pinned description for the fixture template 1`] = `
 "# Template: neutral-template.pptx
 
-Folienformat: 13.33" x 7.5" — Schriften: Calibri (Überschriften), Calibri (Text)
-Akzentfarben: #4F81BD, #C0504D, #9BBB59
+Slide size: 13.33" x 7.5" -- fonts: Calibri (headings), Calibri (body)
+Accent colors: #4F81BD, #C0504D, #9BBB59
 
-Layouts: 11 — adressierbar in \`slide.add\` per Index oder Name.
-Placeholder werden in \`slide.fill\` über ihre \`idx\`-Nummer befüllt.
+Layouts: 11 -- addressable in \`slide.add\` by index or name.
+Placeholders are filled in \`slide.fill\` via their \`idx\` number.
 
 ## Layout 0: "TITLE_SLIDE"
 
-Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+Suitability: key message or section break (title/subtitle only)
 
 \`\`\`
 ----------------------------------------
@@ -29,12 +29,12 @@ Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1") — linke Hälfte, mittlerer Bereich (14% der Folie)
-- Untertitel (idx \`1\`, "Subtitle 2") — linke Hälfte, unterer Bereich (13% der Folie) — ~3 Zeilen à ~30 Zeichen
+- Title (idx \`0\`, "Title 1") — left half, middle area (14% of slide)
+- Subtitle (idx \`1\`, "Subtitle 2") — left half, lower area (13% of slide) — ~3 lines of ~30 chars
 
 ## Layout 1: "CONTENT"
 
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
@@ -52,12 +52,12 @@ Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1")
-- Textfläche (idx \`1\`, "Content Placeholder 2")
+- Title (idx \`0\`, "Title 1")
+- Text area (idx \`1\`, "Content Placeholder 2")
 
 ## Layout 2: "Section Header"
 
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
@@ -75,12 +75,12 @@ Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1") — linke Hälfte, unterer Bereich (13% der Folie)
-- Textfläche (idx \`1\`, "Text Placeholder 2") — linke Hälfte, mittlerer Bereich (14% der Folie) — ~2 Zeilen à ~37 Zeichen
+- Title (idx \`0\`, "Title 1") — left half, lower area (13% of slide)
+- Text area (idx \`1\`, "Text Placeholder 2") — left half, middle area (14% of slide) — ~2 lines of ~37 chars
 
 ## Layout 3: "TWO_COLUMN"
 
-Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
+Suitability: 2 text columns -- comparison/juxtaposition
 
 \`\`\`
 ----------------------------------------
@@ -98,13 +98,13 @@ Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1")
-- Textfläche (idx \`1\`, "Content Placeholder 2") — linke Spalte, mittlerer Bereich (22% der Folie) — ~8 Zeilen à ~18 Zeichen
-- Textfläche (idx \`2\`, "Content Placeholder 3") — mittlere Spalte, mittlerer Bereich (22% der Folie) — ~8 Zeilen à ~18 Zeichen
+- Title (idx \`0\`, "Title 1")
+- Text area (idx \`1\`, "Content Placeholder 2") — left column, middle area (22% of slide) — ~8 lines of ~18 chars
+- Text area (idx \`2\`, "Content Placeholder 3") — center column, middle area (22% of slide) — ~8 lines of ~18 chars
 
 ## Layout 4: "Comparison"
 
-Eignung: 4 parallele Textbereiche – Aufzählung gleichrangiger Aspekte
+Suitability: 4 parallel text areas -- list of equal-rank aspects
 
 \`\`\`
 ----------------------------------------
@@ -122,15 +122,15 @@ Eignung: 4 parallele Textbereiche – Aufzählung gleichrangiger Aspekte
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1")
-- Textfläche (idx \`1\`, "Text Placeholder 2") — linke Spalte, oberer Bereich (3% der Folie) — ~1 Zeilen à ~18 Zeichen
-- Textfläche (idx \`2\`, "Content Placeholder 3") — linke Spalte, mittlerer Bereich (19% der Folie) — ~7 Zeilen à ~18 Zeichen
-- Textfläche (idx \`3\`, "Text Placeholder 4") — mittlere Spalte, oberer Bereich (3% der Folie) — ~1 Zeilen à ~18 Zeichen
-- Textfläche (idx \`4\`, "Content Placeholder 5") — mittlere Spalte, mittlerer Bereich (19% der Folie) — ~7 Zeilen à ~18 Zeichen
+- Title (idx \`0\`, "Title 1")
+- Text area (idx \`1\`, "Text Placeholder 2") — left column, upper area (3% of slide) — ~1 lines of ~18 chars
+- Text area (idx \`2\`, "Content Placeholder 3") — left column, middle area (19% of slide) — ~7 lines of ~18 chars
+- Text area (idx \`3\`, "Text Placeholder 4") — center column, upper area (3% of slide) — ~1 lines of ~18 chars
+- Text area (idx \`4\`, "Content Placeholder 5") — center column, middle area (19% of slide) — ~7 lines of ~18 chars
 
 ## Layout 5: "Title Only"
 
-Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+Suitability: key message or section break (title/subtitle only)
 
 \`\`\`
 ----------------------------------------
@@ -148,11 +148,11 @@ Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1")
+- Title (idx \`0\`, "Title 1")
 
 ## Layout 6: "DEFAULT"
 
-Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
+Suitability: key message or section break (title/subtitle only)
 
 \`\`\`
 ----------------------------------------
@@ -173,7 +173,7 @@ Eignung: Schlüsselbotschaft oder Zwischentitel (nur Titel/Untertitel)
 
 ## Layout 7: "Content with Caption"
 
-Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
+Suitability: 2 text columns -- comparison/juxtaposition
 
 \`\`\`
 ----------------------------------------
@@ -191,13 +191,13 @@ Eignung: 2 Textspalten – Vergleich/Gegenüberstellung
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1") — linke Spalte, oberer Bereich (4% der Folie)
-- Textfläche (idx \`1\`, "Content Placeholder 2") — mittlere Spalte, volle Höhe (36% der Folie) — ~11 Zeilen à ~24 Zeichen
-- Textfläche (idx \`2\`, "Text Placeholder 3") — linke Spalte, mittlerer Bereich (17% der Folie) — ~9 Zeilen à ~13 Zeichen
+- Title (idx \`0\`, "Title 1") — left column, upper area (4% of slide)
+- Text area (idx \`1\`, "Content Placeholder 2") — center column, full height (36% of slide) — ~11 lines of ~24 chars
+- Text area (idx \`2\`, "Text Placeholder 3") — left column, middle area (17% of slide) — ~9 lines of ~13 chars
 
 ## Layout 8: "PICTURE"
 
-Eignung: großes Bild + Text – Infografik mit Erläuterung
+Suitability: large picture + text -- infographic with explanation
 
 \`\`\`
 ----------------------------------------
@@ -215,13 +215,13 @@ Eignung: großes Bild + Text – Infografik mit Erläuterung
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1") — linke Hälfte, unterer Bereich (4% der Folie)
-- Bild (idx \`1\`, "Picture Placeholder 2") — linke Hälfte, mittlerer Bereich (27% der Folie) — Seitenverhältnis ~4:3
-- Textfläche (idx \`2\`, "Text Placeholder 3") — linke Hälfte, unterer Bereich (5% der Folie) — ~1 Zeilen à ~26 Zeichen
+- Title (idx \`0\`, "Title 1") — left half, lower area (4% of slide)
+- Picture (idx \`1\`, "Picture Placeholder 2") — left half, middle area (27% of slide) — aspect ratio ~4:3
+- Text area (idx \`2\`, "Text Placeholder 3") — left half, lower area (5% of slide) — ~1 lines of ~26 chars
 
 ## Layout 9: "Title and Vertical Text"
 
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
@@ -239,12 +239,12 @@ Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Title 1")
-- Textfläche (idx \`1\`, "Vertical Text Placeholder 2")
+- Title (idx \`0\`, "Title 1")
+- Text area (idx \`1\`, "Vertical Text Placeholder 2")
 
 ## Layout 10: "Vertical Title and Text"
 
-Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
+Suitability: one content area -- prose, bullets, table or chart
 
 \`\`\`
 ----------------------------------------
@@ -262,6 +262,6 @@ Eignung: eine Inhaltsfläche – Fließtext, Aufzählung, Tabelle oder Diagramm
 ----------------------------------------
 \`\`\`
 
-- Titel (idx \`0\`, "Vertical Title 1") — mittlere Spalte, volle Höhe (14% der Folie)
-- Textfläche (idx \`1\`, "Vertical Text Placeholder 2") — linke Hälfte, volle Höhe (42% der Folie) — ~11 Zeilen à ~28 Zeichen"
+- Title (idx \`0\`, "Vertical Title 1") — center column, full height (14% of slide)
+- Text area (idx \`1\`, "Vertical Text Placeholder 2") — left half, full height (42% of slide) — ~11 lines of ~28 chars"
 `;

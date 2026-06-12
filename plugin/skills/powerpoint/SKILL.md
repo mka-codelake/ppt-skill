@@ -109,7 +109,7 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         between templates). Source of truth: the template sidecar `<tpl>.md` if
         present; otherwise name heuristics; otherwise ask the user.
     -   Per picture placeholder: frame geometry → nearest aspect ratio.
-    -   Per text placeholder: capacity (`~N Zeilen à ~M Zeichen`).
+    -   Per text placeholder: capacity (`~N lines of ~M chars`).
 
     </step>
 
@@ -219,12 +219,15 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     Mirror each prompt to the user with this <template/>:
 
     <template>
-    ### Bild-Prompt — Folie <n/>, Platzhalter <idx/> (<aspect/>, Rolle <role/>)
+    ### Image prompt — slide <n/>, placeholder <idx/> (<aspect/>, role <role/>)
 
     ```
     <prompt/>
     ```
     </template>
+
+    Translate the fixed labels of this template into the USER's language
+    (e.g. German: "Bild-Prompt — Folie … , Platzhalter … , Rolle …").
 
     </step>
 
@@ -234,12 +237,14 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     open items. Then report with this <template/>:
 
     <template>
-    **Deck aktualisiert**: `<deck/>` (rev `<rev/>`)
+    **Deck updated**: `<deck/>` (rev `<rev/>`)
 
-    - Folien: <slide-count/> (<changed/> geändert/neu)
-    - Bild-Prompts gesetzt: <prompt-count/>
-    - Offene Checklisten-Punkte: <open-items/>
+    - Slides: <slide-count/> (<changed/> changed/new)
+    - Image prompts written: <prompt-count/>
+    - Open checklist items: <open-items/>
     </template>
+
+    Translate the fixed labels of this template into the USER's language.
 
     </step>
 

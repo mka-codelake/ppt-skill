@@ -41,7 +41,7 @@ these structurally:
   underneath.
 - **Templates as data.** `tpl describe` turns any `.potx`/`.pptx` into an
   LLM-readable description: per layout an ASCII minimap, semantic positions
-  ("linke Spalte, volle Höhe"), text capacities and image aspect ratios --
+  ("left column, full height"), text capacities and image aspect ratios --
   derived generically from the OOXML geometry, no template-specific code.
 - **Typed failures.** Exit codes per error class, machine-readable
   `error.code`, and Zod issue paths in `error.details` for self-correction.
@@ -75,16 +75,16 @@ pptc state deck.pptx --level full
   "ops": [
     { "op": "slide.add", "ref": "intro", "layout": 0,
       "placeholders": {
-        "title":    { "text": "Mein Vortrag" },
-        "subtitle": { "text": "Untertitel" }
+        "title":    { "text": "My Talk" },
+        "subtitle": { "text": "Subtitle" }
       },
-      "notes": "Begrüßung." },
+      "notes": "Welcome the audience." },
     { "op": "slide.add", "layout": 4,
-      "placeholders": { "title": { "text": "Zahlen" } } },
-    { "op": "el.add", "slide": "title:Zahlen", "elements": [
+      "placeholders": { "title": { "text": "Figures" } } },
+    { "op": "el.add", "slide": "title:Figures", "elements": [
       { "type": "chart", "frame": { "x": 0.7, "y": 1.9, "w": 12, "h": 4.7 },
         "data": { "type": "column", "categories": ["Q1", "Q2"],
-                  "series": [{ "name": "Umsatz", "values": [10, 14] }] } }
+                  "series": [{ "name": "Revenue", "values": [10, 14] }] } }
     ] },
     { "op": "slide.move", "slide": "$intro", "to": 0 }
   ]
@@ -94,8 +94,8 @@ pptc state deck.pptx --level full
 Small fixes need no JSON file:
 
 ```bash
-pptc text deck.pptx --slide title:Zahlen --ph title "Zahlen 2026"
-pptc note deck.pptx --slide id:257 "Neuer Sprechertext"
+pptc text deck.pptx --slide title:Figures --ph title "Figures 2026"
+pptc note deck.pptx --slide id:257 "New speaker notes"
 pptc rm   deck.pptx --slide index:3
 pptc apply deck.pptx -e '{"op":"slide.move","slide":"id:257","to":1}'
 ```
@@ -139,8 +139,8 @@ exists next to it.
 #### `pptc tpl describe <tpl> [--layout SEL] [--format text|json] [--plain]`
 
 The LLM-facing template description. For every layout: an ASCII minimap of
-the placeholder geometry, semantic positions ("linke Spalte, volle Höhe"),
-text capacities (`~N Zeilen à ~M Zeichen`), image aspect ratios and a
+the placeholder geometry, semantic positions ("left column, full height"),
+text capacities (`~N lines of ~M chars`), image aspect ratios and a
 suitability hint -- all derived generically from OOXML geometry. A sidecar
 `<tpl>.md` (template-specific notes: layout roles, footer pattern, design
 constraints) is included verbatim in the header.
@@ -263,10 +263,10 @@ applies everything in one atomic write, or nothing.
   "expectRev": "27d7f5a4ea5a",
   "ops": [
     { "op": "slide.add", "layout": "CONTENT", "ref": "intro",
-      "placeholders": { "title": { "text": "Mein Vortrag" },
-                        "body":  { "text": "Punkt A\nPunkt B" } },
-      "notes": "Sprechertext.",
-      "footer": "Mein Vortrag | 2026" },
+      "placeholders": { "title": { "text": "My Talk" },
+                        "body":  { "text": "Point A\nPoint B" } },
+      "notes": "Speaker notes.",
+      "footer": "My Talk | 2026" },
     { "op": "slide.move", "slide": "$intro", "to": 0 }
   ]
 }

@@ -31,15 +31,15 @@ describe("capacity", () => {
 
 describe("position", () => {
     it("classifies horizontal and vertical bands", () => {
-        expect(horizontalBand({ x: 0.5, y: 0, w: 12.3, h: 1 }, SLIDE_W)).toBe("volle Breite")
-        expect(horizontalBand({ x: 0, y: 0, w: 6, h: 1 }, SLIDE_W)).toBe("linke Hälfte")
-        expect(horizontalBand({ x: 9.5, y: 0, w: 3.5, h: 1 }, SLIDE_W)).toBe("rechte Spalte")
-        expect(verticalBand({ x: 0, y: 0.2, w: 1, h: 1 }, SLIDE_H)).toBe("oberer Bereich")
-        expect(verticalBand({ x: 0, y: 0, w: 1, h: 7 }, SLIDE_H)).toBe("volle Höhe")
+        expect(horizontalBand({ x: 0.5, y: 0, w: 12.3, h: 1 }, SLIDE_W)).toBe("full width")
+        expect(horizontalBand({ x: 0, y: 0, w: 6, h: 1 }, SLIDE_W)).toBe("left half")
+        expect(horizontalBand({ x: 9.5, y: 0, w: 3.5, h: 1 }, SLIDE_W)).toBe("right column")
+        expect(verticalBand({ x: 0, y: 0.2, w: 1, h: 1 }, SLIDE_H)).toBe("upper area")
+        expect(verticalBand({ x: 0, y: 0, w: 1, h: 7 }, SLIDE_H)).toBe("full height")
     })
     it("includes the area share", () => {
         expect(describePosition({ x: 0, y: 0, w: 6.67, h: 7.5 }, SLIDE_W, SLIDE_H))
-            .toMatch(/linke Hälfte.*50% der Folie/)
+            .toMatch(/left half.*50% of slide/)
     })
     it("snaps to the nearest common aspect ratio", () => {
         expect(nearestAspect({ x: 0, y: 0, w: 16, h: 9 })).toBe("16:9")
@@ -69,9 +69,9 @@ describe("minimap and suitability", () => {
         expect(map.split("\n")).toHaveLength(13)
     })
     it("derives a suitability hint from structure", () => {
-        expect(suitabilityHint(layout)).toMatch(/Bild/)
+        expect(suitabilityHint(layout)).toMatch(/picture/)
         expect(suitabilityHint({ index: 0, name: "x", placeholders: [ph(0, "title", null)] }))
-            .toMatch(/Schlüsselbotschaft/)
+            .toMatch(/key message/)
     })
 })
 

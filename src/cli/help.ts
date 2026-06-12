@@ -74,7 +74,7 @@ Options:
   --rev R / --strict / --dry-run   as in 'apply'
 
 Example:
-  pptc text deck.pptx --slide title:Agenda --ph body "Punkt vier" --append`,
+  pptc text deck.pptx --slide title:Agenda --ph body "Fourth point" --append`,
 
     "note": `pptc note <deck> --slide SEL "speaker notes"
 
@@ -82,7 +82,7 @@ Set a slide's speaker notes (compiles to one slide.fill op).
 Options: --slide SEL, --rev R, --strict, --dry-run (as in 'apply').
 
 Example:
-  pptc note deck.pptx --slide id:257 "Kernbotschaft, Zahlen, Überleitung."`,
+  pptc note deck.pptx --slide id:257 "Key message, figures, transition."`,
 
     "footer": `pptc footer <deck> [--slide SEL] "footer text"
 
@@ -92,7 +92,7 @@ title/closing layouts) are skipped silently.
 Options: --slide SEL, --rev R, --strict, --dry-run (as in 'apply').
 
 Example:
-  pptc footer deck.pptx "© Firma | Mein Vortrag | 2026"`,
+  pptc footer deck.pptx "© Acme Corp | My Talk | 2026"`,
 
     "rm": `pptc rm <deck> --slide SEL
 
@@ -190,17 +190,17 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
                  "at": 0,                   // optional insert position
                  "placeholders": { "title": { "text": "..." },
                                    "body":  { "text": "A\\nB" },
-                                   "image": { "image": "pfad.png" } },
+                                   "image": { "image": "photo.png" } },
                  "notes": "...", "footer": "...",
                  "background": { "color": "1F4E79" } }
   slide.fill   same fill payload, on an existing slide ("slide": SEL)
   slide.rm     { "op": "slide.rm",   "slide": SEL }
   slide.move   { "op": "slide.move", "slide": SEL, "to": 2 }
-  slide.copy   { "op": "slide.copy", "slide": SEL, "ref": "kopie" }
+  slide.copy   { "op": "slide.copy", "slide": SEL, "ref": "copy1" }
   el.add       free elements: textbox | table | chart | shape | image |
                connector -- all positioned via "frame": {x,y,w,h} inches
   el.set       retext an element:  { "op": "el.set", "slide": SEL,
-                 "name": "Kasten", "text": "neu" }
+                 "name": "Box1", "text": "new text" }
   el.rm        remove an element by name
   img.prompts  overlay picture placeholders with visible prompt boxes
                { "op": "img.prompts", "slide": SEL, "prompts": "..." }

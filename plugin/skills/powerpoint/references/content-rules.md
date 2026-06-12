@@ -8,8 +8,8 @@ Titles
 ------
 
 -   **Action titles**: every slide title states the takeaway, not the
-    topic -- `"Umsatz übertrifft Forecast um 12%"`, not
-    `"Q3-Ergebnisse"`. Reading ONLY the titles, in order, must tell
+    topic -- `"Revenue beats forecast by 12%"`, not
+    `"Q3 results"`. Reading ONLY the titles, in order, must tell
     the deck's complete story.
 -   **Unique titles**: no two slides share a title (titles are also
     the stable `title:` address for later edits).
@@ -24,7 +24,7 @@ Body
     bullet, indent `level` at most 2. No prose paragraphs on slides --
     details go into the speaker notes.
 -   **Capacity over instinct**: `pptc tpl describe` states per
-    placeholder `~N Zeilen à ~M Zeichen`. Write text AGAINST that
+    placeholder `~N lines of ~M chars`. Write text AGAINST that
     budget. Validation: `pptc apply ... --dry-run --strict` fails with
     `W_TEXT_OVERFLOW` (exit 7) on overflow -- then SHORTEN or SPLIT,
     never rely on PowerPoint auto-shrink.
@@ -39,7 +39,7 @@ Language & footer
     English.
 -   **Footer on every slide**: the template's footer pattern (see
     template sidecar) with the actual deck title and the CURRENT year.
-    Never ship the template's placeholder title ("Titel einfügen") or
+    Never ship the template's placeholder title (e.g. "Insert title") or
     a stale year; ask for the title when it cannot be derived.
 -   **AI-image note**: every slide whose layout has picture
     placeholders carries a note that the images are AI-generated, in

@@ -38556,14 +38556,14 @@ Options:
   --rev R / --strict / --dry-run   as in 'apply'
 
 Example:
-  pptc text deck.pptx --slide title:Agenda --ph body "Punkt vier" --append`,
+  pptc text deck.pptx --slide title:Agenda --ph body "Fourth point" --append`,
   "note": `pptc note <deck> --slide SEL "speaker notes"
 
 Set a slide's speaker notes (compiles to one slide.fill op).
 Options: --slide SEL, --rev R, --strict, --dry-run (as in 'apply').
 
 Example:
-  pptc note deck.pptx --slide id:257 "Kernbotschaft, Zahlen, \xDCberleitung."`,
+  pptc note deck.pptx --slide id:257 "Key message, figures, transition."`,
   "footer": `pptc footer <deck> [--slide SEL] "footer text"
 
 Set the footer of one slide -- or, without --slide, of EVERY slide.
@@ -38572,7 +38572,7 @@ title/closing layouts) are skipped silently.
 Options: --slide SEL, --rev R, --strict, --dry-run (as in 'apply').
 
 Example:
-  pptc footer deck.pptx "\xA9 Firma | Mein Vortrag | 2026"`,
+  pptc footer deck.pptx "\xA9 Acme Corp | My Talk | 2026"`,
   "rm": `pptc rm <deck> --slide SEL
 
 Remove a slide (compiles to one slide.rm op).
@@ -38660,17 +38660,17 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
                  "at": 0,                   // optional insert position
                  "placeholders": { "title": { "text": "..." },
                                    "body":  { "text": "A\\nB" },
-                                   "image": { "image": "pfad.png" } },
+                                   "image": { "image": "photo.png" } },
                  "notes": "...", "footer": "...",
                  "background": { "color": "1F4E79" } }
   slide.fill   same fill payload, on an existing slide ("slide": SEL)
   slide.rm     { "op": "slide.rm",   "slide": SEL }
   slide.move   { "op": "slide.move", "slide": SEL, "to": 2 }
-  slide.copy   { "op": "slide.copy", "slide": SEL, "ref": "kopie" }
+  slide.copy   { "op": "slide.copy", "slide": SEL, "ref": "copy1" }
   el.add       free elements: textbox | table | chart | shape | image |
                connector -- all positioned via "frame": {x,y,w,h} inches
   el.set       retext an element:  { "op": "el.set", "slide": SEL,
-                 "name": "Kasten", "text": "neu" }
+                 "name": "Box1", "text": "new text" }
   el.rm        remove an element by name
   img.prompts  overlay picture placeholders with visible prompt boxes
                { "op": "img.prompts", "slide": SEL, "prompts": "..." }
@@ -38794,7 +38794,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.6" : "0.0.0-dev";
+var VERSION = true ? "0.2.7" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -55671,29 +55671,29 @@ var horizontalBand = (frame, slideW) => {
   const rel = frame.w / slideW;
   const centerX = (frame.x + frame.w / 2) / slideW;
   if (rel > 0.8)
-    return "volle Breite";
+    return "full width";
   if (rel > 0.42)
-    return centerX < 0.5 ? "linke H\xE4lfte" : "rechte H\xE4lfte";
+    return centerX < 0.5 ? "left half" : "right half";
   if (centerX < 0.37)
-    return "linke Spalte";
+    return "left column";
   if (centerX > 0.63)
-    return "rechte Spalte";
-  return "mittlere Spalte";
+    return "right column";
+  return "center column";
 };
 var verticalBand = (frame, slideH) => {
   const rel = frame.h / slideH;
   const centerY = (frame.y + frame.h / 2) / slideH;
   if (rel > 0.8)
-    return "volle H\xF6he";
+    return "full height";
   if (centerY < 0.33)
-    return "oberer Bereich";
+    return "upper area";
   if (centerY > 0.67)
-    return "unterer Bereich";
-  return "mittlerer Bereich";
+    return "lower area";
+  return "middle area";
 };
 var describePosition = (frame, slideW, slideH) => {
   const area = Math.round(frame.w * frame.h / (slideW * slideH) * 100);
-  return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% der Folie)`;
+  return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% of slide)`;
 };
 var nearestAspect = (frame) => {
   if (frame.h === 0)
@@ -55759,27 +55759,27 @@ var suitabilityHint = (layout) => {
   const pics = layout.placeholders.filter((p) => p.kind === "picture");
   const bigPic = pics.some((p) => p.frame !== null && p.frame.w * p.frame.h > 20);
   if (text.length === 0 && pics.length === 0)
-    return "Schl\xFCsselbotschaft oder Zwischentitel (nur Titel/Untertitel)";
+    return "key message or section break (title/subtitle only)";
   if (text.length === 0 && pics.length > 0)
-    return "Titel-, Kapitel- oder Schlussfolie mit Bildwirkung";
+    return "title, chapter or closing slide with visual impact";
   if (text.length >= 3)
-    return `${text.length} parallele Textbereiche \u2013 Aufz\xE4hlung gleichrangiger Aspekte`;
+    return `${text.length} parallel text areas -- list of equal-rank aspects`;
   if (text.length === 2 && pics.length === 0)
-    return "2 Textspalten \u2013 Vergleich/Gegen\xFCberstellung";
+    return "2 text columns -- comparison/juxtaposition";
   if (text.length >= 1 && bigPic)
-    return "gro\xDFes Bild + Text \u2013 Infografik mit Erl\xE4uterung";
+    return "large picture + text -- infographic with explanation";
   if (text.length === 1 && pics.length === 1)
-    return "Text und Bild nebeneinander \u2013 erkl\xE4rter Sachverhalt";
+    return "text and picture side by side -- explained subject";
   if (text.length === 1 && pics.length === 0)
-    return "eine Inhaltsfl\xE4che \u2013 Flie\xDFtext, Aufz\xE4hlung, Tabelle oder Diagramm";
-  return "Mischlayout \u2013 Inhalte frei kombinierbar";
+    return "one content area -- prose, bullets, table or chart";
+  return "mixed layout -- contents freely combinable";
 };
 var narrateLayout = (layout, info) => {
   const { w, h } = info.slideSize;
   const lines = [];
   lines.push(`## Layout ${layout.index}: "${layout.name}"`);
   lines.push("");
-  lines.push(`Eignung: ${suitabilityHint(layout)}`);
+  lines.push(`Suitability: ${suitabilityHint(layout)}`);
   lines.push("");
   lines.push("```");
   lines.push(renderMinimap(layout, w, h));
@@ -55787,15 +55787,15 @@ var narrateLayout = (layout, info) => {
   lines.push("");
   for (const ph of layout.placeholders) {
     const addr = `\`${ph.idx}\``;
-    const kind = ph.kind === "title" ? "Titel" : ph.kind === "subtitle" ? "Untertitel" : ph.kind === "picture" ? "Bild" : "Textfl\xE4che";
+    const kind = ph.kind === "title" ? "Title" : ph.kind === "subtitle" ? "Subtitle" : ph.kind === "picture" ? "Picture" : "Text area";
     const parts = [`- ${kind} (idx ${addr}, "${ph.name}")`];
     if (ph.frame !== null) {
       parts.push(describePosition(ph.frame, w, h));
       if (ph.kind === "picture")
-        parts.push(`Seitenverh\xE4ltnis ~${nearestAspect(ph.frame)}`);
+        parts.push(`aspect ratio ~${nearestAspect(ph.frame)}`);
     }
     if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
-      parts.push(`~${ph.capacity.lines} Zeilen \xE0 ~${ph.capacity.charsPerLine} Zeichen`);
+      parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`);
     lines.push(parts.join(" \u2014 "));
   }
   return lines.join("\n");
@@ -55804,16 +55804,16 @@ var narrateTemplate = (info, source, sidecar) => {
   const head = [];
   head.push(`# Template: ${source}`);
   head.push("");
-  head.push(`Folienformat: ${info.slideSize.w}" x ${info.slideSize.h}" \u2014 Schriften: ${info.fonts.major} (\xDCberschriften), ${info.fonts.minor} (Text)`);
+  head.push(`Slide size: ${info.slideSize.w}" x ${info.slideSize.h}" -- fonts: ${info.fonts.major} (headings), ${info.fonts.minor} (body)`);
   const accents = ["accent1", "accent2", "accent3"].map((k) => info.colors[k]).filter((c) => c !== void 0);
   if (accents.length > 0)
-    head.push(`Akzentfarben: ${accents.map((c) => `#${c}`).join(", ")}`);
+    head.push(`Accent colors: ${accents.map((c) => `#${c}`).join(", ")}`);
   head.push("");
-  head.push(`Layouts: ${info.layouts.length} \u2014 adressierbar in \`slide.add\` per Index oder Name.`);
-  head.push("Placeholder werden in `slide.fill` \xFCber ihre `idx`-Nummer bef\xFCllt.");
+  head.push(`Layouts: ${info.layouts.length} -- addressable in \`slide.add\` by index or name.`);
+  head.push("Placeholders are filled in `slide.fill` via their `idx` number.");
   if (sidecar !== null) {
     head.push("");
-    head.push("## Hinweise aus der Template-Dokumentation");
+    head.push("## Notes from the template documentation");
     head.push("");
     head.push(sidecar.trim());
   }

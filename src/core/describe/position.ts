@@ -15,20 +15,20 @@ import type { Frame } from "../model.js"
  *
  *  @param frame - box geometry in inches
  *  @param slideW - slide width in inches
- *  @returns one of "volle Breite", "linke/rechte Hälfte", "linke/mittlere/rechte Spalte"
+ *  @returns one of "full width", "left/right half", "left/center/right column"
  */
 export const horizontalBand = (frame: Frame, slideW: number): string => {
     const rel = frame.w / slideW
     const centerX = (frame.x + frame.w / 2) / slideW
     if (rel > 0.8)
-        return "volle Breite"
+        return "full width"
     if (rel > 0.42)
-        return centerX < 0.5 ? "linke Hälfte" : "rechte Hälfte"
+        return centerX < 0.5 ? "left half" : "right half"
     if (centerX < 0.37)
-        return "linke Spalte"
+        return "left column"
     if (centerX > 0.63)
-        return "rechte Spalte"
-    return "mittlere Spalte"
+        return "right column"
+    return "center column"
 }
 
 /**
@@ -36,18 +36,18 @@ export const horizontalBand = (frame: Frame, slideW: number): string => {
  *
  *  @param frame - box geometry in inches
  *  @param slideH - slide height in inches
- *  @returns one of "volle Höhe", "oberer/mittlerer/unterer Bereich"
+ *  @returns one of "full height", "upper/middle/lower area"
  */
 export const verticalBand = (frame: Frame, slideH: number): string => {
     const rel = frame.h / slideH
     const centerY = (frame.y + frame.h / 2) / slideH
     if (rel > 0.8)
-        return "volle Höhe"
+        return "full height"
     if (centerY < 0.33)
-        return "oberer Bereich"
+        return "upper area"
     if (centerY > 0.67)
-        return "unterer Bereich"
-    return "mittlerer Bereich"
+        return "lower area"
+    return "middle area"
 }
 
 /**
@@ -56,11 +56,11 @@ export const verticalBand = (frame: Frame, slideH: number): string => {
  *  @param frame - box geometry in inches
  *  @param slideW - slide width in inches
  *  @param slideH - slide height in inches
- *  @returns description like "linke Hälfte, mittlerer Bereich (45% der Folie)"
+ *  @returns description like "left half, middle area (45% of slide)"
  */
 export const describePosition = (frame: Frame, slideW: number, slideH: number): string => {
     const area = Math.round(((frame.w * frame.h) / (slideW * slideH)) * 100)
-    return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% der Folie)`
+    return `${horizontalBand(frame, slideW)}, ${verticalBand(frame, slideH)} (${area}% of slide)`
 }
 
 /**
