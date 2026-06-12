@@ -98,31 +98,137 @@ pptc apply deck.pptx -e '{"op":"slide.move","slide":"id:257","to":1}'
 
 ## Command Reference
 
-| Command | Purpose |
-|---|---|
-| `tpl list <dir>` | inventory of `.potx`/`.pptx` templates in a directory |
-| `tpl describe <tpl> [--layout SEL] [--format text\|json]` | LLM-readable layout description (minimaps, capacities, suitability) |
-| `tpl inspect <tpl> [--layout SEL]` | precise template JSON (geometry, placeholder map, theme) |
-| `tpl validate <tpl>` | check the template against pptc's expectations (exit 7 on failure) |
-| `state <deck> [--slide SEL] [--level summary\|text\|full]` | deck read model incl. `rev` token |
-| `new <deck> --template <tpl> [--force] [--ops @file]` | create a deck from a template, optionally build it in the same run |
-| `apply <deck> (--ops @file\|- \| -e '<op>') [--template <tpl>] [--dry-run] [--strict] [--rev R] [--out F]` | the single write path |
-| `text\|note\|footer\|rm\|move` | micro edits -- each compiles to exactly one op |
-| `schema [op]` | JSON Schema of an op, generated from the validating Zod schema |
-| `update` | self-update via npm |
-| `help` | usage summary |
+Every command prints exactly one JSON envelope on stdout (see
+[Envelope & Exit Codes](#envelope--exit-codes)).
 
-**Slide selectors:** `id:N` (canonical) · `title:...` (exact, must be unique) ·
-`index:N` / bare digits (positional) · `$ref` (created earlier in the same ops
-document).
-
-**Placeholder keys** in `slide.fill`: the OOXML `idx` (`"13"`), or semantic
-keys resolved against the layout: `"title"`, `"subtitle"`, `"body"`,
-`"image"`, `"image:14"`, `"text:13"`.
+**Slide selectors** (everywhere a `SEL` appears): `id:N` (canonical OOXML
+`sldId`, survives reordering) · `title:...` (exact title, must be unique) ·
+`index:N` or bare digits (positional escape hatch) · `$ref` (a slide created
+earlier in the same ops document).
 
 **Payloads:** `--ops @file.json` reads a file, `--ops -` reads stdin, `-e`
 takes one inline op. Agents should write the file with their editor tool and
 pass `@file` -- that removes shell quoting from the threat model.
+
+### Read templates
+
+#### `pptc tpl list <dir>`
+
+Inventory of all `.potx`/`.pptx` files in a directory, sorted, each with a
+`sidecar` flag telling whether a human-curated `<name>.md` companion file
+exists next to it.
+
+#### `pptc tpl describe <tpl> [--layout SEL] [--format text|json]`
+
+The LLM-facing template description. For every layout: an ASCII minimap of
+the placeholder geometry, semantic positions ("linke Spalte, volle Höhe"),
+text capacities (`~N Zeilen à ~M Zeichen`), image aspect ratios and a
+suitability hint -- all derived generically from OOXML geometry. A sidecar
+`<tpl>.md` (template-specific notes: layout roles, footer pattern, design
+constraints) is included verbatim in the header.
+
+- `--layout SEL` -- restrict to one layout (zero-based index or exact name)
+- `--format json` -- return the raw `TemplateInfo` data instead of Markdown
+
+#### `pptc tpl inspect <tpl> [--layout SEL]`
+
+The precise machine model: slide size, theme fonts, the full theme color map
+(`dk1`, `lt1`, `accent1`..`accent6`, ... as `RRGGBB`), and per layout every
+placeholder with OOXML `idx`, kind, shape name, frame (inches) and text
+capacity. Use this when you need exact values; use `describe` when an LLM
+should pick layouts.
+
+#### `pptc tpl validate <tpl>`
+
+Checks a template against pptc's expectations (layouts present, notes master
+for speaker notes, ...). Reports `issues` with severities; exit 7 when a
+`fail`-grade issue exists.
+
+### Read decks
+
+#### `pptc state <deck> [--slide SEL] [--level summary|text|full]`
+
+The deck read model and the **`rev` token** for optimistic locking.
+
+- `--level summary` -- ids, indices, titles, layout indices only
+- `--level text` (default) -- plus all placeholder texts and notes
+- `--level full` -- plus every shape (type, name, text, table contents)
+- `--slide SEL` -- restrict to one slide
+
+Read-before-write protocol: take `rev` from here and pass it to
+`apply --rev` (or `expectRev` in the ops document).
+
+### Write decks
+
+#### `pptc new <deck> --template <tpl> [--force] [--ops @file] [--strict]`
+
+Creates a valid, zero-slide deck carrying the template's masters, layouts and
+theme. Refuses to overwrite an existing file unless `--force` is given. With
+`--ops` the deck is built in the same run (same semantics as `apply`).
+
+#### `pptc apply <deck> (--ops @file|- | -e '<op>') [--template <tpl>] [--dry-run] [--strict] [--rev R] [--out F]`
+
+The single write path. Validates and plans the **whole** ops document first
+(schema, every selector, capacity lint), then applies everything in one
+atomic write -- or nothing (`failedAt` in the error tells which op failed).
+
+- `--ops @file` / `--ops -` / `-e '<op-json>'` -- exactly one of these
+- `--template <tpl>` -- required whenever the document contains `slide.add`
+  (new slides are instantiated from the template's layouts)
+- `--dry-run` -- full validation and planning, no write; warnings included
+- `--strict` -- lint warnings (e.g. `W_TEXT_OVERFLOW`) become exit 7
+- `--rev R` -- optimistic lock: fail with exit 6 unless the deck still has
+  revision `R` (alternative: `expectRev` inside the document)
+- `--out F` -- write the result to a new file, leave the input untouched
+
+### Micro edits (no JSON document needed)
+
+Each compiles to exactly one `slide.fill`/`slide.rm`/`slide.move` op and runs
+through the same validated, atomic apply path. All of them accept
+`--rev R`, `--strict` and `--dry-run`.
+
+#### `pptc text <deck> --slide SEL [--ph KEY] [--append] "text"`
+
+Set placeholder text. `--ph` takes a placeholder key (default `title`);
+`--append` appends instead of replacing.
+
+#### `pptc note <deck> --slide SEL "speaker notes"`
+
+Set the slide's speaker notes.
+
+#### `pptc footer <deck> [--slide SEL] "footer text"`
+
+Set the footer of one slide -- or, without `--slide`, of **every** slide.
+Works by cloning the layout's footer placeholder; layouts without one
+(typically title/closing layouts) are skipped silently.
+
+#### `pptc rm <deck> --slide SEL`
+
+Remove a slide.
+
+#### `pptc move <deck> --slide SEL --to N`
+
+Move a slide to zero-based position `N`.
+
+### Self-description
+
+#### `pptc schema [op|document]`
+
+JSON Schema of one op (e.g. `pptc schema slide.fill`) or of the whole ops
+document -- generated from the validating Zod schemas, so it is always
+authoritative. Without argument: the list of op names.
+
+#### `pptc update`
+
+Self-update via npm (see [Updating](#updating)).
+
+#### `pptc help` / `pptc --version`
+
+Usage summary / version envelope.
+
+**Placeholder keys** in `slide.fill`/`text`: the OOXML `idx` (`"13"`), or
+semantic keys resolved against the layout: `"title"`, `"subtitle"`,
+`"body"`, `"image"`, `"image:14"`, `"text:13"`.
 
 ## Ops Reference
 
@@ -174,6 +280,30 @@ Exactly one JSON document on stdout; logs (if any) on stderr.
 | 5 | engine | `E_ENGINE` |
 | 6 | revision conflict | `E_REV_CONFLICT` |
 | 7 | lint under `--strict` | `E_LINT` |
+
+## Architecture in a Nutshell
+
+The codebase is layered strictly downward (`cli → commands → core → engine →
+infra`, see [ARCHITECTURE.md](ARCHITECTURE.md)). Inside the engine, the actual
+PPTX work is split across **three workhorses** -- two external libraries plus
+one deliberate own layer:
+
+1.  **[pptx-automizer](https://github.com/singerla/pptx-automizer)** -- the
+    heavy lifting: imports slides between decks (kept slides from the deck
+    itself, new slides from a per-template *seed deck*), carrying masters,
+    layouts and styles along.
+2.  **[PptxGenJS](https://github.com/gitbrent/PptxGenJS)** -- element
+    generation: tables, charts, textboxes, shapes and images created via
+    `el.add` are built with PptxGenJS and merged in through automizer's
+    interop.
+3.  **The zip post-pass** (`engine/post.ts`, one file) -- everything the
+    libraries cannot express or get wrong: speaker notes, footer cloning,
+    backgrounds, images into placeholders, hyperlink relationships, document
+    properties -- plus deterministic cleanup after automizer (orphan parts,
+    stale relationships, duplicate shape ids).
+
+The principle: libraries for the 95%, a small deterministic repair layer for
+the 5% they cannot do -- never a self-built PPTX engine.
 
 ## Design Decisions
 

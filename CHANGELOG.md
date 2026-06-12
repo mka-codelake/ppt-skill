@@ -1,6 +1,6 @@
 # Changelog
 
-## unreleased
+## 0.2.0
 
 - Engine fixes (PowerPoint "repair" triggers): drop stale presentation
   relationships after re-apply slide renames, re-point notesSlide
@@ -14,6 +14,9 @@
 - Claude Code plugin: new `plugin/skills/powerpoint` skill (template-aware
   deck building plus color-faithful image prompts) with bundled `pptc.mjs`,
   marketplace/plugin manifests and the `plugin:sync` npm script.
+- Docs: full per-command CLI reference in the README plus an
+  "Architecture in a Nutshell" section (automizer / PptxGenJS / zip
+  post-pass); ARCHITECTURE.md covers the repair-cleanup duties.
 
 ## 0.1.0
 

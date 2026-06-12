@@ -40,7 +40,7 @@ infra/      file system, payload resolution, hashing, version check
 | `engine/session.ts` | automizer pass + post-pass + atomic write |
 | `engine/text.ts` | DOM rich-text builder (`a:p`/`a:r`/`a:t`) |
 | `engine/elements.ts` | ElementSpec → PptxGenJS calls (automizer interop) |
-| `engine/post.ts` | zip post-pass: GC, notes, footer, background, placeholder images, hyperlink rels, doc props |
+| `engine/post.ts` | zip post-pass: GC, notes, footer, background, placeholder images, hyperlink rels, doc props, repair-trigger cleanup (stale rels, shape ids) |
 | `infra/fs.ts` | `@file`/stdin payloads, atomic write, cache dir, hashing |
 | `infra/version.ts` | version facts, daily cached registry check |
 
@@ -56,8 +56,10 @@ lint        capacity warnings (E_LINT under --strict)
 session     automizer: rebuild slide list (kept slides re-imported from the
             deck itself, new slides imported from the template's seed deck),
             callbacks apply DOM text + generated elements
-post-pass   zip level: GC orphan parts, notes, footer, background,
-            placeholder images, hyperlink rels, doc props
+post-pass   zip level: GC orphan parts, prune presentation rels whose slide
+            part vanished, re-point notesSlide back-references, notes, footer,
+            background, placeholder images, hyperlink rels, doc props,
+            uniquify cNvPr shape ids per slide
 write       tmp file + rename (atomic), re-read → rev.after + ref→id map
 ```
 
@@ -67,6 +69,10 @@ write       tmp file + rename (atomic), re-read → rev.after + ref→id map
   each template, one empty slide per layout with the layout's placeholders
   cloned on (normalized names `PptcPh-<idx>`), generated on demand and cached
   by template content hash. `slide.add layout=N` imports seed slide N+1.
+  Footer, slide-number and date placeholders are cloned WITH their layout
+  content (footer text, `slidenum` field) so built slides behave like
+  PowerPoint-inserted ones; a master-view `lastView` in the template's
+  viewProps is stripped so decks open in normal view.
 - **`autoImportSlideMasters` stays off.** Templates with OLE objects on
   masters/layouts crash automizer's master import; instead, the deck itself
   always carries its masters/layouts (decks are created from the seed), so
@@ -78,6 +84,12 @@ write       tmp file + rename (atomic), re-read → rev.after + ref→id map
   cloning, backgrounds, images into placeholders, hyperlink relationships or
   doc props. It operates on the written zip via DOM and runs before the
   atomic rename, so the all-or-nothing guarantee covers it.
+- **The post-pass also repairs after automizer.** Re-applying renames slide
+  parts and leaves relationship debris behind; element merge produces
+  colliding shape ids. The post-pass prunes presentation relationships whose
+  target part vanished, re-points each notesSlide back-reference at its
+  current parent slide, and renumbers duplicate `cNvPr` ids per slide --
+  any one of these triggers PowerPoint's "repair" dialog if left in.
 - **stdout is shielded during the engine pass.** automizer logs diagnostics
   via `console.log`; the session diverts console output to stderr so the
   one-JSON-envelope contract on stdout holds even on engine complaints.
