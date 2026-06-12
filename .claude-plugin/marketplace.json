@@ -1,0 +1,31 @@
+{
+  "name": "ppt-skill",
+  "owner": {
+    "name": "Matthias Brusdeylins",
+    "email": "brusdeylins@gmx.de"
+  },
+  "metadata": {
+    "description": "PowerPoint tooling: pptc CLI and the template-aware powerpoint skill",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "powerpoint",
+      "source": "./plugin",
+      "description": "Template-aware PowerPoint skill: builds and edits PPTX decks via the bundled pptc CLI and writes color-faithful image prompts into picture placeholders",
+      "version": "0.1.0",
+      "author": {
+        "name": "Matthias Brusdeylins",
+        "email": "brusdeylins@gmx.de"
+      },
+      "license": "MIT",
+      "keywords": [
+        "powerpoint",
+        "pptx",
+        "presentation",
+        "template"
+      ],
+      "category": "productivity"
+    }
+  ]
+}

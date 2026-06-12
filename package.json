@@ -37,6 +37,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "plugin:sync": "npm run build && cp dst/pptc.mjs plugin/skills/powerpoint/bin/pptc.mjs && node -e \"require('fs').writeFileSync('plugin/skills/powerpoint/bin/VERSION', require('./package.json').version + '\\n')\"",
     "test": "vitest run",
     "lint": "eslint src test && tsc --noEmit",
     "prepublishOnly": "npm run lint && npm run test && npm run build",

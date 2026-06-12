@@ -1,0 +1,19 @@
+{
+  "name": "powerpoint",
+  "version": "0.1.0",
+  "description": "Template-aware PowerPoint skill: builds and edits PPTX decks via the bundled pptc CLI and writes color-faithful image prompts into picture placeholders",
+  "author": {
+    "name": "Matthias Brusdeylins",
+    "email": "brusdeylins@gmx.de"
+  },
+  "homepage": "https://github.com/Brusdeylins/ppt-skill",
+  "repository": "https://github.com/Brusdeylins/ppt-skill",
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "presentation",
+    "template",
+    "image-prompts"
+  ]
+}
