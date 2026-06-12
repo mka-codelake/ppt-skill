@@ -111,6 +111,21 @@ describe("sugar and read-command happy paths (built bundle)", () => {
         expect(proc.stdout.trimStart().startsWith("{")).toBe(false)
     })
 
+    it.skipIf(!existsSync(BIN))("--help prints plain detailed help, never an envelope", () => {
+        for (const [argv, marker] of [
+            [["--help"], "deterministic PowerPoint CLI"],
+            [["apply", "--help"], "--dry-run"],
+            [["tpl", "describe", "--help"], "minimap"],
+            [["help", "ops", "--plain"], "expectRev"],
+            [["help", "selectors", "--plain"], "id:257"]
+        ] as [string[], string][]) {
+            const proc = spawnSync("node", [BIN, ...argv], { encoding: "utf8" })
+            expect(proc.status, argv.join(" ")).toBe(0)
+            expect(proc.stdout.trimStart().startsWith("{"), argv.join(" ")).toBe(false)
+            expect(proc.stdout, argv.join(" ")).toContain(marker)
+        }
+    })
+
     it.skipIf(!existsSync(BIN))("--plain works on help, state, tpl list and tpl validate", () => {
         for (const argv of [
             ["help", "--plain"],

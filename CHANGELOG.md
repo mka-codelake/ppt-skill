@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.6 (plugin 0.2.7)
+
+- Detailed CLI help: every command documented with options and an
+  example (`pptc help <command>`), plus the topics `help ops` (the
+  write API: ops document anatomy, all ops with payload sketches) and
+  `help selectors`. `--help`/`-h` anywhere prints plain text -- humans
+  typing --help never see the JSON envelope.
+- README: "The Ops Document" section explaining structure, fill
+  payloads, expectRev and the recommended agent loop; --plain/--help
+  console examples.
+
 ## 0.2.5 (plugin 0.2.6)
 
 - Sections handling: `new` strips the template's PowerPoint sections

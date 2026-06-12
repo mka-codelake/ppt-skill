@@ -8,6 +8,7 @@
 **  goes to stderr; stdout belongs to the envelope.
 */
 
+import { helpFor } from "./help.js"
 import { PptcError, toPptcError } from "../core/errors.js"
 import { checkForUpdate, VERSION } from "../infra/version.js"
 import { cmdApply } from "../commands/apply.js"
@@ -28,6 +29,9 @@ Write decks:      new <deck> --template <tpl> [--ops @file]
 Micro edits:      text|note|footer|rm|move <deck> --slide SEL ...
 Self-description: schema [op] | help | update
 
+Help:             'pptc <command> --help' or 'pptc help <command>' for any
+                  command in detail; topics: 'pptc help ops' (the write API),
+                  'pptc help selectors' (slide addressing)
 Human console:    --plain on help, state, tpl list, tpl describe and
                   tpl validate prints readable text instead of the JSON envelope
 
@@ -46,9 +50,14 @@ const COMMANDS: Record<string, (argv: string[]) => unknown> = {
     "footer": cmdFooter,
     "rm": cmdRm,
     "move": cmdMove,
-    "help": (argv: string[]) => argv.includes("--plain")
-        ? { plain: USAGE }
-        : { result: { usage: USAGE } },
+    "help": (argv: string[]) => {
+        const topic = argv.filter((a) => !a.startsWith("-"))
+        const detail = topic.length > 0 ? helpFor(topic) : null
+        const text = detail ?? USAGE
+        return argv.includes("--plain")
+            ? { plain: text }
+            : { result: { help: text } }
+    },
     "--version": () => ({ result: { version: VERSION } })
 }
 
@@ -74,6 +83,15 @@ const main = async (): Promise<void> => {
     let name = cmd ?? "help"
     let handler: ((argv: string[]) => unknown) | undefined
     let argv = rest
+
+    /*  --help / -h anywhere prints plain, detailed help for humans
+        (the JSON envelope makes no sense for someone typing --help)  */
+    if (name === "--help" || name === "-h" || rest.includes("--help") || rest.includes("-h")) {
+        const tokens = [name, ...rest].filter((a) => !a.startsWith("-"))
+        process.stdout.write(`${helpFor(tokens) ?? USAGE}\n`)
+        return
+    }
+
     if (name === "tpl") {
         const sub = rest[0] ?? ""
         handler = TPL_COMMANDS[sub]

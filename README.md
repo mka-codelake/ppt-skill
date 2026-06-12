@@ -119,6 +119,15 @@ pass `@file` -- that removes shell quoting from the threat model.
 the JSON envelope (whose strings escape newlines as `\n`). Agents should
 stick to the envelope; write commands are envelope-only by design.
 
+```bash
+pptc --help                          # overview, plain text
+pptc apply --help                    # any command in detail (options explained)
+pptc help ops --plain                # the write API: ops document anatomy
+pptc help selectors --plain          # slide addressing
+pptc state deck.pptx --plain         # readable slide list
+pptc tpl describe corp.potx --plain  # readable template description
+```
+
 ### Read templates
 
 #### `pptc tpl list <dir>`
@@ -240,6 +249,52 @@ Usage summary / version envelope.
 **Placeholder keys** in `slide.fill`/`text`: the OOXML `idx` (`"13"`), or
 semantic keys resolved against the layout: `"title"`, `"subtitle"`,
 `"body"`, `"image"`, `"image:14"`, `"text:13"`.
+
+## The Ops Document (the write API)
+
+Reading is done with commands; **writing is done with data**. Every
+mutation -- adding slides, filling placeholders, moving, free elements --
+is expressed as one JSON document, the *ops document*, and handed to
+`apply` (or `new --ops`). pptc validates the WHOLE document first, then
+applies everything in one atomic write, or nothing.
+
+```json
+{
+  "expectRev": "27d7f5a4ea5a",
+  "ops": [
+    { "op": "slide.add", "layout": "CONTENT", "ref": "intro",
+      "placeholders": { "title": { "text": "Mein Vortrag" },
+                        "body":  { "text": "Punkt A\nPunkt B" } },
+      "notes": "Sprechertext.",
+      "footer": "Mein Vortrag | 2026" },
+    { "op": "slide.move", "slide": "$intro", "to": 0 }
+  ]
+}
+```
+
+Anatomy:
+
+- **`expectRev`** (optional): the `rev` token from `pptc state`. The
+  apply fails with exit 6 when the deck changed in between
+  (read-before-write protocol). `--rev R` on the command line is the
+  same thing.
+- **`ops`**: executed in order. Each op carries an `"op"` discriminator
+  and addresses slides via selectors (`id:`, `title:`, `$ref`,
+  `index:` -- see below).
+- **Fill payloads** (`slide.add`/`slide.fill`): `placeholders` maps a
+  key (semantic like `"title"`/`"body"`/`"image"`, or the OOXML idx
+  like `"13"`) to `{ "text": ... }`, `{ "image": "path.png" }` or
+  `{ "text": ..., "append": true }`. Plus optional `notes`, `footer`
+  and `background`. Text accepts plain strings (`\n` = new paragraph)
+  or rich text (runs with bold/italic/color/size, bullet levels).
+- **Authoritative field reference:** `pptc schema <op>` prints the
+  exact JSON Schema of any op, `pptc schema document` the whole
+  document -- generated from the validating code, never stale.
+  `pptc help ops` summarizes all of this on the console.
+
+Recommended agent loop:
+`state` → write `ops.json` → `apply --dry-run --strict` → fix findings
+→ `apply --rev <rev>`.
 
 ## Ops Reference
 
