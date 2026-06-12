@@ -68,3 +68,51 @@ describe("envelope and exit-code contract", () => {
         await expectIntact(DECK)
     })
 })
+
+describe("sugar and read-command happy paths (built bundle)", () => {
+    const SUGAR = path.join(TMP, "sugar.pptx")
+
+    beforeAll(async () => {
+        writeFileSync(SUGAR, await buildEmptyDeck(TEMPLATE))
+    })
+
+    it.skipIf(!existsSync(BIN))("text, note, footer, move and rm round-trip", async () => {
+        let r = run("apply", SUGAR, "--template", TEMPLATE, "-e",
+            "{\"op\":\"slide.add\",\"layout\":\"CONTENT\",\"placeholders\":{\"title\":{\"text\":\"Erste\"}}}")
+        expect(r.envelope["ok"]).toBe(true)
+        r = run("apply", SUGAR, "--template", TEMPLATE, "-e",
+            "{\"op\":\"slide.add\",\"layout\":\"CONTENT\",\"placeholders\":{\"title\":{\"text\":\"Zweite\"}}}")
+        expect(r.envelope["ok"]).toBe(true)
+
+        r = run("text", SUGAR, "--slide", "title:Erste", "--ph", "body", "Sugar-Text & <ok>")
+        expect(r.exit).toBe(0)
+        r = run("note", SUGAR, "--slide", "title:Erste", "Sprechernotiz")
+        expect(r.exit).toBe(0)
+        r = run("footer", SUGAR, "Fußzeile für alle")
+        expect(r.exit).toBe(0)
+        r = run("move", SUGAR, "--slide", "title:Zweite", "--to", "0")
+        expect(r.exit).toBe(0)
+        r = run("rm", SUGAR, "--slide", "title:Zweite")
+        expect(r.exit).toBe(0)
+
+        const state = run("state", SUGAR, "--level", "full")
+        const slides = (state.envelope["result"] as { slides: { title: string, notes: string }[] }).slides
+        expect(slides).toHaveLength(1)
+        expect(slides[0]?.title).toBe("Erste")
+        expect(slides[0]?.notes).toBe("Sprechernotiz")
+        await expectIntact(SUGAR)
+    })
+
+    it.skipIf(!existsSync(BIN))("tpl list, tpl validate and schema respond ok", () => {
+        const list = run("tpl", "list", path.dirname(TEMPLATE))
+        expect(list.exit).toBe(0)
+        expect((list.envelope["result"] as { templates: unknown[] }).templates.length).toBeGreaterThan(0)
+
+        const validate = run("tpl", "validate", TEMPLATE)
+        expect(validate.envelope["ok"]).toBe(true)
+
+        const schema = run("schema", "slide.fill")
+        expect(schema.exit).toBe(0)
+        expect(JSON.stringify(schema.envelope)).toContain("placeholders")
+    })
+})

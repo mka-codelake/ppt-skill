@@ -115,4 +115,19 @@ write       tmp file + rename (atomic), re-read → rev.after + ref→id map
   contract)
 - `test/integration/` -- real write path against the committed neutral
   template fixture, incl. all-or-nothing and rev semantics
-- `test/contract/` -- the built bundle's envelope shape and exit codes
+- `test/integration/stress.test.ts` -- agent-like sessions: many applies in
+  a row covering every op kind and element type, plus seeded-random edit
+  combinations (reproducible LCG); planner rejections are fine, a
+  written-but-broken file is not
+- `test/contract/` -- the built bundle's envelope shape, exit codes and the
+  sugar/read-command happy paths
+- `test/util/integrity.ts` -- the file-integrity validator asserting every
+  written deck against the known PowerPoint "repair" triggers (well-formed
+  XML, unique shape ids, no dead relationship targets, no dead/duplicate
+  content-type overrides, full content-type coverage, resolvable sldIds).
+  Every test that writes a deck runs `expectIntact`; the stress suite runs
+  it after EVERY apply.
+
+The fixture (`test/fixtures/neutral-template.pptx`) carries five layouts
+(DEFAULT blank, TITLE_SLIDE, CONTENT, TWO_COLUMN, PICTURE with a picture
+placeholder), unique placeholder names per layout and passes `tpl validate`.
