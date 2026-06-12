@@ -1,5 +1,12 @@
 # Changelog
 
+## plugin 0.2.9 (CLI unchanged at 0.2.7)
+
+- Deck sidecar: the skill persists the deck setup (title, topic, deck
+  language, image and info-graphic style, template notes) in a
+  `<deck>.md` next to the deck and restores it when reopening -- the
+  deck's memory across sessions.
+
 ## 0.2.7 (plugin 0.2.8)
 
 - English throughout: the `tpl describe` narration (suitability hints,

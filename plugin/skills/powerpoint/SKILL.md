@@ -129,11 +129,21 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         selection menu with free-text option when not stated. Keep both
         verbatim for every prompt in this deck.
 
+    **Persist the deck setup** in a deck sidecar `<deck>.md` next to
+    `<deck>.pptx` (title, topic, deck language, image style,
+    info-graphic style, template notes). Write it when the setup is
+    fixed and UPDATE it whenever a value changes -- it is the deck's
+    memory across sessions.
+
     </step>
 
 3.  <step id="STEP 3: Context">
 
     -   <if condition="the user works on an existing deck">
+        FIRST read the deck sidecar `<deck>.md` next to the file (if
+        present): it restores the deck setup from earlier sessions --
+        title, deck language, image/info-graphic styles, template
+        notes. Only ask for values it does not answer.
         Run `state` to get slides + <rev/>; show the structure briefly
         (chapters/slides). Derive operation and level **intent-first**
         from the request: Set (whole deck) / Chapter / Slide. Only when
