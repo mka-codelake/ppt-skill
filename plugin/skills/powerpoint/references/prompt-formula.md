@@ -19,17 +19,28 @@ Element rules
     (screens, banners, whiteboards, signs) -- and ALWAYS on title-role
     images -- embed the slide title or deck topic:
     `text on screen reads "<title>"`. Keep embedded text short
-    (2-5 words); the model renders short text reliably.
+    (2-5 words); the model renders short text reliably. This is the
+    ONLY sanctioned use of text vocabulary -- and it excludes the
+    `No text` suffix on that prompt.
 -   **Lighting / background constraint**: lighting matching the style
     (e.g. `soft diffused natural light`); apply template sidecar
     constraints here (e.g. `dark muted background` for title/closing
     layouts with a white line, when the style is illustration/render).
--   **Overlay regions stay calm**: `tpl inspect`/`describe` report per
-    picture placeholder which text shapes sit on top and WHERE
+-   **Overlay regions become negative space**: `tpl inspect`/`describe`
+    report per picture placeholder which shapes sit on top and WHERE
     (`overlays`: e.g. `Title (bottom area, left part)`). Translate every
-    overlay into a prompt clause such as `keep the bottom-left area calm
-    and free of relevant detail -- text sits there`. Never place the
-    subject, embedded text or bright highlights in an overlaid region.
+    overlay into Google's documented negative-space pattern:
+    `the [bottom-left area] is a vast empty [color] canvas creating
+    significant negative space` -- and position the subject in the
+    free region (`positioned in the upper right third`).
+    CRITICAL: never EXPLAIN the reason. Typographic vocabulary
+    ("title", "footer", "caption", "label", "watermark", "text sits
+    there") triggers the model's text rendering and produces pseudo
+    lettering. Describe only what the IMAGE looks like.
+-   **Text suppression**: unless the prompt deliberately embeds text
+    (quoted, short), end with the official suffix clause:
+    `No text. No letters. No symbols.` Positive phrasing beats
+    negation everywhere else ("plain matte surface", not "no clutter").
 -   **Quality**: `sharp focus, 8k` plus style-appropriate terms.
 -   **Aspect**: state the placeholder's ratio as composition guidance,
     e.g. `2:3 portrait composition`, `16:9 wide composition`,

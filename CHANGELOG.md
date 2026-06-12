@@ -1,5 +1,14 @@
 # Changelog
 
+## plugin 0.2.16 (CLI unchanged at 0.2.11)
+
+- Image-prompt phrasing rules (research-backed, Google docs): overlay
+  regions are expressed as negative space ("vast empty canvas creating
+  significant negative space"), never explained with typographic
+  vocabulary (title/footer/caption trigger pseudo-text rendering);
+  prompts end with "No text. No letters. No symbols." unless text is
+  deliberately embedded as a short quoted string.
+
 ## 0.2.11 (plugin 0.2.15)
 
 - Picture-placeholder overlay report: `tpl inspect` exposes per picture

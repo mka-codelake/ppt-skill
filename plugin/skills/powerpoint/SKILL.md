@@ -233,8 +233,13 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         on title/closing layouts with a white line when the style is
         illustration/render; calm motifs on background-image layouts).
         Read the placeholder's `overlays` from `tpl inspect`: every
-        overlapping text shape becomes a prompt clause that keeps that
-        region calm and free of relevant detail (text sits on top).
+        overlapping shape becomes a NEGATIVE-SPACE clause ("the
+        [region] is a vast empty [color] canvas creating significant
+        negative space") and the subject moves to a free region.
+        NEVER explain why -- typographic words (title/footer/caption/
+        label) make the image model render pseudo text. End prompts
+        with "No text. No letters. No symbols." unless the prompt
+        deliberately embeds quoted text.
     2.  Choose a motif that makes THIS slide's message tangible and does
         not repeat a motif already used in the deck.
     3.  On title-role images (and wherever the scene carries text
