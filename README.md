@@ -57,7 +57,7 @@ Or without installing: `npx @brusdeylins/pptc ...`. Requires Node.js >= 20.
 
 ## The PowerPoint Skill (Claude Code plugin)
 
-This repository also ships **`powerpoint`**, a Claude Code skill built on
+This repository also ships **`ppt`**, a Claude Code skill built on
 pptc. It turns Claude Code into a presentation engineer: template-aware
 deck building with an outline-first workflow, content guardrails (action
 titles, capacity-checked text, speaker notes, footer rules) and
@@ -66,19 +66,32 @@ overlay-aware, so covered regions become negative space.
 
 ```
 /plugin marketplace add Brusdeylins/ppt-skill
-/plugin install powerpoint@ppt-skill
+/plugin install ppt@ppt-skill
 ```
 
 No further setup: the plugin bundles its own pptc build
-(`skills/powerpoint/scripts/pptc.mjs`) and a neutral fallback template;
+(`skills/ppt/scripts/pptc.mjs`) and a neutral fallback template;
 the plugin-root `bin/` puts a `pptc` command on the Bash tool's PATH
-while the plugin is enabled. Corporate templates stay external -- point
-the skill at any `.potx`/`.pptx`, optionally with a `<name>.md` sidecar
-for template-specific knowledge. Deck-level settings (language, image
-style, ...) persist in a `<deck>.md` sidecar next to the deck.
+while the plugin is enabled. The public plugin ships only a neutral
+default template; point the skill at any external `.potx`/`.pptx`
+(optionally with a `<name>.md` sidecar for template-specific knowledge),
+or build an in-house package that bundles your company templates (see
+[Packaging & Distribution](#packaging--distribution)). Deck-level settings
+(language, image style, ...) persist in a `<deck>.md` sidecar next to the
+deck.
 
 The skill definition lives in
-[`plugin/skills/powerpoint/SKILL.md`](plugin/skills/powerpoint/SKILL.md).
+[`plugin/skills/ppt/SKILL.md`](plugin/skills/ppt/SKILL.md).
+
+### Use it on claude.ai (web -- no build, no Node setup)
+
+Not a developer? Each skill is published as a ready-to-upload ZIP on the
+[Releases page](https://github.com/Brusdeylins/ppt-skill/releases):
+download `ppt.zip` from the latest release, then in claude.ai open
+**Settings -> Customize -> Skills -> "+"** and upload it. That is the
+whole install -- no clone, no `npm`. The bundled pptc is self-contained
+and runs on the claude.ai Node runtime. (claude.ai uploads one skill per
+ZIP; a future second skill ships as its own `ppt-prepare.zip`.)
 
 ## Quick Start
 
@@ -449,14 +462,53 @@ npm test           # build + vitest (unit, golden, integration, contract)
 npm run lint       # eslint (incl. TSDoc) + tsc --noEmit
 npm run build      # esbuild bundle -> dst/pptc.mjs
 npm run plugin:sync # rebuild + copy the bundle into the plugin (bin/VERSION)
+npm run skill:zip  # package each skill as deploy/<skill>.zip (claude.ai upload)
 ```
+
+## Packaging & Distribution
+
+How the `ppt` skill is bundled, packaged into upload-ready ZIPs (including
+in-house builds with your own company templates) and released.
+
+### Skill ZIPs (with your own templates)
+
+Each skill is packaged as a self-contained ZIP with the skill folder at
+the ZIP root (e.g. `ppt/SKILL.md`), written to `deploy/` (a git-ignored
+build artifact). The ZIP is uploaded at claude.ai → Settings → Customize
+→ Skills. Every variant runs `plugin:sync` first, so the bundled pptc is
+always fresh.
+
+```
+npm run skill:zip               # PUBLIC: bundles only the neutral default
+                                #   template  ->  deploy/ppt.zip
+npm run skill:zip:internal      # IN-HOUSE: also bundles every template in
+                                #   ./private-templates  ->  deploy/ppt-internal.zip
+npm run skill:zip -- --from DIR # IN-HOUSE: bundles every template in DIR instead
+                                #   (no need to pre-stage files)  ->  deploy/ppt-internal.zip
+```
+
+- **Public build** ships only `assets/neutral-template.pptx` -- this is
+  the ZIP attached to GitHub releases for non-developers.
+- **Internal build** overlays your own `.potx`/`.pptx` (plus optional
+  `<name>.md` sidecars) into the skill's `assets/`. When no template is
+  named the skill then offers them as choices (the neutral default stays
+  available). Sources come from `private-templates/` (git-ignored) or any
+  `--from <dir>`.
+- **Company templates never touch git.** They live only inside the
+  internal ZIP; `private-templates/` and `deploy/` are both git-ignored,
+  so corporate material is never committed or released publicly.
+
+Templates are richer with a sidecar: put `<name>.md` next to `<name>.potx`
+(layout-role map, footer pattern, design constraints) and it is bundled
+alongside, so `tpl describe`/the skill pick up the template-specific
+knowledge automatically.
 
 ### Versioning & release rule
 
 This repo carries two independently versioned artifacts: the **pptc CLI**
 (`package.json`, published to npm) and the **Claude Code plugin**
 (`plugin/.claude-plugin/plugin.json` + marketplace entry, distributed via
-git). `plugin/skills/powerpoint/scripts/VERSION` records which pptc build is
+git). `plugin/skills/ppt/scripts/VERSION` records which pptc build is
 bundled in the plugin.
 
 - **Skill-only change** (SKILL.md, references, meta): bump the plugin and
@@ -469,6 +521,17 @@ bundled in the plugin.
   CHANGELOG entry, commit, tag `v<version>`, push `main` + tag, GitHub
   release -- and `npm publish --access public` once the package is live
   (`prepublishOnly` enforces lint + tests + build).
+
+Either way, attach the web-upload ZIP(s) to the GitHub release so
+non-developers can install on claude.ai without building:
+`npm run skill:zip` then `gh release upload <tag> deploy/ppt.zip`
+(`deploy/` is a git-ignored build artifact -- the release asset is the
+distribution point, not the repo tree).
+
+The release asset is always the PUBLIC ZIP (neutral default only). Builds
+that bundle company templates (`skill:zip:internal` / `--from`) produce
+in-house ZIPs that are distributed within the company and never attached
+to a git release -- see *Packaging skill ZIPs* above.
 
 CLI change ⇒ plugin release, but skill change ⇏ CLI release. Lint and the
 test suite must be green before any push.

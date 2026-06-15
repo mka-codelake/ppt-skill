@@ -1,5 +1,5 @@
 ---
-name: powerpoint
+name: ppt
 description: >
   Create and maintain professional PowerPoint presentations with the bundled
   pptc CLI: template-aware, atomic, schema-validated. Trigger this skill when
@@ -16,7 +16,11 @@ color-faithful Nano Banana Pro image prompts for picture placeholders.
 
 First, read `meta/control.md` in this skill's directory -- it defines the
 control tags (`<flow>`, `<step>`, `<template>`, `<if>`, `<for>`, placeholders)
-used below. Honor them exactly.
+used below. Honor them exactly. In particular, follow its **Step
+Announcement** rule: every time you enter a `<step>`, emit its phase
+marker banner first -- 🔵 for the Analyze phase (STEP 1–5), 🟢 for the
+Write phase (STEP 6–8) -- so the user always sees whether you are reading
+or changing the deck, and which step is active.
 
 <objective>
 Create clean, story-driven slides from a PowerPoint template and write one
@@ -48,15 +52,23 @@ calling any image generator and without doing web research.
   the ops document against the new rev, retry once. If a target vanished,
   tell the user instead of guessing. Never cache revs or indices across
   turns.
+- **Never destroy user work.** Ops are surgical: touch only the shapes
+  your change set names. NEVER delete or overwrite a generated image, a
+  user-added shape, or a filled placeholder you were not explicitly asked
+  to change -- a generated image is the user's finished deliverable, not
+  scratch. Removing or replacing one needs an explicit user request, never
+  a side effect of another edit. A picture placeholder that already holds
+  an image counts as DONE (see STEP 7).
 - Three languages are independent of each other: respond to the user in
   the USER'S language; ALL deck content (titles, bullets, notes, footer,
-  AI note) is in the DECK language <deck-lang/> fixed in STEP 2 --
+  AI note) is in the DECK language <deck-lang/> fixed in STEP 3 --
   translate automatically, regardless of the conversation language;
   image prompts are always English.
-- Reference files: `references/content-rules.md` (slide quality),
-  `references/prompt-formula.md` + `references/color-roles.md` +
-  `references/style-catalog.md` (image prompts). Read them before STEP 4
-  and STEP 6 respectively.
+- Reference files: `references/style-catalog.md` (style menu -- read at
+  the STEP 3 style gate, AND again for the prompt blocks in STEP 7);
+  `references/content-rules.md` (slide quality -- read before STEP 5);
+  `references/prompt-formula.md` + `references/color-roles.md` (image
+  prompts -- read before STEP 7).
 
 ## Command Reference
 
@@ -87,11 +99,40 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
 <flow>
 
-1.  <step id="STEP 1: Template">
+1.  <step id="STEP 1: Current State">
+
+    ALWAYS start here, on every turn -- this is the first action before
+    any planning or writing. The user edits and saves the deck between
+    turns, and pptc reads only what is saved on disk: the saved `.pptx`
+    is the single source of truth, there are no temp copies, and nothing
+    is cached across turns.
+
+    -   <if condition="the deck file already exists">
+        Run `state <deck>` to read the live <rev/> and the slide
+        structure (ids, titles, layouts, picture placeholders); use
+        `state <deck> --slide <sel/> --level full` when you need a
+        slide's shapes and overlays. ALSO read the deck sidecar
+        `<deck>.md` next to the file -- it restores the setup from
+        earlier sessions (title, deck language, image/info-graphic
+        styles, template notes). Treat this freshly read state as
+        reality, never a structure you remember from a previous turn;
+        carry <rev/> into every later write (`apply --rev <rev/>`).
+        </if>
+    -   <if condition="the deck does not exist yet (brand-new deck)">
+        There is no state to read. Note it and continue to STEP 2; you
+        create the file in STEP 4, and from the next turn on this step
+        always runs first.
+        </if>
+
+    </step>
+
+2.  <step id="STEP 2: Template">
 
     Determine the template. The skill prefers an external `.potx`/`.pptx`
-    from the user; it ships only a NEUTRAL fallback (Microsoft's default
-    Office design -- no corporate material):
+    from the user. It always carries a NEUTRAL fallback (Microsoft's
+    default Office design -- no corporate material) in its `assets/`, and
+    an internal build may bundle ADDITIONAL templates there (e.g. company
+    templates) that are not part of the public release:
 
     -   If the user names a template path, use it.
     -   Else if the user names a directory (or the project documents a
@@ -99,9 +140,17 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         <if condition="scan finds exactly one template">use it silently.</if>
         <if condition="scan finds several">present a selection menu
         (file + sidecar availability) and let the user choose.</if>
-    -   Else fall back to `<skill-dir/>/assets/neutral-template.pptx`
-        and TELL the user the neutral default design is in use and that
-        a corporate template can be supplied instead at any time.
+    -   Else (no template named): scan the skill's OWN bundled templates
+        with `tpl list <skill-dir/>/assets`.
+        <if condition="assets holds only the neutral default">use
+        `<skill-dir/>/assets/neutral-template.pptx` and TELL the user the
+        neutral default design is in use and that a corporate template can
+        be supplied at any time.</if>
+        <if condition="assets holds more than the neutral default">present
+        a selection menu of the bundled templates (these were packaged
+        into THIS skill build, e.g. company templates) and let the user
+        choose; the neutral default stays available as one option, and the
+        user can still point to an external file instead.</if>
 
     A sidecar Markdown next to the template (`<name>.md` beside
     `<name>.potx`) carries template-specific knowledge -- layout-role
@@ -124,10 +173,12 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
     </step>
 
-2.  <step id="STEP 2: Deck Setup">
+3.  <step id="STEP 3: Deck Setup">
 
-    Once per deck, fix four values -- intent-first (take them from the
-    user's request when stated), otherwise ASK before producing content:
+    Once per deck, fix the setup and persist it.
+
+    **Language & title -- intent-first** (derive from the request when
+    obvious, otherwise ASK):
 
     -   <deck-lang/>: the language of the deck (slide content, notes,
         footer, AI note). Independent of the conversation language --
@@ -135,39 +186,54 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     -   <deck-title/>: the presentation title. Used on the title slide
         AND in the footer. When it cannot be derived from the request,
         ask for it (never leave the template's placeholder title in).
-    -   **Image style** and **info-graphic style** from
-        `references/style-catalog.md` (curated list + free-text);
-        selection menu with free-text option when not stated. Keep both
-        verbatim for every prompt in this deck.
+
+    **Style gate -- HARD; styles are NEVER inferred.** The image style
+    and info-graphic style come from `references/style-catalog.md`:
+
+    -   Set them ONLY from a LITERAL user statement. Do NOT derive them
+        from topic, tone, audience or template -- "serious tech talk →
+        cinematic" is exactly the forbidden inference. "Not stated" means
+        not stated, never "derivable".
+    -   If either is missing, PRESENT the menu (curated list from the
+        catalog + a free-text option) and WAIT for the answer. The
+        catalog's "Best for" notes guide the USER's choice; they are NOT
+        a default you may auto-pick.
+    -   This gate BLOCKS and is its OWN gate: do not advance to STEP 4 or
+        create any slide until BOTH styles are answered. It is separate
+        from, and earlier than, the STEP 5 outline gate -- NEVER defer the
+        style choice to the outline gate ("propose now, fix later at the
+        gate" is the wrong move). Keep both chosen blocks verbatim in
+        every prompt of this deck.
 
     **Persist the deck setup** in a deck sidecar `<deck>.md` next to
     `<deck>.pptx` (title, topic, deck language, image style,
     info-graphic style, template notes). Write it when the setup is
     fixed and UPDATE it whenever a value changes -- it is the deck's
-    memory across sessions.
+    memory across sessions. Before ANY `slide.add`, the sidecar MUST
+    already carry both styles; if it does not, run the style gate first.
 
     </step>
 
-3.  <step id="STEP 3: Context">
+4.  <step id="STEP 4: Route & Scope">
+
+    Using the state and sidecar already read in STEP 1 (and the deck
+    setup from STEP 3, only asking for values the sidecar did not answer):
 
     -   <if condition="the user works on an existing deck">
-        FIRST read the deck sidecar `<deck>.md` next to the file (if
-        present): it restores the deck setup from earlier sessions --
-        title, deck language, image/info-graphic styles, template
-        notes. Only ask for values it does not answer.
-        Run `state` to get slides + <rev/>; show the structure briefly
-        (chapters/slides). Derive operation and level **intent-first**
-        from the request: Set (whole deck) / Chapter / Slide. Only when
-        ambiguous, ask via a menu (level + target by `title:`/`id:`).
-        Continue with STEP 5.
+        Show the structure briefly (chapters/slides) when it helps.
+        Derive operation and level **intent-first** from the request:
+        Set (whole deck) / Chapter / Slide. Only when ambiguous, ask via
+        a menu (level + target by `title:`/`id:`). For a small, scoped
+        edit skip the outline gate and continue with STEP 6; for a major
+        addition go through STEP 5 first.
         </if>
     -   <if condition="the user starts a new deck">
-        Run `new <deck> --template <tpl>`, then continue with STEP 4.
+        Run `new <deck> --template <tpl>`, then continue with STEP 5.
         </if>
 
     </step>
 
-4.  <step id="STEP 4: Outline (gate)">
+5.  <step id="STEP 5: Outline (gate)">
 
     Read `references/content-rules.md`. Then:
 
@@ -181,12 +247,12 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
     </step>
 
-5.  <step id="STEP 5: Content">
+6.  <step id="STEP 6: Content">
 
     Build ONE ops document for the change set, obeying
     `references/content-rules.md`:
 
-    -   Texts written AGAINST the placeholder capacity from STEP 1.
+    -   Texts written AGAINST the placeholder capacity from STEP 2.
     -   Action titles, unique per slide; one message per slide; ~6 bullets
         of ~6-8 words, `level` <= 2; details into `notes` (40-70 words:
         message, numbers, transition; for visuals + 1-2 descriptive
@@ -223,17 +289,50 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
     </step>
 
-6.  <step id="STEP 6: Image Prompts">
+7.  <step id="STEP 7: Image Prompts">
 
     Read `references/prompt-formula.md` and `references/color-roles.md`.
-    For EVERY picture placeholder touched by this change set, perform an
-    individual creative step (no template motifs):
+
+    A prompt box is a TRANSIENT instruction, never the deliverable: the
+    user reads it, generates the image elsewhere, places it in the
+    placeholder and removes the box. Using the fresh `state --level full`
+    from STEP 1 (re-read it now if anything changed), act on each picture
+    placeholder's CURRENT state.
+
+    Each prompt box carries a stable, unique name
+    `PptcPromptBox-<idx>-<guid>` (idx = the picture placeholder it
+    belongs to; guid = a unique per-instance suffix). To decide whether
+    the box for a given picture placeholder is present or missing, match
+    the `PptcPromptBox-<idx>` prefix among the slide's shapes -- no
+    guessing, and never a name collision on re-apply. Per placeholder:
+
+    -   Empty, or its prompt box still present → (re)write the prompt box.
+    -   The user asks for a NEW prompt and the old box is already gone →
+        that is the NORMAL post-generation state, not an error. Write a
+        FRESH `img.prompts` box; never assume a box still exists, and
+        never treat its absence as something to "restore".
+    -   The placeholder already holds an IMAGE → that is the user's
+        finished work. Do NOT write a box over it on your own. Only
+        re-prompt on an explicit user request, and even then the box is
+        ADDED as an overlay (`img.prompts` only pushes a shape, it never
+        removes the image) -- the existing image stays untouched.
+
+    For EVERY picture placeholder you (re)prompt, perform an individual
+    creative step (no template motifs):
 
     1.  Determine layout role + sidecar constraints (e.g. dark background
         on title/closing layouts with a white line when the style is
         illustration/render; calm motifs on background-image layouts).
-        Read the placeholder's `overlays` from `tpl inspect`: every
-        overlapping shape becomes a NEGATIVE-SPACE clause ("the
+        Collect ALL shapes that overlap the picture region, from TWO
+        sources, because each sees only half of them:
+        -   the placeholder's `overlays` from `tpl inspect` (template- and
+            layout-level shapes: footer, slide number, chapter labels);
+        -   the SLIDE's own shapes from `state --level full` -- any
+            user-added textbox or element sitting over the picture is
+            slide-local and does NOT appear in `tpl inspect`. Re-read it
+            every turn so boxes the user added since the last prompt are
+            honored.
+        Each overlapping shape becomes a NEGATIVE-SPACE clause ("the
         [region] is a vast empty [color] canvas creating significant
         negative space") and the subject moves to a free region.
         NEVER explain why -- typographic words (title/footer/caption/
@@ -241,15 +340,29 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         with "No text. No letters. No symbols." unless the prompt
         deliberately embeds quoted text.
     2.  Choose a motif that makes THIS slide's message tangible and does
-        not repeat a motif already used in the deck.
+        not repeat a motif already used in the deck. If the slide message,
+        deck topic and role do NOT determine a concrete, non-generic motif
+        -- or a strong metaphor could plausibly go several clearly
+        different ways -- ASK the user ONE short, targeted question (offer
+        2-3 motif directions, or invite free text) BEFORE composing. A
+        wrong motif costs the user a whole image-generation cycle, so a
+        quick question beats guessing; NEVER fall back to a generic filler
+        motif just to avoid asking.
     3.  On title-role images (and wherever the scene carries text
         surfaces), embed the slide title/topic as short text-in-image.
     4.  Compose the prompt per the formula, with the deck-wide style
-        block, `#`-prefixed hex codes from <colors/> (primary `accent1`
-        unless sidecar/user overrides), and the placeholder's aspect.
+        block and `#`-prefixed hex codes from <colors/> (primary
+        `accent1` unless sidecar/user overrides). Do NOT put the aspect
+        ratio in the prompt TEXT -- pptc derives it from the placeholder
+        geometry and prints it in the box header (`IMAGE PROMPT · <ratio>`);
+        the mirrored markdown header shows the same ratio.
 
     Write all prompts into the deck via ONE `img.prompts` op per slide
     (prompt text per picture-placeholder idx) and `apply --rev <rev/>`.
+    If a prompt box for that placeholder already exists
+    (`PptcPromptBox-<idx>` among the slide's shapes), `el.rm` it by name
+    in the SAME ops document, BEFORE the `img.prompts`, so two boxes
+    never stack on one placeholder.
     Mirror each prompt to the user with this <template/>:
 
     <template>
@@ -265,7 +378,7 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
     </step>
 
-7.  <step id="STEP 7: Report">
+8.  <step id="STEP 8: Report">
 
     Walk the final checklist in `references/content-rules.md`; list any
     open items. Then report with this <template/>:
@@ -289,6 +402,11 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 -   **No image generation**: this skill writes prompts into the deck
     (`img.prompts` boxes); it never calls Gemini/Nano Banana or any
     other image API.
+-   **No destroying generated images or user content**: prompt boxes are
+    additive and removable; a generated image placed by the user is final
+    and is never deleted, overwritten, or covered as a side effect of any
+    edit. Re-prompting an already-imaged placeholder happens only on
+    explicit request.
 -   **No web research**: deck content comes from the user's input and
     the conversation context only.
 -   **No raw XML editing**: all mutations go through pptc ops.

@@ -5,15 +5,15 @@
     "email": "brusdeylins@gmx.de"
   },
   "metadata": {
-    "description": "PowerPoint tooling: pptc CLI and the template-aware powerpoint skill",
-    "version": "0.2.17"
+    "description": "PowerPoint tooling: pptc CLI and the template-aware ppt skill",
+    "version": "0.2.18"
   },
   "plugins": [
     {
-      "name": "powerpoint",
+      "name": "ppt",
       "source": "./plugin",
       "description": "Template-aware PowerPoint skill: builds and edits PPTX decks via the bundled pptc CLI and writes color-faithful image prompts into picture placeholders",
-      "version": "0.2.17",
+      "version": "0.2.18",
       "author": {
         "name": "Matthias Brusdeylins",
         "email": "brusdeylins@gmx.de"

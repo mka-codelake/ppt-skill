@@ -63,10 +63,10 @@ describe("documentation sync contract", () => {
 
     it("the README documents the skill plugin (install + SKILL.md link)", () => {
         expect(readme).toContain("/plugin marketplace add Brusdeylins/ppt-skill")
-        expect(readme).toContain("/plugin install powerpoint@ppt-skill")
-        expect(readme).toContain("plugin/skills/powerpoint/SKILL.md")
+        expect(readme).toContain("/plugin install ppt@ppt-skill")
+        expect(readme).toContain("plugin/skills/ppt/SKILL.md")
         const pluginReadme = readFileSync(path.join(root, "plugin", "README.md"), "utf8")
-        expect(pluginReadme).toContain("/plugin install powerpoint@ppt-skill")
+        expect(pluginReadme).toContain("/plugin install ppt@ppt-skill")
     })
 
     it("the README and the apply help document every lint warning code", () => {

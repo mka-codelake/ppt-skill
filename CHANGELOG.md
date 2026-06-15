@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.13 (plugin 0.2.18)
+
+- Engine: the `img.prompts` box header now states the picture
+  placeholder's aspect ratio (`IMAGE PROMPT · <ratio>`), derived from the
+  geometry; the ratio is no longer written into the prompt text (so it
+  cannot nudge the image model) and the redundant `idx` was dropped.
+- Skill and plugin renamed `powerpoint` -> `ppt` (to match `pptc`); the
+  marketplace stays `ppt-skill`, install is now
+  `/plugin install ppt@ppt-skill`. The plugin is a container for multiple
+  skills (a content-prep `ppt-prepare` skill is planned).
+- The skill discovers its OWN bundled templates: when no template is named
+  it scans `assets/` and offers a choice if more than the neutral default
+  was packaged in.
+- Packaging: `npm run skill:zip` builds an upload-ready, self-contained
+  skill ZIP (folder at the ZIP root) under `deploy/` for claude.ai web
+  upload. `skill:zip:internal` / `skill:zip -- --from <dir>` overlay your
+  own company templates from a git-ignored source -- never committed,
+  never part of a public release.
+- Style gate hardened: image/info-graphic styles are NEVER inferred from
+  topic or tone; the skill presents the catalog menu and blocks slide
+  creation until both are chosen (a gate separate from the outline gate).
+- Style catalog expanded (pencil sketch, comic, watercolor, cinematic,
+  duotone, blueprint, low-poly, ... with "best for" guidance), and step
+  banners are phase-colored (analyze vs. write).
+- Skill safety rules: prompt boxes are additive and a generated image is
+  never deleted or overwritten as a side effect; a removed prompt box is
+  the normal post-generation state and is re-created on request.
+- README restructured: a dedicated "Packaging & Distribution" chapter and
+  a "claude.ai (web)" install path for non-developers.
+
 ## 0.2.12 (plugin 0.2.17)
 
 - Documentation sync: README and `--help` now cover the 0.2.9-0.2.11

@@ -48,3 +48,25 @@ Output Templates
     control constructs and `<xxx/>` placeholders, and removing
     trailing spaces. Do not output explanations or summaries of your
     own unless a template requests them.
+
+Step Announcement
+-----------------
+
+The moment a `<step>` begins executing, FIRST emit a one-line banner so
+the user can see exactly where you are, THEN carry out the step:
+
+    <step-marker/> **<step-id/>** — <what you are about to do, one short clause>
+
+`<step-id/>` is the step's `id`. `<step-marker/>` is the colored bullet of
+the step's PHASE. There are exactly two phases, so the color tells the user
+at a glance whether you are still reading/planning or actively changing the
+deck; the step id in the banner names the exact step within the phase:
+
+| Phase                                                | Steps   | Marker |
+| ---------------------------------------------------- | ------- | ------ |
+| **Analyze** — read state, inspect, set up, plan; no deck mutation | STEP 1–5 | 🔵 |
+| **Write** — mutate the deck (`new`/`apply`) and report   | STEP 6–8 | 🟢 |
+
+Emit the banner exactly once per step entry; when a step is skipped by an
+`<if>`/route condition, do not emit its banner. These two markers are the
+only decoration -- do not invent other status glyphs or colors.

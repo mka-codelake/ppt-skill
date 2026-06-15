@@ -4,7 +4,11 @@ Image Prompt Formula (Nano Banana Pro)
 Every image prompt follows this formula (English, one paragraph):
 
 **[Style] + [Subject with primary accent] + [Scene / text-in-image] +
-[Lighting / background constraint] + [Quality] + [Aspect]**
+[Lighting / background constraint] + [Quality]**
+
+The aspect ratio is NOT part of the prompt text -- pptc derives it from
+the picture placeholder's geometry and prints it in the prompt-box header
+(`IMAGE PROMPT · <ratio>`).
 
 Element rules
 -------------
@@ -42,9 +46,9 @@ Element rules
     `No text. No letters. No symbols.` Positive phrasing beats
     negation everywhere else ("plain matte surface", not "no clutter").
 -   **Quality**: `sharp focus, 8k` plus style-appropriate terms.
--   **Aspect**: state the placeholder's ratio as composition guidance,
-    e.g. `2:3 portrait composition`, `16:9 wide composition`,
-    `square 1:1 composition`.
+-   **Aspect**: never write the ratio into the prompt text. pptc computes
+    it from the placeholder geometry and surfaces it in the box header, so
+    the image model is not nudged by a ratio phrase inside the prompt.
 -   **Secondary colors**: only for graphic elements within the image
     (dashboards, charts, UI), listed as hex codes from the template's
     `accent2`-`accent6`.
@@ -64,14 +68,15 @@ deliberately:
 Background-image layouts get calm, low-contrast motifs (text sits on
 top). Contact placeholders get neutral business portraits.
 
-Example (title role, 2:3, stock photo, accent1 = #1F4E79)
----------------------------------------------------------
+Example (title role, 2:3 placeholder, stock photo, accent1 = #1F4E79)
+--------------------------------------------------------------------
+
+The 2:3 ratio is shown in the box header by pptc, not in the prompt:
 
 ```
 commercial photography, shot on Canon EOS R5 85mm f/1.4, professional
 business woman in a deep blue (#1F4E79) blazer standing in a modern
 glass office lobby, holding a tablet whose screen reads "AI Strategy",
 soft diffused natural light from floor-to-ceiling windows, shallow
-depth of field, professional color grading, sharp focus, 8k,
-2:3 portrait composition
+depth of field, professional color grading, sharp focus, 8k
 ```

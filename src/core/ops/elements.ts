@@ -15,6 +15,7 @@ import type { Frame, ShapeInfo } from "../model.js"
 import type { OpHandler, PlanContext, SlidePlanEntry } from "./registry.js"
 import { entryLayout, resolveEntry } from "./fill-common.js"
 import { lintElementOverlap, richTextToPlain, type Obstacle } from "../lint.js"
+import { nearestAspect } from "../describe/position.js"
 
 /**  shape-name prefix of generated prompt boxes (removable via el.rm)  */
 export const PROMPT_BOX_PREFIX = "PptcPromptBox"
@@ -179,11 +180,12 @@ export const imgPrompts: OpHandler<Extract<Op, { op: "img.prompts" }>> = {
             if (text === null)
                 continue
             const frame = pic.frame as { x: number, y: number, w: number, h: number }
+            const aspect = nearestAspect(frame)
             const spec: ElementSpec = {
                 type: "textbox",
                 frame: { x: frame.x, y: frame.y, w: Math.max(frame.w * 0.5, 2), h: Math.max(frame.h * 0.4, 0.8) },
                 text: [
-                    { text: `IMAGE PROMPT (idx ${pic.idx})`, bold: true, size: 9, color: PROMPT_BORDER },
+                    { text: `IMAGE PROMPT · ${aspect}`, bold: true, size: 9, color: PROMPT_BORDER },
                     { text, size: 9, color: "4A4A4A" }
                 ],
                 fill: PROMPT_FILL,
