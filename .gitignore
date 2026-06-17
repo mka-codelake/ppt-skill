@@ -6,3 +6,6 @@ private-templates/
 .DS_Store
 test/tmp/
 ~$*
+
+# ASE session state
+.ase/

@@ -13,6 +13,12 @@ Titles
     the deck's complete story.
 -   **Unique titles**: no two slides share a title (titles are also
     the stable `title:` address for later edits).
+-   **Title capacity**: the title placeholder has a budget too --
+    `tpl describe` reports `~N lines of ~M chars` for it (a safety buffer
+    is already subtracted). Keep the action title within it; a title that
+    would wrap past its box triggers `W_TEXT_OVERFLOW`, so shorten it (or,
+    if the message truly needs the length, pick a layout with a roomier
+    title). Title layouts are often single-line -- watch the char budget.
 
 Body
 ----

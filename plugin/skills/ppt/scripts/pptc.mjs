@@ -38805,7 +38805,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.13" : "0.0.0-dev";
+var VERSION = true ? "0.2.14" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -38940,14 +38940,15 @@ var resolveSlide = (selector, slides, refs) => {
 var LINE_SPACING = 1.2;
 var AVG_GLYPH_WIDTH = 0.5;
 var BOX_INSET_IN = 0.2;
+var SAFETY_FACTOR = 0.9;
 var estimateCapacity = (frame, fontSizePt) => {
   const innerW = Math.max(frame.w - BOX_INSET_IN, 0.1);
   const innerH = Math.max(frame.h - BOX_INSET_IN, 0.1);
   const lineHeightIn = fontSizePt * LINE_SPACING / 72;
   const glyphWidthIn = fontSizePt * AVG_GLYPH_WIDTH / 72;
   return {
-    lines: Math.max(1, Math.floor(innerH / lineHeightIn)),
-    charsPerLine: Math.max(1, Math.floor(innerW / glyphWidthIn)),
+    lines: Math.max(1, Math.floor(innerH / lineHeightIn * SAFETY_FACTOR)),
+    charsPerLine: Math.max(1, Math.floor(innerW / glyphWidthIn * SAFETY_FACTOR)),
     fontSizePt
   };
 };
@@ -55956,7 +55957,7 @@ var narrateLayout = (layout, info) => {
       if (ph.kind === "picture")
         parts.push(`aspect ratio ~${nearestAspect(ph.frame)}`);
     }
-    if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
+    if (ph.capacity !== null && ph.kind !== "picture")
       parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`);
     if (ph.overlays !== void 0 && ph.overlays.length > 0)
       parts.push("overlaid by " + ph.overlays.map((o) => `${o.name} (${o.region})`).join(", ") + " -- keep these regions calm in images");

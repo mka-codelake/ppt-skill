@@ -70,7 +70,7 @@ export const narrateLayout = (layout: Layout, info: TemplateInfo): string => {
             if (ph.kind === "picture")
                 parts.push(`aspect ratio ~${nearestAspect(ph.frame)}`)
         }
-        if (ph.capacity !== null && ph.kind !== "picture" && ph.kind !== "title")
+        if (ph.capacity !== null && ph.kind !== "picture")
             parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`)
         if (ph.overlays !== undefined && ph.overlays.length > 0)
             parts.push("overlaid by "

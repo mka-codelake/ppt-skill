@@ -15,12 +15,19 @@ PPTX decks deterministically via the bundled `pptc` CLI and you author
 color-faithful Nano Banana Pro image prompts for picture placeholders.
 
 First, read `meta/control.md` in this skill's directory -- it defines the
-control tags (`<flow>`, `<step>`, `<template>`, `<if>`, `<for>`, placeholders)
-used below. Honor them exactly. In particular, follow its **Step
-Announcement** rule: every time you enter a `<step>`, emit its phase
-marker banner first -- 🔵 for the Analyze phase (STEP 1–5), 🟢 for the
-Write phase (STEP 6–8) -- so the user always sees whether you are reading
-or changing the deck, and which step is active.
+control tags (`<flow>`, `<step>`, `<gate>`, `<template>`, `<if>`, `<for>`,
+placeholders) used below. Honor them exactly. In particular:
+- **Step Announcement:** on entering a `<step>`, emit its phase marker
+  banner first -- 🔵 Analyze (STEP 1–5), 🟢 Write (STEP 6–8) -- so the user
+  sees whether you are reading or changing the deck, and which step is active.
+- **Progress Task List:** for a full-flow run (a new deck or a major
+  addition), keep the steps as a visible task list and advance their
+  status as you go, so the user always sees where they are; for a single
+  small scoped edit, skip it (it would be noise).
+- **Stage Gate:** a `<gate/>` is a BLOCKING checkpoint (STEP 3 deck setup,
+  STEP 5 outline) -- advance only on explicit approval via the selection
+  box, and NEVER assume an unanswered required value (e.g. the deck
+  language); ask it at the gate.
 
 <objective>
 Create clean, story-driven slides from a PowerPoint template and write one
@@ -124,6 +131,22 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         always runs first.
         </if>
 
+    Also look for a **ppt-prepare plan** (`*-plan.md` -- the handoff
+    artefact from the `ppt-prepare` skill: approved storyline, per-slide
+    messages, headline titles, content, speaker notes AND the deck
+    language). It may exist before the deck does.
+
+    -   <if condition="the user points to a plan, or exactly one matches the deck (<deck>-plan.md)">
+        adopt it -- it pre-answers the STEP 3 deck language and the STEP 5
+        outline.</if>
+    -   <if condition="several plan files are found (ambiguous)">present a
+        selection box of the found plans (file name + the plan's
+        `# Presentation plan: <title>` line) and let the user choose --
+        with an option to build fresh without a plan. Do not pick one
+        silently.</if>
+    -   <else>proceed without a plan; you derive the outline yourself in
+        STEP 5.</else>
+
     </step>
 
 2.  <step id="STEP 2: Template">
@@ -175,42 +198,40 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
 3.  <step id="STEP 3: Deck Setup">
 
-    Once per deck, fix the setup and persist it.
-
-    **Language & title -- intent-first** (derive from the request when
-    obvious, otherwise ASK):
+    Resolve four setup values once per deck, then confirm them at a gate
+    and persist them. If STEP 1 found a deck sidecar `<deck>.md` (or a
+    ppt-prepare plan), it may already answer some of these -- adopt those
+    and only resolve the rest.
 
     -   <deck-lang/>: the language of the deck (slide content, notes,
-        footer, AI note). Independent of the conversation language --
-        ask explicitly when not obvious from the request.
-    -   <deck-title/>: the presentation title. Used on the title slide
-        AND in the footer. When it cannot be derived from the request,
-        ask for it (never leave the template's placeholder title in).
+        footer, AI note), independent of the conversation language.
+        Derive it ONLY from an explicit statement or the sidecar/plan;
+        when it is not stated, ASK -- never assume the conversation
+        language is the deck language.
+    -   <deck-title/>: the presentation title (title slide + footer).
+        Derive from the request when obvious, otherwise ASK; never leave
+        the template's placeholder title in.
+    -   **Image style** and **info-graphic style** from
+        `references/style-catalog.md`. These are NEVER inferred: set them
+        only from a LITERAL user statement (or the sidecar). Do NOT derive
+        them from topic, tone, audience or template -- "serious tech talk →
+        cinematic" is the forbidden inference. If either is missing,
+        PRESENT the menu (curated list + free-text) and WAIT. The "Best
+        for" notes guide the USER's choice; they are NOT an auto-pick
+        default. Keep both chosen blocks verbatim in every prompt.
 
-    **Style gate -- HARD; styles are NEVER inferred.** The image style
-    and info-graphic style come from `references/style-catalog.md`:
+    **Persist** the resolved setup in the deck sidecar `<deck>.md` next to
+    `<deck>.pptx` (title, topic, deck language, image style, info-graphic
+    style, template notes) -- the deck's memory across sessions; UPDATE it
+    whenever a value changes.
 
-    -   Set them ONLY from a LITERAL user statement. Do NOT derive them
-        from topic, tone, audience or template -- "serious tech talk →
-        cinematic" is exactly the forbidden inference. "Not stated" means
-        not stated, never "derivable".
-    -   If either is missing, PRESENT the menu (curated list from the
-        catalog + a free-text option) and WAIT for the answer. The
-        catalog's "Best for" notes guide the USER's choice; they are NOT
-        a default you may auto-pick.
-    -   This gate BLOCKS and is its OWN gate: do not advance to STEP 4 or
-        create any slide until BOTH styles are answered. It is separate
-        from, and earlier than, the STEP 5 outline gate -- NEVER defer the
-        style choice to the outline gate ("propose now, fix later at the
-        gate" is the wrong move). Keep both chosen blocks verbatim in
-        every prompt of this deck.
+    **Gate:** present the resolved setup (deck language, title, image
+    style, info-graphic style) and confirm it via the selection box before
+    any slide is created. A required value that is still unresolved -- the
+    deck language above all -- is ASKED here, never guessed. Do not defer
+    any of these to the STEP 5 outline gate.
 
-    **Persist the deck setup** in a deck sidecar `<deck>.md` next to
-    `<deck>.pptx` (title, topic, deck language, image style,
-    info-graphic style, template notes). Write it when the setup is
-    fixed and UPDATE it whenever a value changes -- it is the deck's
-    memory across sessions. Before ANY `slide.add`, the sidecar MUST
-    already carry both styles; if it does not, run the style gate first.
+    <gate/>
 
     </step>
 
@@ -235,15 +256,26 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 
 5.  <step id="STEP 5: Outline (gate)">
 
-    Read `references/content-rules.md`. Then:
+    Read `references/content-rules.md`.
 
-    1.  Draft the **storyline**: core message, audience, narrative arc
-        (SCQA for business decks; recommendation early).
-    2.  Draft the **outline**: one line per slide -- action title
-        (assertion, not topic), one-sentence slide message, content type
-        (bullets/image/graphic/structural), layout role.
-    3.  **Gate**: show the outline and ask for approval/corrections
-        BEFORE creating any slide. Iterate until approved.
+    -   <if condition="a ppt-prepare plan was found in STEP 1">
+        The plan already carries the approved storyline plus, per slide, a
+        message, headline title, content and layout intent. Do NOT
+        re-derive it -- adopt it as the outline and show it back as the
+        checkpoint. The plan's prior approval is what this gate confirms.
+        </if>
+    -   <else>
+        1.  Draft the **storyline**: core message, audience, narrative arc
+            (SCQA for business decks; recommendation early).
+        2.  Draft the **outline**: one line per slide -- action title
+            (assertion, not topic), one-sentence slide message, content
+            type (bullets/image/graphic/structural), layout role.
+        </else>
+
+    **Gate:** show the outline and confirm it via the selection box BEFORE
+    creating any slide; iterate until approved.
+
+    <gate/>
 
     </step>
 

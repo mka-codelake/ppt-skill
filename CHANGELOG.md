@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.14 (plugin 0.2.19)
+
+- Engine: `tpl describe` now also reports the capacity of the **title**
+  placeholder (`~N lines of ~M chars`), so action titles can be written
+  against a real budget instead of overflowing silently.
+- Engine: the capacity estimate subtracts a **~10% safety buffer**, so
+  authored text lands with headroom rather than at the very edge (bold or
+  wide title faces overflow before the raw geometric fit).
+- Skill `ppt`: `content-rules.md` documents the title-capacity budget and
+  the `W_TEXT_OVERFLOW` consequence; both skills keep a **Progress Task
+  List** (the flow's phases/steps shown as a live task list).
+- New skill **`ppt-prepare`**: a story-first, gated content-planning
+  process (7 phases — briefing, core message, storyline, slide messages,
+  titles, content & layout, speaker notes) that produces an approved
+  per-slide plan and hands it to `ppt`. Its methodology fixes the layout
+  vocabulary (key-message = one short sentence; bullets + image; table;
+  code block in a monospace face; SVG graphic; tables/SVG on blank
+  layouts; closing = 1-2 words).
+
 ## 0.2.13 (plugin 0.2.18)
 
 - Engine: the `img.prompts` box header now states the picture

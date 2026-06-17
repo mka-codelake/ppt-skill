@@ -70,3 +70,49 @@ deck; the step id in the banner names the exact step within the phase:
 Emit the banner exactly once per step entry; when a step is skipped by an
 `<if>`/route condition, do not emit its banner. These two markers are the
 only decoration -- do not invent other status glyphs or colors.
+
+Progress Task List
+------------------
+
+So the user always sees where they are in the flow, maintain a visible
+task list of the steps via the host's task-list facility (in Claude Code:
+the Task tools -- TaskCreate / TaskUpdate / TaskList):
+
+1.  **When a run traverses the full flow** (a new deck, or a major
+    addition that goes through the outline gate), create one task per
+    `<step>` at the start, in order, each titled with the step marker and
+    `id` (e.g. "🔵 STEP 1: Current State"). Create it once per run; reuse
+    an existing list rather than duplicating.
+2.  **On entering a step**, set its task to in_progress (right after the
+    step banner); **when the step finishes** -- its `<gate/>` approved, or
+    for a gateless step its body done -- set it completed and move the next
+    step to in_progress.
+3.  **A step skipped** by an `<if>`/route condition is marked completed
+    with a "skipped" note, so the map stays honest.
+4.  **For a single small scoped edit** that touches only a step or two,
+    skip the task list -- it would be noise; use it when the run spans the
+    flow.
+
+The task list mirrors the flow as an always-visible map; it never replaces
+the step banner or the gate selection box -- it sits beside them.
+
+Stage Gate
+----------
+
+-   `<gate/>`:
+    A BLOCKING checkpoint placed at the end of certain steps (the
+    decision points). The flow does NOT advance past it until the user
+    explicitly approves. Run it like this:
+
+    1.  Emit a **checkpoint**: a short summary of what was resolved/produced
+        in this step, with the step's key values shown explicitly.
+    2.  Ask the user with the host's **selection box** (the multiple-choice
+        question tool; AskUserQuestion in Claude Code) -- never as free
+        prose -- offering at least **Approve & continue** and **Change**
+        (adjust a value / revise and gate again).
+    3.  On *approve* advance; on *change* stay in this step, apply the
+        change, and gate again.
+
+    Never advance past a `<gate/>` by assuming or inferring an unanswered
+    value -- an unresolved required value (e.g. the deck language) is asked
+    at the gate, not guessed. Steps without a `<gate/>` proceed normally.

@@ -6,6 +6,9 @@
 **  core/describe/capacity: estimate how much text fits a placeholder box.
 **  The estimate is deliberately simple (average glyph width, fixed line
 **  spacing) -- it exists to warn about gross overflow, not to typeset.
+**  A SAFETY_FACTOR keeps the reported capacity a little under the raw
+**  geometric fit, so authored text lands with headroom rather than at the
+**  very edge (titles in bold/wide faces overflow before the raw fit).
 */
 
 import type { Frame, TextCapacity } from "../model.js"
@@ -16,6 +19,8 @@ const LINE_SPACING = 1.2
 const AVG_GLYPH_WIDTH = 0.5
 /**  inner text inset of a placeholder box in inches (left+right, top+bottom)  */
 const BOX_INSET_IN = 0.2
+/**  safety buffer: report ~10% less than the raw geometric fit (headroom)  */
+const SAFETY_FACTOR = 0.9
 
 /**
  *  Estimate the text capacity of a box for a given font size.
@@ -30,8 +35,8 @@ export const estimateCapacity = (frame: Frame, fontSizePt: number): TextCapacity
     const lineHeightIn = (fontSizePt * LINE_SPACING) / 72
     const glyphWidthIn = (fontSizePt * AVG_GLYPH_WIDTH) / 72
     return {
-        lines: Math.max(1, Math.floor(innerH / lineHeightIn)),
-        charsPerLine: Math.max(1, Math.floor(innerW / glyphWidthIn)),
+        lines: Math.max(1, Math.floor((innerH / lineHeightIn) * SAFETY_FACTOR)),
+        charsPerLine: Math.max(1, Math.floor((innerW / glyphWidthIn) * SAFETY_FACTOR)),
         fontSizePt
     }
 }
