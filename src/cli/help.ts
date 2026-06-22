@@ -20,7 +20,12 @@ Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
   --level        summary: ids, indices, titles, layout indices
                  text (default): plus placeholder texts and notes
-                 full: plus every shape (type, name, text, tables)
+                 full: plus every shape with geometry AND styling --
+                   type, name, frame, text, table cells + column widths,
+                   and autoshape preset/fill/border/font. This is the
+                   COMPLETE structure: enough to recreate or edit a styled
+                   table or diagram, so there is never a need to unzip the
+                   .pptx and read raw XML.
   --plain        readable text instead of the JSON envelope
 
 Example:

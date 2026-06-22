@@ -17901,121 +17901,6 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/has-flag/index.js
-var require_has_flag = __commonJS({
-  "node_modules/has-flag/index.js"(exports, module) {
-    "use strict";
-    module.exports = (flag, argv = process.argv) => {
-      const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
-      const position = argv.indexOf(prefix + flag);
-      const terminatorPosition = argv.indexOf("--");
-      return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
-    };
-  }
-});
-
-// node_modules/supports-color/index.js
-var require_supports_color = __commonJS({
-  "node_modules/supports-color/index.js"(exports, module) {
-    "use strict";
-    var os = __require("os");
-    var tty = __require("tty");
-    var hasFlag = require_has_flag();
-    var { env } = process;
-    var forceColor;
-    if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false") || hasFlag("color=never")) {
-      forceColor = 0;
-    } else if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
-      forceColor = 1;
-    }
-    if ("FORCE_COLOR" in env) {
-      if (env.FORCE_COLOR === "true") {
-        forceColor = 1;
-      } else if (env.FORCE_COLOR === "false") {
-        forceColor = 0;
-      } else {
-        forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
-      }
-    }
-    function translateLevel(level) {
-      if (level === 0) {
-        return false;
-      }
-      return {
-        level,
-        hasBasic: true,
-        has256: level >= 2,
-        has16m: level >= 3
-      };
-    }
-    function supportsColor(haveStream, streamIsTTY) {
-      if (forceColor === 0) {
-        return 0;
-      }
-      if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
-        return 3;
-      }
-      if (hasFlag("color=256")) {
-        return 2;
-      }
-      if (haveStream && !streamIsTTY && forceColor === void 0) {
-        return 0;
-      }
-      const min = forceColor || 0;
-      if (env.TERM === "dumb") {
-        return min;
-      }
-      if (process.platform === "win32") {
-        const osRelease = os.release().split(".");
-        if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
-          return Number(osRelease[2]) >= 14931 ? 3 : 2;
-        }
-        return 1;
-      }
-      if ("CI" in env) {
-        if (["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI", "GITHUB_ACTIONS", "BUILDKITE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
-          return 1;
-        }
-        return min;
-      }
-      if ("TEAMCITY_VERSION" in env) {
-        return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
-      }
-      if (env.COLORTERM === "truecolor") {
-        return 3;
-      }
-      if ("TERM_PROGRAM" in env) {
-        const version2 = parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
-        switch (env.TERM_PROGRAM) {
-          case "iTerm.app":
-            return version2 >= 3 ? 3 : 2;
-          case "Apple_Terminal":
-            return 2;
-        }
-      }
-      if (/-256(color)?$/i.test(env.TERM)) {
-        return 2;
-      }
-      if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
-        return 1;
-      }
-      if ("COLORTERM" in env) {
-        return 1;
-      }
-      return min;
-    }
-    function getSupportLevel(stream) {
-      const level = supportsColor(stream, stream && stream.isTTY);
-      return translateLevel(level);
-    }
-    module.exports = {
-      supportsColor: getSupportLevel,
-      stdout: translateLevel(supportsColor(true, tty.isatty(1))),
-      stderr: translateLevel(supportsColor(true, tty.isatty(2)))
-    };
-  }
-});
-
 // node_modules/debug/src/node.js
 var require_node2 = __commonJS({
   "node_modules/debug/src/node.js"(exports, module) {
@@ -18034,7 +17919,7 @@ var require_node2 = __commonJS({
     );
     exports.colors = [6, 2, 3, 4, 5, 1];
     try {
-      const supportsColor = require_supports_color();
+      const supportsColor = __require("supports-color");
       if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
         exports.colors = [
           20,
@@ -38509,7 +38394,12 @@ Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
   --level        summary: ids, indices, titles, layout indices
                  text (default): plus placeholder texts and notes
-                 full: plus every shape (type, name, text, tables)
+                 full: plus every shape with geometry AND styling --
+                   type, name, frame, text, table cells + column widths,
+                   and autoshape preset/fill/border/font. This is the
+                   COMPLETE structure: enough to recreate or edit a styled
+                   table or diagram, so there is never a need to unzip the
+                   .pptx and read raw XML.
   --plain        readable text instead of the JSON envelope
 
 Example:
@@ -38731,7 +38621,7 @@ var helpFor = (tokens) => {
   return HELP[key] ?? null;
 };
 
-// src/core/errors.ts
+// src/infra/errors.ts
 var EXIT_CODES = {
   E_USAGE: 2,
   E_SCHEMA: 2,
@@ -38825,7 +38715,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.15" : "0.0.0-dev";
+var VERSION = true ? "0.9.0" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -38981,8 +38871,6 @@ var estimateUsedLines = (paragraphs, capacity) => {
 
 // src/core/lint.ts
 var intersectionArea = (a, b) => {
-  if (a.w === void 0 || a.h === void 0 || b.w === void 0 || b.h === void 0)
-    return 0;
   const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
   const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
   return w > 0 && h > 0 ? w * h : 0;
@@ -54115,13 +54003,7 @@ var TableSchema = external_exports.object({
     headerHeight: external_exports.number().positive().optional(),
     /**  fixed body-row height in inches (uniform rows)  */
     rowHeight: external_exports.number().positive().optional()
-  }).strict().optional(),
-  merge: external_exports.array(external_exports.object({
-    row: external_exports.number().int().min(0),
-    col: external_exports.number().int().min(0),
-    row2: external_exports.number().int().min(0),
-    col2: external_exports.number().int().min(0)
-  }).strict()).optional()
+  }).strict().optional()
 }).strict();
 var ChartTypeSchema = external_exports.enum([
   "bar",
@@ -54451,7 +54333,7 @@ var phKind = (type) => {
   }
 };
 var shapeFrame = (sp) => {
-  const xfrm = firstElement(sp, "a:xfrm");
+  const xfrm = firstElement(sp, "a:xfrm") ?? firstElement(sp, "p:xfrm");
   if (xfrm === null)
     return null;
   const off = firstElement(xfrm, "a:off");
@@ -54539,13 +54421,15 @@ var masterFontSizes = async (archive) => {
     return fallback;
   }
 };
-var readTemplateInfo = async (archive) => {
+var readSlideSize = async (archive) => {
   const pres = await archive.xml("ppt/presentation.xml");
   const sldSz = firstElement(pres, "p:sldSz");
-  const slideSize = {
+  return {
     w: emuToInch(Number(sldSz?.getAttribute("cx") ?? "12192000")),
     h: emuToInch(Number(sldSz?.getAttribute("cy") ?? "6858000"))
   };
+};
+var readTheme = async (archive) => {
   const themePart = Object.keys(archive.zip.files).find((f) => /^ppt\/theme\/theme\d+\.xml$/.test(f)) ?? "ppt/theme/theme1.xml";
   const theme = await archive.xml(themePart);
   const fontOf = (tag2) => firstElement(firstElement(theme, tag2) ?? theme, "a:latin")?.getAttribute("typeface") ?? "Calibri";
@@ -54561,6 +54445,9 @@ var readTemplateInfo = async (archive) => {
       if (val !== null && val !== void 0)
         colors[name] = val.toUpperCase();
     }
+  return { fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors };
+};
+var readLayouts = async (archive) => {
   const sizes = await masterFontSizes(archive);
   const layouts = [];
   const parts = await layoutPartsInOrder(archive);
@@ -54623,6 +54510,9 @@ var readTemplateInfo = async (archive) => {
     }
     layouts.push({ index, name, placeholders, reserved });
   }
+  return layouts;
+};
+var readGuides = async (archive) => {
   const guides = { horizontal: [], vertical: [] };
   try {
     const master = await archive.xml("ppt/slideMasters/slideMaster1.xml");
@@ -54638,34 +54528,41 @@ var readTemplateInfo = async (archive) => {
   } catch {
   }
   const uniqSort = (xs) => Array.from(new Set(xs.map((v) => Math.round(v * 100) / 100))).sort((a, b) => a - b);
-  guides.horizontal = uniqSort(guides.horizontal);
-  guides.vertical = uniqSort(guides.vertical);
-  const hasGuides = guides.horizontal.length + guides.vertical.length > 0;
-  let contentArea;
+  return { horizontal: uniqSort(guides.horizontal), vertical: uniqSort(guides.vertical) };
+};
+var deriveContentArea = (layouts, guides) => {
   const bodies = layouts.flatMap((l) => l.placeholders).filter((p) => p.kind === "body" && p.frame !== null).map((p) => p.frame);
-  if (bodies.length > 0) {
-    const biggest = bodies.reduce((a, b) => a.w * a.h >= b.w * b.h ? a : b);
-    const snap = (v, cand) => {
-      let best = v;
-      let bestD = 0.4;
-      for (const c of cand) {
-        const d = Math.abs(c - v);
-        if (d < bestD) {
-          bestD = d;
-          best = c;
-        }
+  if (bodies.length === 0)
+    return void 0;
+  const biggest = bodies.reduce((a, b) => a.w * a.h >= b.w * b.h ? a : b);
+  const snap = (v, cand) => {
+    let best = v;
+    let bestD = 0.4;
+    for (const c of cand) {
+      const d = Math.abs(c - v);
+      if (d < bestD) {
+        bestD = d;
+        best = c;
       }
-      return best;
-    };
-    const x1 = snap(biggest.x, guides.vertical);
-    const x2 = snap(biggest.x + biggest.w, guides.vertical);
-    const y1 = snap(biggest.y, guides.horizontal);
-    const y2 = snap(biggest.y + biggest.h, guides.horizontal);
-    contentArea = { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) };
-  }
+    }
+    return best;
+  };
+  const x1 = snap(biggest.x, guides.vertical);
+  const x2 = snap(biggest.x + biggest.w, guides.vertical);
+  const y1 = snap(biggest.y, guides.horizontal);
+  const y2 = snap(biggest.y + biggest.h, guides.horizontal);
+  return { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) };
+};
+var readTemplateInfo = async (archive) => {
+  const slideSize = await readSlideSize(archive);
+  const { fonts, colors } = await readTheme(archive);
+  const layouts = await readLayouts(archive);
+  const guides = await readGuides(archive);
+  const hasGuides = guides.horizontal.length + guides.vertical.length > 0;
+  const contentArea = deriveContentArea(layouts, guides);
   return {
     slideSize,
-    fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") },
+    fonts,
     colors,
     layouts,
     ...hasGuides ? { guides } : {},
@@ -54689,6 +54586,57 @@ var shapeType = (el) => {
   }
 };
 var tableCells = (frame) => elements(frame, "a:tr").map((tr) => elements(tr, "a:tc").map((tc) => drawingText(tc)));
+var directChild = (parent, names) => {
+  if (parent === null || parent.childNodes === null)
+    return null;
+  for (let i = 0; i < parent.childNodes.length; i++) {
+    const n = parent.childNodes.item(i);
+    if (n.nodeType === 1 && names.includes(n.nodeName))
+      return n;
+  }
+  return null;
+};
+var colorOf = (el, colors) => {
+  if (el === null)
+    return void 0;
+  const srgb = firstElement(el, "a:srgbClr")?.getAttribute("val");
+  if (srgb !== null && srgb !== void 0)
+    return srgb.toUpperCase();
+  const scheme = firstElement(el, "a:schemeClr")?.getAttribute("val");
+  if (scheme !== null && scheme !== void 0) {
+    const alias = { tx1: "dk1", bg1: "lt1", tx2: "dk2", bg2: "lt2" };
+    return colors[alias[scheme] ?? scheme];
+  }
+  return void 0;
+};
+var shapeStyle = (sp, colors) => {
+  const out = {};
+  const spPr = firstElement(sp, "p:spPr");
+  const prst = firstElement(sp, "a:prstGeom")?.getAttribute("prst");
+  if (prst !== null && prst !== void 0)
+    out.shape = prst;
+  const fill = colorOf(directChild(spPr, ["a:solidFill"]), colors);
+  if (fill !== void 0)
+    out.fill = fill;
+  const ln = directChild(spPr, ["a:ln"]);
+  const border = colorOf(directChild(ln, ["a:solidFill"]), colors);
+  if (border !== void 0)
+    out.border = border;
+  const lnW = ln?.getAttribute("w");
+  if (lnW !== null && lnW !== void 0 && lnW !== "")
+    out.borderPt = Math.round(Number(lnW) / 12700 * 100) / 100;
+  const rPr = firstElement(sp, "a:rPr");
+  const sz = rPr?.getAttribute("sz");
+  if (sz !== null && sz !== void 0)
+    out.fontSize = Number(sz) / 100;
+  const fontColor = colorOf(directChild(rPr, ["a:solidFill"]), colors);
+  if (fontColor !== void 0)
+    out.fontColor = fontColor;
+  const face = rPr === null ? null : firstElement(rPr, "a:latin")?.getAttribute("typeface");
+  if (face !== null && face !== void 0)
+    out.fontFace = face;
+  return out;
+};
 var readDeckState = async (archive) => {
   const info = await readTemplateInfo(archive);
   const layoutIndexByName = new Map(info.layouts.map((l) => [l.name, l.index]));
@@ -54742,8 +54690,14 @@ var readDeckState = async (archive) => {
           frame: shapeFrame(node),
           text
         };
-        if (shape.type === "table")
+        if (node.nodeName === "p:sp")
+          Object.assign(shape, shapeStyle(node, info.colors));
+        if (shape.type === "table") {
           shape.table = tableCells(node);
+          const grid = firstElement(node, "a:tblGrid");
+          if (grid !== null)
+            shape.colWidths = elements(grid, "a:gridCol").map((c) => emuToInch(Number(c.getAttribute("w"))));
+        }
         shapes.push(shape);
       }
     const notesTarget = elements(slideRels, "Relationship").find((r) => (r.getAttribute("Type") ?? "").endsWith("/notesSlide"))?.getAttribute("Target");
@@ -55033,13 +54987,30 @@ var setShapeText = (shape, text, append = false) => {
     txBody.appendChild(buildParagraph(doc, paragraph));
 };
 
-// src/engine/post.ts
+// src/engine/parts.ts
 var partText = async (zip, part) => {
   const f = zip.file(part);
   if (f === null)
     throw new PptcError("E_ENGINE", `output archive is missing part ${part}`);
   return await f.async("string");
 };
+var cleanContentTypes = async (zip) => {
+  const ct = parseXml(await partText(zip, "[Content_Types].xml"));
+  const seen = /* @__PURE__ */ new Set();
+  let changed = false;
+  for (const o of elements(ct, "Override")) {
+    const part = (o.getAttribute("PartName") ?? "").replace(/^\//, "");
+    if (zip.file(part) === null || seen.has(part)) {
+      o.parentNode?.removeChild(o);
+      changed = true;
+    } else
+      seen.add(part);
+  }
+  if (changed)
+    zip.file("[Content_Types].xml", serializeXml(ct));
+};
+
+// src/engine/post.ts
 var referencedSlides = async (zip) => {
   const pres = parseXml(await partText(zip, "ppt/presentation.xml"));
   const rels = parseXml(await partText(zip, "ppt/_rels/presentation.xml.rels"));
@@ -55103,21 +55074,6 @@ var gcParts = async (zip, kept) => {
   }
   if (pruned)
     zip.file(presRelsPart, serializeXml(presRels));
-};
-var cleanContentTypes = async (zip) => {
-  const ct = parseXml(await partText(zip, "[Content_Types].xml"));
-  const seen = /* @__PURE__ */ new Set();
-  let changed = false;
-  for (const o of elements(ct, "Override")) {
-    const part = (o.getAttribute("PartName") ?? "").replace(/^\//, "");
-    if (zip.file(part) === null || seen.has(part)) {
-      o.parentNode?.removeChild(o);
-      changed = true;
-    } else
-      seen.add(part);
-  }
-  if (changed)
-    zip.file("[Content_Types].xml", serializeXml(ct));
 };
 var pruneSectionRefs = async (zip) => {
   const part = "ppt/presentation.xml";
@@ -55332,10 +55288,18 @@ var fillPicturePlaceholder = (slide, rid, phIdx, frame) => {
   sp.parentNode?.replaceChild(pic, sp);
   return true;
 };
+var ensureNotesOverride = async (zip, notesPart) => {
+  const ct = await partText(zip, "[Content_Types].xml");
+  if (!ct.includes(notesPart))
+    zip.file("[Content_Types].xml", ct.replace(
+      "</Types>",
+      `<Override PartName="/${notesPart}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`
+    ));
+};
 var setNotes = async (post, slidePart, slideRels, text) => {
   const base = path4.posix.basename(slidePart, ".xml");
   const notesPart = `ppt/notesSlides/notesSlide-pptc-${base}.xml`;
-  const escaped = text.split("\n").map((line) => `<a:p><a:r><a:t>${line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</a:t></a:r></a:p>`).join("");
+  const escaped = text.split("\n").map((line) => `<a:p><a:r><a:t>${xmlEscape(line)}</a:t></a:r></a:p>`).join("");
   post.zip.file(
     notesPart,
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -55346,12 +55310,7 @@ var setNotes = async (post, slidePart, slideRels, text) => {
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="../notesMasters/notesMaster1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="../slides/${path4.posix.basename(slidePart)}"/></Relationships>`
   );
-  const ct = await partText(post.zip, "[Content_Types].xml");
-  if (!ct.includes(notesPart))
-    post.zip.file("[Content_Types].xml", ct.replace(
-      "</Types>",
-      `<Override PartName="/${notesPart}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`
-    ));
+  await ensureNotesOverride(post.zip, notesPart);
   for (const rel of elements(slideRels, "Relationship"))
     if ((rel.getAttribute("Type") ?? "").endsWith("/notesSlide"))
       rel.parentNode?.removeChild(rel);
@@ -55420,12 +55379,7 @@ var dedupeSharedNotes = async (zip, slides) => {
         if ((r.getAttribute("Type") ?? "").endsWith("/notesSlide"))
           r.setAttribute("Target", `../notesSlides/${path4.posix.basename(clone2)}`);
       zip.file(slideRelsPart, serializeXml(slideRels));
-      const ct = await partText(zip, "[Content_Types].xml");
-      if (!ct.includes(clone2))
-        zip.file("[Content_Types].xml", ct.replace(
-          "</Types>",
-          `<Override PartName="/${clone2}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`
-        ));
+      await ensureNotesOverride(zip, clone2);
     }
   }
 };
@@ -55718,8 +55672,9 @@ var slideFromLayout = (layoutXml) => {
   }
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>' + sps.join("") + "</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>";
 };
+var SLIDE_REL_RE = /<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g;
 var stripSlides = (presRels, ct) => ({
-  presRels: presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, ""),
+  presRels: presRels.replace(SLIDE_REL_RE, ""),
   ct: ct.replace(/<Override PartName="\/ppt\/slides\/[^"]*"[^>]*\/>/g, "")
 });
 var layoutOrder = async (zip) => {
@@ -55759,7 +55714,7 @@ var buildSeed = async (templateBytes) => {
     if (el !== null && pres.indexOf(el[0]) > pres.indexOf("<p:sldIdLst"))
       pres = pres.replace(el[0], "").replace(/<p:sldIdLst/, `${el[0]}<p:sldIdLst`);
   }
-  presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "");
+  presRels = presRels.replace(SLIDE_REL_RE, "");
   for (const f of Object.keys(zip.files))
     if (/^ppt\/(slides|notesSlides)\//.test(f))
       zip.remove(f);
@@ -55927,7 +55882,7 @@ var runSession = async (deckFile, outFile, plan, templatePath) => {
   }
 };
 
-// src/cli/args.ts
+// src/infra/args.ts
 import { parseArgs } from "node:util";
 var parse3 = (argv, spec, positionalNames = [], required2 = positionalNames.length) => {
   let values, positionals;

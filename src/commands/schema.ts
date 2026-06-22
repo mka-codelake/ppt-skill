@@ -9,8 +9,8 @@
 */
 
 import { z, type ZodType } from "zod"
-import { PptcError } from "../core/errors.js"
-import { parse } from "../cli/args.js"
+import { PptcError } from "../infra/errors.js"
+import { parse } from "../infra/args.js"
 import {
     ElAddSchema, ElRmSchema, ElSetSchema, ImgPromptsSchema, MetaPropsSchema,
     OpsDocumentSchema, OP_NAMES, SlideAddSchema, SlideCopySchema,

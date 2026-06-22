@@ -5,9 +5,9 @@ The thinking behind each phase. Read the section named in the phase
 before you run it. Everything here is template-neutral and tool-neutral:
 it shapes the CONTENT; the `ppt` skill later builds the slides.
 
---------------------------------------------------------------------------
+
 Audience & decision analysis  (Phase 1 — Briefing)
---------------------------------------------------------------------------
+--------------------------------------------------
 
 Before any message is written, know who decides and what they need to
 decide. A perfect argument aimed at the wrong person fails.
@@ -21,9 +21,16 @@ decide. A perfect argument aimed at the wrong person fails.
 A deck that does not change what its audience knows, believes or does has
 no reason to exist. Name that change first.
 
---------------------------------------------------------------------------
+**Genre.** The rest of this assumes a *decision deck* (you ask for a
+yes/no). For a *teaching / explanatory deck* (the reader learns, no
+decision), swap two things: name a **learning objective** ("after this the
+reader can X") instead of a decision being asked for, and treat the call to
+action as optional -- such a deck may close on a takeaway or mantra, not an
+appeal. The phase notes below flag where the teaching genre diverges.
+
+
 Pyramid Principle  (Phase 2 — Core Message)
---------------------------------------------------------------------------
+-------------------------------------------
 
 **Core message first, then arguments, then evidence** (Barbara Minto /
 McKinsey; the same discipline as BLUF -- bottom line up front, at every
@@ -64,12 +71,13 @@ lines is the cognitive sweet spot; flag more than four as a warning
 - **"So what?" gate:** after the message (and later each title), ask "so
   what does that mean for the decision-maker?" If the honest answer is a
   shrug, it is a topic label, not an assertion -- rewrite.
-- **Single call to action:** write one sentence -- "We ask <audience> to
-  <decision/action> by <date>." It becomes the closing slide.
+- **Single call to action:** write one sentence -- "We ask [audience] to
+  [decision/action] by [date]." It becomes the closing slide. (The square
+  brackets are fill-in slots, not control tags.)
 
---------------------------------------------------------------------------
+
 Narrative: SCR / SCQA  (Phase 3 — Storyline)
---------------------------------------------------------------------------
+--------------------------------------------
 
 **Situation -> Complication -> Resolution** is the narrative frame. It
 creates tension and urgency; the listener wants to know how the problem
@@ -96,9 +104,16 @@ slides, either add a slide or pre-build an appendix answer (see Q&A
 pre-build). This is also where you confirm the story is *consistent* with
 the core message and the complication is genuinely urgent.
 
---------------------------------------------------------------------------
+**Teaching decks -- worked-example spine.** For an explanatory deck, carry
+the narrative with ONE concrete **running example**: introduce it early,
+**evolve it in stages** (simple -> richer -> complete), and close it
+full-circle at the end. Order the deck by **rising complexity**, not by a
+recommendation arc -- each chapter adds one layer to the same example. This
+replaces (or wraps) the SCR for pure teaching content.
+
+
 Densification  (Phase 4 — Slide Messages)
---------------------------------------------------------------------------
+-----------------------------------------
 
 Not every storyline statement deserves its own slide. One slide carrying
 two related messages beats two half-empty slides. Densification is active
@@ -112,23 +127,23 @@ Do NOT merge when the statements sit on different argument levels (one is
 context, one is recommendation), when merging blurs clarity, or when the
 audience needs time to absorb each (e.g. contentious points).
 
-Rule of thumb: ~2 minutes per slide. 20 minutes -> ~10 slides. Eight
+Rule of thumb: ~3 minutes per slide. 30 minutes -> ~10 slides. Eight
 strong slides beat twelve half-strong ones.
 
---------------------------------------------------------------------------
+
 Headlines & title-reading test  (Phase 5 — Titles)
---------------------------------------------------------------------------
+--------------------------------------------------
 
 A slide title is a **headline** when it (1) makes an assertion, not just
 names a topic, (2) carries the slide's message, (3) is understandable
 without the slide body.
 
-| Descriptor (weak) | Headline (strong) |
-|-------------------|-------------------|
-| Market overview   | The market grows -- despite the transformation |
+| Descriptor (weak) | Headline (strong)                                 |
+|-------------------|---------------------------------------------------|
+| Market overview   | The market grows -- despite the transformation    |
 | Our approach      | Three phases reach a working solution in 12 weeks |
-| Cost analysis     | The investment pays back in under 18 months |
-| Next steps        | Two decisions today enable a Q3 go-live |
+| Cost analysis     | The investment pays back in under 18 months       |
+| Next steps        | Two decisions today enable a Q3 go-live           |
 
 Deriving a title from a message: read the message -> extract what is
 surprising/decisive -> compress to one memorable line (tension helps:
@@ -146,9 +161,9 @@ the deck is about, (b) the core message, and (c) what is expected of them
 -- it passes. Otherwise find the weakest title, recheck its message,
 re-derive.
 
---------------------------------------------------------------------------
+
 Content, layout & storyboard  (Phase 6 — Content & Layout)
---------------------------------------------------------------------------
+----------------------------------------------------------
 
 Work slide by slide, the message kept visible as the yardstick.
 
@@ -179,7 +194,7 @@ Work slide by slide, the message kept visible as the yardstick.
   the explaining text stays ON the slide (~100-250 words is fine).
 - **Layout intent (not a concrete template layout -- that is `ppt`'s
   job):** name a layout TYPE and say why it serves the message. The
-  realizable content types are exactly these five (plus the structural
+  realizable content types are exactly these six (plus the structural
   roles title / agenda / chapter-divider / closing -- the closing carries
   only 1-2 words; if the final slide needs more, use key-message or
   another type instead):
@@ -190,6 +205,10 @@ Work slide by slide, the message kept visible as the yardstick.
     placeholder, with one supporting image beside them; the default
     assertion-evidence slide.
   - **table** -- tabular content (fields, comparisons, link lists).
+  - **chart** -- quantitative data as a native, data-bound chart (bar,
+    column, line, pie, doughnut, area, ...): trends over time, comparisons
+    of magnitudes, parts of a whole. Use a real chart -- NOT a hand-drawn
+    SVG -- whenever the point is the NUMBERS; it stays accurate and editable.
   - **code block** -- verbatim code, or a file/folder tree, in a
     MONOSPACE font (ideally one from the template's own font family),
     set as rich text. Use it instead of an SVG whenever the content is
@@ -200,13 +219,9 @@ Work slide by slide, the message kept visible as the yardstick.
     sequence/flow, cycle, hierarchy/pyramid, timeline, two/three-column
     comparison, or a structure diagram.
 
-  Tables and SVG graphics are placed on a BLANK layout (title + footer
-  only, no text placeholder) so the element never collides with body text
-  -- `ppt` enforces this. Map the message shape to a type: a single
-  statement -> key-message; a short proof with a picture -> bullets +
-  image; rows/comparisons -> table; literal code or a directory tree ->
-  code block; any other drawn shape (flow, hierarchy, cycle, timeline,
-  structure) -> SVG graphic.
+  Tables, charts and SVG graphics go on a BLANK layout (title + footer only,
+  no text placeholder) so the element never collides with body text --
+  `ppt` enforces this. Pick the type from each bullet's own use above.
 
 - **Ghost deck:** the deliverable of the slide phases is a titles-only
   skeleton -- one slide per message, action title set, body empty. It
@@ -214,14 +229,25 @@ Work slide by slide, the message kept visible as the yardstick.
   before any exhibit is built.
 - **Grandmother / jargon test:** a non-expert reads each title + one-line
   summary; wherever they need a definition, add a short gloss or simplify.
+- **Preempt known confusions** (teaching decks especially): give a
+  confusable pair its own moment -- a short disambiguation slide (term A vs
+  term B) or an inline **clarification callout** on the slide where the
+  mix-up would otherwise happen. Resolve the confusion before it forms.
 - **Pacing / section time-boxing:** assign minutes per section; the total
   must equal available time minus ~20% Q&A buffer. Over-built analysis
   and under-built recommendation/next-steps is the usual failure -- move
   excess to an appendix.
 
---------------------------------------------------------------------------
+
 Speaker notes & Q&A  (Phase 7 — Speaker Notes)
---------------------------------------------------------------------------
+----------------------------------------------
+
+**Teaching / self-study decks skip speaker notes.** When the deck is READ
+without a presenter (Phase 1 genre = teaching), do NOT write speaker notes:
+the slide itself must be complete, so the explaining text lives ON the slide
+(see Phase 6), not in a notes pane no one will read. A self-study deck may
+still carry an appendix FAQ in place of live Q&A. The two points below apply
+to **presented** decks.
 
 - Develop speaker notes from each slide's MESSAGE, not from its bullets
   (bullets prove; the message persuades). 3-5 sentences per slide plus a
@@ -229,14 +255,14 @@ Speaker notes & Q&A  (Phase 7 — Speaker Notes)
 - **Q&A pre-build:** list the 5-10 most likely questions; for each write
   a one-sentence answer and, where useful, a pre-built appendix slide.
 
---------------------------------------------------------------------------
-Common mistakes
---------------------------------------------------------------------------
 
-| Mistake | Symptom | Fix |
-|---------|---------|-----|
-| Funnel structure | conclusion at the end | core message on slide 1 / exec summary |
-| Neutral titles | "Market analysis", "Approach" | assertion headline |
-| Too many arguments | 7+ key lines | consolidate to 3-5, re-MECE |
-| No audience fit | too technical/detailed | match the decision the audience must make |
-| No red thread | slides reorderable at will | check the SCR narrative leads slide to slide |
+Common mistakes
+---------------
+
+| Mistake            | Symptom                       | Fix                                          |
+|--------------------|-------------------------------|----------------------------------------------|
+| Funnel structure   | conclusion at the end         | core message on slide 1 / exec summary       |
+| Neutral titles     | "Market analysis", "Approach" | assertion headline                           |
+| Too many arguments | 7+ key lines                  | consolidate to 3-5, re-MECE                  |
+| No audience fit    | too technical/detailed        | match the decision the audience must make    |
+| No red thread      | slides reorderable at will    | check the SCR narrative leads slide to slide |

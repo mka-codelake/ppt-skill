@@ -9,7 +9,7 @@
 **  interprets the finished plan in one pass -- ops never touch files.
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import type { Op } from "../../schema/ops.js"
 import type { ElementSpec, RichText } from "../../schema/payloads.js"
 import type { DeckState, Layout, TemplateInfo } from "../model.js"

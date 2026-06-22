@@ -8,11 +8,11 @@
 **  model with geometry and ids). Always includes the rev token.
 */
 
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { resolveSlide } from "../core/selector.js"
 import type { DeckState, SlideInfo } from "../core/model.js"
 import { DeckArchive, readDeckState } from "../engine/reader.js"
-import { parse } from "../cli/args.js"
+import { parse } from "../infra/args.js"
 
 /**  zoom level of the state output  */
 type Level = "summary" | "text" | "full"

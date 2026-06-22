@@ -9,13 +9,13 @@ from the current template at runtime via `pptc tpl inspect` →
 Every OOXML theme defines exactly these slots, so this mapping works
 with any `.potx`/`.pptx` template:
 
-| Slot               | Prompt Role                                            |
-|--------------------|--------------------------------------------------------|
+| Slot               | Prompt Role                                                                                                         |
+|--------------------|---------------------------------------------------------------------------------------------------------------------|
 | `accent1`          | PRIMARY brand accent: the dominant, visible color element in every image (clothing, lighting, branding, key object) |
-| `accent2`-`accent6`| Secondary palette: diagram elements, graphic details, subtle accents -- never dominant |
-| `dk1`, `dk2`       | Dark tones: text-on-image, dark backgrounds, shadows   |
-| `lt1`, `lt2`       | Light/neutral tones: backgrounds, surfaces, whitespace |
-| `hlink`, `folHlink`| Not used in image prompts                              |
+| `accent2`-`accent6`| Secondary palette: diagram elements, graphic details, subtle accents -- never dominant                              |
+| `dk1`, `dk2`       | Dark tones: text-on-image, dark backgrounds, shadows                                                                |
+| `lt1`, `lt2`       | Light/neutral tones: backgrounds, surfaces, whitespace                                                              |
+| `hlink`, `folHlink`| Not used in image prompts                                                                                           |
 
 Usage rules
 -----------

@@ -12,7 +12,7 @@ import JSZip from "jszip"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import type { Document, Element } from "@xmldom/xmldom"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { contentHash, requireFile } from "../infra/fs.js"
 import { estimateCapacity } from "../core/describe/capacity.js"
 import { regionWithin, coverageFraction } from "../core/describe/position.js"
@@ -99,9 +99,10 @@ const phKind = (type: string | null): PlaceholderKind => {
     }
 }
 
-/**  extract the frame of a shape from its `a:xfrm`, null when inherited  */
+/**  extract the frame of a shape from its `a:xfrm` (autoshapes/placeholders)
+     or `p:xfrm` (graphicFrame: tables, charts), null when inherited  */
 const shapeFrame = (sp: Element): Frame | null => {
-    const xfrm = firstElement(sp, "a:xfrm")
+    const xfrm = firstElement(sp, "a:xfrm") ?? firstElement(sp, "p:xfrm")
     if (xfrm === null)
         return null
     const off = firstElement(xfrm, "a:off")
@@ -198,22 +199,20 @@ const masterFontSizes = async (archive: DeckArchive): Promise<{ title: number, b
     }
 }
 
-/**
- *  Read template-wide data: slide size, theme, and all layouts with resolved
- *  placeholder geometry and capacity. Works on .potx and .pptx alike.
- *
- *  @param archive - opened archive
- *  @returns the resolved template info
- */
-export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateInfo> => {
+/**  read the slide dimensions from presentation.xml (EMU to inch)  */
+const readSlideSize = async (archive: DeckArchive): Promise<{ w: number, h: number }> => {
     const pres = await archive.xml("ppt/presentation.xml")
     const sldSz = firstElement(pres, "p:sldSz")
-    const slideSize = {
+    return {
         w: emuToInch(Number(sldSz?.getAttribute("cx") ?? "12192000")),
         h: emuToInch(Number(sldSz?.getAttribute("cy") ?? "6858000"))
     }
+}
 
-    /*  theme fonts and colors (first theme part)  */
+/**  read theme fonts (major/minor) and the color scheme from the first theme part  */
+const readTheme = async (
+    archive: DeckArchive
+): Promise<{ fonts: { major: string, minor: string }, colors: Record<string, string> }> => {
     const themePart = Object.keys(archive.zip.files)
         .find((f) => /^ppt\/theme\/theme\d+\.xml$/.test(f)) ?? "ppt/theme/theme1.xml"
     const theme = await archive.xml(themePart)
@@ -232,8 +231,13 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
             if (val !== null && val !== undefined)
                 colors[name] = val.toUpperCase()
         }
+    return { fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors }
+}
 
-    /*  layouts with placeholders; geometry inherited from master when absent  */
+/**  read all layouts with resolved placeholder geometry, capacity and
+     picture-overlay coverage; geometry is inherited from the master when a
+     layout placeholder carries no own xfrm  */
+const readLayouts = async (archive: DeckArchive): Promise<Layout[]> => {
     const sizes = await masterFontSizes(archive)
     const layouts: Layout[] = []
     const parts = await layoutPartsInOrder(archive)
@@ -243,8 +247,6 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
         if (!masterFrames.has(master))
             masterFrames.set(master, await masterFrameMap(archive, master))
         const inherited = masterFrames.get(master) as Map<string, Frame>
-        /*  layout placeholders without their own xfrm inherit the
-            geometry of the master's matching placeholder  */
         const resolveFrame = (sp: Element, kind: PlaceholderKind, idx: number): Frame | null =>
             shapeFrame(sp) ?? inherited.get(`${kind}:${idx}`) ?? inherited.get(kind) ?? null
         const doc = await archive.xml(part)
@@ -304,9 +306,13 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
         }
         layouts.push({ index, name, placeholders, reserved })
     }
-    /*  drawing guides (PowerPoint p15 guides) from the master: `pos` is in
-        1/8 pt (inch = pos/576); orient="horz" is a horizontal line at a Y
-        coordinate, otherwise a vertical line at an X coordinate  */
+    return layouts
+}
+
+/**  read PowerPoint p15 drawing guides from the master: `pos` is in 1/8 pt
+     (inch = pos/576); orient="horz" is a horizontal line at a Y coordinate,
+     otherwise a vertical line at an X coordinate  */
+const readGuides = async (archive: DeckArchive): Promise<{ horizontal: number[], vertical: number[] }> => {
     const guides = { horizontal: [] as number[], vertical: [] as number[] }
     try {
         const master = await archive.xml("ppt/slideMasters/slideMaster1.xml")
@@ -325,41 +331,59 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
     }
     const uniqSort = (xs: number[]): number[] =>
         Array.from(new Set(xs.map((v) => Math.round(v * 100) / 100))).sort((a, b) => a - b)
-    guides.horizontal = uniqSort(guides.horizontal)
-    guides.vertical = uniqSort(guides.vertical)
-    const hasGuides = guides.horizontal.length + guides.vertical.length > 0
+    return { horizontal: uniqSort(guides.horizontal), vertical: uniqSort(guides.vertical) }
+}
 
-    /*  content area: the largest body placeholder, its edges snapped to the
-        nearest guides -- the clean target for `el.add` on title-only layouts  */
-    let contentArea: Frame | undefined
+/**  derive the content area: the largest body placeholder with its edges
+     snapped to the nearest guides -- the clean target for `el.add` on
+     title-only layouts. Undefined when the template has no body placeholder  */
+const deriveContentArea = (
+    layouts: Layout[],
+    guides: { horizontal: number[], vertical: number[] }
+): Frame | undefined => {
     const bodies = layouts
         .flatMap((l) => l.placeholders)
         .filter((p) => p.kind === "body" && p.frame !== null)
         .map((p) => p.frame as Frame)
-    if (bodies.length > 0) {
-        const biggest = bodies.reduce((a, b) => (a.w * a.h >= b.w * b.h ? a : b))
-        const snap = (v: number, cand: number[]): number => {
-            let best = v
-            let bestD = 0.4
-            for (const c of cand) {
-                const d = Math.abs(c - v)
-                if (d < bestD) {
-                    bestD = d
-                    best = c
-                }
+    if (bodies.length === 0)
+        return undefined
+    const biggest = bodies.reduce((a, b) => (a.w * a.h >= b.w * b.h ? a : b))
+    const snap = (v: number, cand: number[]): number => {
+        let best = v
+        let bestD = 0.4
+        for (const c of cand) {
+            const d = Math.abs(c - v)
+            if (d < bestD) {
+                bestD = d
+                best = c
             }
-            return best
         }
-        const x1 = snap(biggest.x, guides.vertical)
-        const x2 = snap(biggest.x + biggest.w, guides.vertical)
-        const y1 = snap(biggest.y, guides.horizontal)
-        const y2 = snap(biggest.y + biggest.h, guides.horizontal)
-        contentArea = { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) }
+        return best
     }
+    const x1 = snap(biggest.x, guides.vertical)
+    const x2 = snap(biggest.x + biggest.w, guides.vertical)
+    const y1 = snap(biggest.y, guides.horizontal)
+    const y2 = snap(biggest.y + biggest.h, guides.horizontal)
+    return { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) }
+}
 
+/**
+ *  Read template-wide data: slide size, theme, and all layouts with resolved
+ *  placeholder geometry and capacity. Works on .potx and .pptx alike.
+ *
+ *  @param archive - opened archive
+ *  @returns the resolved template info
+ */
+export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateInfo> => {
+    const slideSize = await readSlideSize(archive)
+    const { fonts, colors } = await readTheme(archive)
+    const layouts = await readLayouts(archive)
+    const guides = await readGuides(archive)
+    const hasGuides = guides.horizontal.length + guides.vertical.length > 0
+    const contentArea = deriveContentArea(layouts, guides)
     return {
         slideSize,
-        fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") },
+        fonts,
         colors,
         layouts,
         ...(hasGuides ? { guides } : {}),
@@ -384,6 +408,65 @@ const shapeType = (el: Element): ShapeInfo["type"] => {
 /**  extract table cell texts from a graphicFrame  */
 const tableCells = (frame: Element): string[][] =>
     elements(frame, "a:tr").map((tr) => elements(tr, "a:tc").map((tc) => drawingText(tc)))
+
+/**  first DIRECT child element of `parent` whose tag is one of `names`  */
+const directChild = (parent: Element | null, names: string[]): Element | null => {
+    if (parent === null || parent.childNodes === null)
+        return null
+    for (let i = 0; i < parent.childNodes.length; i++) {
+        const n = parent.childNodes.item(i) as Element
+        if (n.nodeType === 1 && names.includes(n.nodeName))
+            return n
+    }
+    return null
+}
+
+/**  resolve a DrawingML color container (a:solidFill, a:ln, ...) to an RRGGBB
+     hex; `a:schemeClr` references are resolved against the theme color map  */
+const colorOf = (el: Element | null, colors: Record<string, string>): string | undefined => {
+    if (el === null)
+        return undefined
+    const srgb = firstElement(el, "a:srgbClr")?.getAttribute("val")
+    if (srgb !== null && srgb !== undefined)
+        return srgb.toUpperCase()
+    const scheme = firstElement(el, "a:schemeClr")?.getAttribute("val")
+    if (scheme !== null && scheme !== undefined) {
+        const alias: Record<string, string> = { tx1: "dk1", bg1: "lt1", tx2: "dk2", bg2: "lt2" }
+        return colors[alias[scheme] ?? scheme]
+    }
+    return undefined
+}
+
+/**  autoshape style of a `p:sp` (preset, fill, border, first-run font),
+     theme colors resolved -- the read mirror of el.add's shape vocabulary  */
+const shapeStyle = (sp: Element, colors: Record<string, string>): Partial<ShapeInfo> => {
+    const out: Partial<ShapeInfo> = {}
+    const spPr = firstElement(sp, "p:spPr")
+    const prst = firstElement(sp, "a:prstGeom")?.getAttribute("prst")
+    if (prst !== null && prst !== undefined)
+        out.shape = prst
+    const fill = colorOf(directChild(spPr, ["a:solidFill"]), colors)
+    if (fill !== undefined)
+        out.fill = fill
+    const ln = directChild(spPr, ["a:ln"])
+    const border = colorOf(directChild(ln, ["a:solidFill"]), colors)
+    if (border !== undefined)
+        out.border = border
+    const lnW = ln?.getAttribute("w")
+    if (lnW !== null && lnW !== undefined && lnW !== "")
+        out.borderPt = Math.round((Number(lnW) / 12700) * 100) / 100
+    const rPr = firstElement(sp, "a:rPr")
+    const sz = rPr?.getAttribute("sz")
+    if (sz !== null && sz !== undefined)
+        out.fontSize = Number(sz) / 100
+    const fontColor = colorOf(directChild(rPr, ["a:solidFill"]), colors)
+    if (fontColor !== undefined)
+        out.fontColor = fontColor
+    const face = rPr === null ? null : firstElement(rPr, "a:latin")?.getAttribute("typeface")
+    if (face !== null && face !== undefined)
+        out.fontFace = face
+    return out
+}
 
 /**
  *  Read the full deck state: slides, shapes, notes and the rev token.
@@ -453,8 +536,15 @@ export const readDeckState = async (archive: DeckArchive): Promise<DeckState> =>
                     frame: shapeFrame(node),
                     text
                 }
-                if (shape.type === "table")
+                if (node.nodeName === "p:sp")
+                    Object.assign(shape, shapeStyle(node, info.colors))
+                if (shape.type === "table") {
                     shape.table = tableCells(node)
+                    const grid = firstElement(node, "a:tblGrid")
+                    if (grid !== null)
+                        shape.colWidths = elements(grid, "a:gridCol")
+                            .map((c) => emuToInch(Number(c.getAttribute("w"))))
+                }
                 shapes.push(shape)
             }
 

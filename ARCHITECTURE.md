@@ -10,12 +10,13 @@ cli/        entry, dispatch, envelope rendering, exit-code mapping
 commands/   one module per command -- thin orchestration only
   ↓
 core/       pure domain logic: model, selectors, ops planning,
-            geometry→semantics, lint, error taxonomy
+            geometry→semantics, lint
   ↓         (no I/O, no engine types)
 engine/     OOXML adapters: reader, seed factory, automizer session,
             PptxGenJS element builders, zip post-pass
   ↓
-infra/      file system, payload resolution, hashing, version check
+infra/      file system, payload resolution, hashing, version check,
+            arg parsing, error taxonomy
 ```
 
 ## Modules
@@ -23,13 +24,11 @@ infra/      file system, payload resolution, hashing, version check
 | Module | Responsibility |
 |---|---|
 | `cli/main.ts` | dispatch, one JSON envelope on stdout, exit codes |
-| `cli/args.ts` | `util.parseArgs` wrapper with usage errors |
 | `commands/*` | per-command orchestration (5-40 lines each); `apply.ts` owns `executeOps`, the single write path also used by `new` and the sugar commands |
 | `schema/payloads.ts` | Zod: rich text, table, chart, frame, elements |
 | `schema/ops.ts` | Zod: the ~10 ops and the ops document |
 | `core/model.ts` | engine-free domain model (Frame, Layout, DeckState, ...) |
 | `core/selector.ts` | selector grammar `id:/title:/index:/$ref` + resolver |
-| `core/errors.ts` | `PptcError` with stable codes and the exit-code table |
 | `core/describe/*` | pure geometry→semantics: position bands, ASCII minimap, capacity model, Markdown narration |
 | `core/lint.ts` | capacity lint over the describe model |
 | `core/ops/registry.ts` | op contract (`plan(ctx, op)`) and the MutationPlan model |
@@ -41,6 +40,8 @@ infra/      file system, payload resolution, hashing, version check
 | `engine/text.ts` | DOM rich-text builder (`a:p`/`a:r`/`a:t`) |
 | `engine/elements.ts` | ElementSpec → PptxGenJS calls (automizer interop) |
 | `engine/post.ts` | zip post-pass: GC, notes, footer, background, placeholder images, hyperlink rels, doc props, repair-trigger cleanup (stale rels, shape ids) |
+| `infra/args.ts` | `util.parseArgs` wrapper with usage errors |
+| `infra/errors.ts` | `PptcError` with stable codes and the exit-code table |
 | `infra/fs.ts` | `@file`/stdin payloads, atomic write, cache dir, hashing |
 | `infra/version.ts` | version facts, daily cached registry check |
 

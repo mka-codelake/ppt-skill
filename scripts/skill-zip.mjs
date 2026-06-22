@@ -14,8 +14,10 @@
 **  Either flag overlays templates (.potx/.pptx + optional <name>.md
 **  sidecars) into each template-aware skill's assets/. Those templates are
 **  NEVER part of the tracked tree or a git release: the public `skill:zip`
-**  build ships only the neutral default, the internal build adds corporate
-**  templates for in-house distribution (output suffixed `-internal`).
+**  build ships only the neutral default; the internal build REPLACES that
+**  neutral default with the corporate templates (the fallback deck
+**  `neutral-template.pptx` is dropped) for in-house distribution (output
+**  suffixed `-internal`).
 */
 
 import { readdirSync, statSync, readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs"
@@ -66,10 +68,15 @@ for (const name of readdirSync(skillsDir)) {
     if (!statSync(skillPath).isDirectory())
         continue
     const zip = new JSZip()
-    for (const file of walk(skillPath))
-        zip.file(path.posix.join(name, path.relative(skillPath, file).split(path.sep).join("/")), readFileSync(file))
     /*  overlay private templates only into skills that consume templates (have assets/)  */
     const overlay = existsSync(path.join(skillPath, "assets")) ? privateFiles : []
+    for (const file of walk(skillPath)) {
+        /*  an internal build REPLACES the neutral default with the corporate
+            templates -- drop the bundled fallback deck when we overlay ours  */
+        if (overlay.length > 0 && path.basename(file) === "neutral-template.pptx")
+            continue
+        zip.file(path.posix.join(name, path.relative(skillPath, file).split(path.sep).join("/")), readFileSync(file))
+    }
     for (const file of overlay)
         zip.file(path.posix.join(name, "assets", path.basename(file)), readFileSync(file))
     const outFile = path.join(outDir, `${name}${internal ? "-internal" : ""}.zip`)

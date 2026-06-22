@@ -6,6 +6,7 @@ They are instructions to the executing agent, not output. Honor them
 exactly as defined here; this file is self-contained and independent of
 any other plugin or MCP server.
 
+
 Placeholders
 ------------
 
@@ -15,6 +16,15 @@ Placeholders
 -   `<xxx/>` *reads* the placeholder named `xxx` and expands to its
     current value.
 
+
+Objective
+---------
+
+-   `<objective>...</objective>`:
+    The skill's single overarching goal. Read it as binding intent, not
+    output. Expands to nothing.
+
+
 Flow Constructs
 ---------------
 
@@ -22,9 +32,10 @@ Flow Constructs
     A *sequential flow* of `<step>`s which MUST be executed in exactly
     the given order. Expands to its body.
 
--   `<step id="<id/>">...</step>`:
+-   `<step id="<id/>" [condition="..."]>...</step>`:
     One distinct step of a `<flow>`. Execute its body completely before
-    moving to the next step. Expands to its body.
+    moving to the next step. With a `condition`, run the step only when
+    it holds, else skip it. Expands to its body.
 
 -   `<if condition="...">...</if>`, followed optionally by
     `<elseif condition="...">...</elseif>` and/or `<else>...</else>`:
@@ -39,6 +50,7 @@ Flow Constructs
     Repeat the body as long as the condition is met. A `<break/>`
     stops the repetition early.
 
+
 Output Templates
 ----------------
 
@@ -48,6 +60,18 @@ Output Templates
     control constructs and `<xxx/>` placeholders, and removing
     trailing spaces. Do not output explanations or summaries of your
     own unless a template requests them.
+
+
+Reusable Blocks
+---------------
+
+-   `<define name="x">...</define>`:
+    Names a reusable block `x`. Expands to nothing.
+
+-   `<expand name="x"/>`:
+    Expands to the body of the matching `<define name="x">` -- use it to
+    emit a block in more than one place without repeating it.
+
 
 Step Announcement
 -----------------
@@ -62,14 +86,15 @@ the step's PHASE. There are exactly two phases, so the color tells the user
 at a glance whether you are still reading/planning or actively changing the
 deck; the step id in the banner names the exact step within the phase:
 
-| Phase                                                | Steps   | Marker |
-| ---------------------------------------------------- | ------- | ------ |
-| **Analyze** — read state, inspect, set up, plan; no deck mutation | STEP 1–5 | 🔵 |
-| **Write** — mutate the deck (`new`/`apply`) and report   | STEP 6–8 | 🟢 |
+| Phase                                                             | Steps    | Marker |
+| ----------------------------------------------------------------- | -------- | ------ |
+| **Analyze** — read state, inspect, set up, plan; no deck mutation | STEP 1–5 | 🔵     |
+| **Write** — mutate the deck (`new`/`apply`) and report            | STEP 6–8 | 🟢     |
 
 Emit the banner exactly once per step entry; when a step is skipped by an
 `<if>`/route condition, do not emit its banner. These two markers are the
 only decoration -- do not invent other status glyphs or colors.
+
 
 Progress Task List
 ------------------
@@ -95,6 +120,7 @@ the Task tools -- TaskCreate / TaskUpdate / TaskList):
 
 The task list mirrors the flow as an always-visible map; it never replaces
 the step banner or the gate selection box -- it sits beside them.
+
 
 Stage Gate
 ----------

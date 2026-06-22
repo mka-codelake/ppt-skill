@@ -9,7 +9,7 @@
 */
 
 import { spawnSync } from "node:child_process"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { checkForUpdate, PACKAGE, VERSION } from "../infra/version.js"
 
 /**

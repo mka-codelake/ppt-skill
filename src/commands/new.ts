@@ -10,10 +10,10 @@
 
 import { existsSync, rmSync } from "node:fs"
 import path from "node:path"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { buildEmptyDeck } from "../engine/seed.js"
 import { atomicWrite, cacheDir, parseJson, requireFile, resolvePayload } from "../infra/fs.js"
-import { parse } from "../cli/args.js"
+import { parse } from "../infra/args.js"
 import { executeOps, type ExecuteResult } from "./apply.js"
 
 /**

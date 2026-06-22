@@ -8,7 +8,7 @@
 */
 
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "./errors.js"
 
 /**  parsed command arguments: positionals plus typed flag accessors  */
 export interface Parsed {

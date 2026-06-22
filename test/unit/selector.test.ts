@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest"
 import { parseSelector, resolveSlide } from "../../src/core/selector.js"
-import { PptcError } from "../../src/core/errors.js"
+import { PptcError } from "../../src/infra/errors.js"
 
 const slides = [
     { id: 256, index: 0, title: "Intro" },

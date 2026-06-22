@@ -9,7 +9,7 @@
 **  silent first-match.
 */
 
-import { PptcError } from "./errors.js"
+import { PptcError } from "../infra/errors.js"
 
 /**  Parsed form of a slide selector string.  */
 export type SlideSelector =

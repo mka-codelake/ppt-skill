@@ -8,13 +8,13 @@
 **  only then executes the engine session with one atomic write.
 */
 
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { planOps } from "../core/ops/planner.js"
 import { OpsDocumentSchema, type OpsDocument } from "../schema/ops.js"
 import { DeckArchive, readDeckState, readTemplateInfo } from "../engine/reader.js"
 import { runSession } from "../engine/session.js"
 import { parseJson, requireFile, resolvePayload } from "../infra/fs.js"
-import { parse } from "../cli/args.js"
+import { parse } from "../infra/args.js"
 import type { LintWarning } from "../core/lint.js"
 
 /**  options controlling one ops execution  */

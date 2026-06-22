@@ -17,7 +17,7 @@ import { buildEmptyDeck, buildSeed } from "../../src/engine/seed.js"
 import { expectIntact } from "../util/integrity.js"
 import { DeckArchive, readDeckState, readTemplateInfo } from "../../src/engine/reader.js"
 import { executeOps } from "../../src/commands/apply.js"
-import { PptcError } from "../../src/core/errors.js"
+import { PptcError } from "../../src/infra/errors.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TEMPLATE = path.join(here, "..", "fixtures", "neutral-template.pptx")

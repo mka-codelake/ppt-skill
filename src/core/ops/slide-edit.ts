@@ -7,7 +7,7 @@
 **  slide.fill (content), slide.rm, slide.move and slide.copy (structure).
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import type { SlideFillOp, Op } from "../../schema/ops.js"
 import { registerRef, type OpHandler, type SlidePlanEntry } from "./registry.js"
 import { planFill, resolveEntry } from "./fill-common.js"

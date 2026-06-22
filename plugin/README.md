@@ -1,9 +1,13 @@
-# powerpoint -- Claude Code plugin
+# ppt -- Claude Code plugin
 
 Template-aware PowerPoint engineering for Claude Code, built on the
-bundled [pptc](../README.md) CLI.
+bundled [pptc](../README.md) CLI. The plugin ships **two skills**:
 
-## What the skill does
+- **`ppt`** -- builds and edits PPTX decks (the main skill).
+- **`ppt-prepare`** -- plans the *content* first (story, MECE arguments,
+  headline titles, a per-slide plan) and hands the approved plan to `ppt`.
+
+## What the skills do
 
 - **Deck building, outline-first**: storyline and outline are gated for
   your approval before any slide is created.
@@ -33,18 +37,17 @@ plugin is enabled, `bin/` puts a `pptc` command on the Bash tool's PATH.
 
 ## Templates
 
-The skill prefers your external `.potx`/`.pptx` (path or directory
-scan); a neutral Office-default template is bundled as fallback. When no
-template is named, the skill scans its OWN `assets/` and -- if more than
-the neutral default was bundled into this build -- offers a choice among
-its bundled templates. Template-specific knowledge (layout roles, footer
-pattern, design constraints) lives in a Markdown sidecar next to the
-template file -- see `skills/ppt/assets/neutral-template.md` for the
+The skill prefers your external `.potx`/`.pptx` (path or directory scan).
+The public build bundles a neutral Office-default template as the fallback;
+when no template is named, the skill uses the bundled template (or, if
+several are bundled, offers a choice). Template-specific knowledge (layout
+roles, footer pattern, design constraints) lives in a Markdown sidecar next
+to the template file -- see `skills/ppt/assets/neutral-template.md` for the
 pattern.
 
 Company templates can be bundled into a private, in-house build (see the
-CLI repo's `skill:zip:internal`); they are never part of the public
-release.
+CLI repo's `skill:zip:internal`), which **replaces** the neutral default
+with your corporate templates -- they are never part of the public release.
 
 ## Layout
 
@@ -53,9 +56,13 @@ plugin/
   .claude-plugin/plugin.json   manifest
   bin/pptc                     PATH wrapper
   skills/ppt/
-    SKILL.md                   the skill definition
+    SKILL.md                   the build skill (imports meta/control.md)
     meta/control.md            control-tag definitions
     references/                content rules, prompt formula, styles
     scripts/pptc.mjs           bundled pptc build (+ VERSION)
     assets/                    neutral fallback template + sidecar
+  skills/ppt-prepare/
+    SKILL.md                   the content-planning skill (imports meta/control.md)
+    meta/control.md            control-tag definitions
+    references/                methodology + storyline patterns
 ```

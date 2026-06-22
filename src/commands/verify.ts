@@ -9,10 +9,10 @@
 **  it opens cleanly -- on any machine, without PowerPoint.
 */
 
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { verifyFile } from "../engine/verify.js"
 import { requireFile } from "../infra/fs.js"
-import { parse } from "../cli/args.js"
+import { parse } from "../infra/args.js"
 
 /**
  *  CLI command `pptc verify <deck> [--strict]`.

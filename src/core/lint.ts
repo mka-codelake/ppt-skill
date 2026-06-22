@@ -40,10 +40,8 @@ export interface Obstacle {
     frame: Frame
 }
 
-/**  intersection area of two frames, 0 when disjoint or heights unknown  */
+/**  intersection area of two frames, 0 when disjoint  */
 const intersectionArea = (a: Frame, b: Frame): number => {
-    if (a.w === undefined || a.h === undefined || b.w === undefined || b.h === undefined)
-        return 0
     const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
     const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
     return w > 0 && h > 0 ? w * h : 0

@@ -14,10 +14,10 @@ import JSZip from "jszip"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import path from "node:path"
 import type { Element } from "@xmldom/xmldom"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { seedPlaceholderName } from "../core/model.js"
 import { cacheDir, contentHash } from "../infra/fs.js"
-import { cleanContentTypes } from "./post.js"
+import { cleanContentTypes } from "./parts.js"
 import { NS_A, elements, firstElement, parseXml, serializeElement } from "./xml.js"
 
 /**  seed format generation: bump to invalidate all cached seeds  */
@@ -68,11 +68,14 @@ const slideFromLayout = (layoutXml: string): string => {
         + "</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
 }
 
+/**  matches a presentation-rels slide relationship element  */
+const SLIDE_REL_RE = /<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g
+
 /**  strip every slide relationship, slide content-type override and slide part from a deck zip  */
 const stripSlides = (
     presRels: string, ct: string
 ): { presRels: string, ct: string } => ({
-    presRels: presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, ""),
+    presRels: presRels.replace(SLIDE_REL_RE, ""),
     ct: ct.replace(/<Override PartName="\/ppt\/slides\/[^"]*"[^>]*\/>/g, "")
 })
 
@@ -141,7 +144,7 @@ export const buildSeed = async (templateBytes: Buffer): Promise<{ bytes: Buffer,
         if (el !== null && pres.indexOf(el[0]) > pres.indexOf("<p:sldIdLst"))
             pres = pres.replace(el[0], "").replace(/<p:sldIdLst/, `${el[0]}<p:sldIdLst`)
     }
-    presRels = presRels.replace(/<Relationship [^>]*Type="[^"]*\/slide"[^>]*\/>/g, "")
+    presRels = presRels.replace(SLIDE_REL_RE, "")
     for (const f of Object.keys(zip.files))
         if (/^ppt\/(slides|notesSlides)\//.test(f))
             zip.remove(f)

@@ -18,7 +18,7 @@ import { buildEmptyDeck } from "../../src/engine/seed.js"
 import { DeckArchive, readDeckState } from "../../src/engine/reader.js"
 import { expectIntact } from "../util/integrity.js"
 import { executeOps, type ExecuteOptions } from "../../src/commands/apply.js"
-import { PptcError } from "../../src/core/errors.js"
+import { PptcError } from "../../src/infra/errors.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TEMPLATE = path.join(here, "..", "fixtures", "neutral-template.pptx")
@@ -308,6 +308,38 @@ describe("write-path features", () => {
                 refs.set(m[1] as string, (refs.get(m[1] as string) ?? 0) + 1)
         }
         expect(Math.max(...refs.values())).toBe(1)
+        await expectIntact(deck)
+    })
+
+    it("state exposes table geometry/cells and autoshape styling for round-trip edits", async () => {
+        const deck = path.join(TMP, "introspect.pptx")
+        writeFileSync(deck, await buildEmptyDeck(TEMPLATE))
+        await executeOps(deck, { ops: [
+            { op: "slide.add", layout: "CONTENT", ref: "s", placeholders: { title: { text: "Introspect" } } },
+            { op: "el.add", slide: "$s", elements: [
+                { type: "table", name: "T", frame: { x: 1, y: 1.5, w: 8, h: 1.2 },
+                    data: { headers: ["Tag", "What"], rows: [["<flow>", "a flow"], ["<gate/>", "a gate"]] } },
+                { type: "shape", name: "Box", shape: "roundRect", text: "Hi",
+                    frame: { x: 1, y: 3.5, w: 2.5, h: 1 },
+                    fill: "A01441", border: "139EAD", borderPt: 2, fontColor: "FFFFFF", fontSize: 14 }
+            ] }
+        ] }, opts)
+
+        const deckState = await readDeckState(await DeckArchive.open(deck))
+        const shapes = deckState.slides[0]?.shapes ?? []
+        const table = shapes.find((s) => s.type === "table")
+        expect(table?.frame).not.toBeNull()
+        expect(table?.frame?.w).toBeCloseTo(8, 1)
+        expect(table?.table).toEqual([["Tag", "What"], ["<flow>", "a flow"], ["<gate/>", "a gate"]])
+        expect(table?.colWidths?.length).toBe(2)
+
+        const box = shapes.find((s) => s.name.startsWith("Box"))
+        expect(box?.shape).toBe("roundRect")
+        expect(box?.fill).toBe("A01441")
+        expect(box?.border).toBe("139EAD")
+        expect(box?.borderPt).toBeCloseTo(2, 1)
+        expect(box?.fontColor).toBe("FFFFFF")
+        expect(box?.fontSize).toBeCloseTo(14, 1)
         await expectIntact(deck)
     })
 })

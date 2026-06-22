@@ -9,7 +9,7 @@
 **  img.prompts.
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import { resolveSlide } from "../selector.js"
 import { lintPlaceholderText, richTextToPlain } from "../lint.js"
 import { seedPlaceholderName, type Layout, type Placeholder } from "../model.js"

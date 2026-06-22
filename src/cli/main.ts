@@ -9,7 +9,7 @@
 */
 
 import { helpFor } from "./help.js"
-import { PptcError, toPptcError } from "../core/errors.js"
+import { PptcError, toPptcError } from "../infra/errors.js"
 import { checkForUpdate, VERSION } from "../infra/version.js"
 import { cmdApply } from "../commands/apply.js"
 import { cmdNew } from "../commands/new.js"

@@ -1,5 +1,114 @@
 # Changelog
 
+## 0.9.0 (plugin 0.9.0)
+
+Quality milestone: engine and plugin versions realigned to **0.9.0**. Rolls up
+all the work previously tracked here as 0.2.16.
+
+
+- Skill `ppt`: **show the full style catalog at the STEP 3 style gate.** The
+  catalog has 10 image + 8 info-graphic styles, but a selection box lists only
+  4 -- the skill now presents EVERY style (with its "Best for" note) as a
+  readable message first, then takes the pick via the box ("Other" free-text)
+  or free text, instead of silently offering a curated few.
+- Skill `ppt`: brought the command reference **up to date with the pptc surface** --
+  added `tpl validate` (STEP 2 now validates the chosen template before building,
+  exit 7 on a fail-grade issue) and noted that `state --level full` returns table
+  geometry/cells/colWidths and autoshape preset/fill/border/font, so existing
+  tables and native diagrams can be recreated/edited round-trip without raw XML.
+- Packaging: the **internal skill build now REPLACES the neutral default
+  template** instead of bundling it alongside. `skill:zip:internal` (and
+  `--from`) drops `assets/neutral-template.pptx` when it overlays corporate
+  templates, so an in-house package ships **only** your templates (no generic
+  Office fallback to pick by accident); the public `skill:zip` still ships the
+  neutral default. `ppt` STEP 2 template selection is now count-based (one →
+  use it; several → menu), no longer assuming a neutral default is present.
+- Skills `ppt` + `ppt-prepare`: **self-study / teaching decks skip speaker
+  notes** -- a deck read without a presenter must be self-contained, so the
+  explaining text lives ON the slide (Phase 6), not in a notes pane no reader
+  opens. `ppt-prepare` PHASE 7 omits the per-slide notes line for the teaching
+  genre; `ppt` writes no `notes` for a self-study deck.
+- Skill `ppt-prepare`: **teaching / explanatory deck genre** added to the
+  methodology (the original was decision-deck-centric). Genre is *derived from
+  the presentation type* (a "teaching" type → explanatory deck), NOT a new
+  question or phase. The methodology now flags, per phase, where teaching
+  diverges: a **learning objective** instead of a decision asked for (CTA
+  optional), a **worked-example spine** with rising-complexity staging as an
+  alternative to pure SCR, and **preempting known confusions** (disambiguation
+  slide / clarification callout) beside the jargon test.
+- Skills `ppt` + `ppt-prepare`: **two content capabilities the engine already
+  had but the skills never offered** (gap found against the original m4a
+  methodology). (1) **Charts** are now a first-class content type -- quantitative
+  data (trends, magnitudes, parts of a whole) plans/builds as a native, data-bound
+  `el.add` chart instead of a hand-drawn SVG; added to the `ppt-prepare` layout
+  vocabulary and methodology, and to `ppt`'s STEP 6 build rules. (2) **Inserting a
+  user-provided image** -- `ppt` STEP 7 now has an explicit branch to place an image
+  the user supplies (`slide.fill image` / `el.add image`) instead of only writing a
+  generation prompt; the "no image generation" non-goal now clarifies insertion is
+  allowed.
+- **Toolchain bumped to current majors** (dev-only -- no runtime change): TypeScript
+  6.0, ESLint 10.5 (now needs `@eslint/js` as an explicit devDependency), `@types/node`
+  26, plus vitest 4.1.9 and typescript-eslint 8.61.1 patches. Lint, type-check, build and
+  all 73 tests pass. The runtime dependencies (`pptx-automizer`, `pptxgenjs`,
+  `@xmldom/xmldom`, `jszip`, `zod`) were already on their latest published versions.
+- **`state --level full` introspection** (read-plane completeness): the shape
+  model now exposes what was previously only reachable by unzipping the OOXML.
+  Tables report their **`frame`** (the graphicFrame's `p:xfrm`, previously
+  `null`) and **`colWidths`** alongside the existing cell matrix; autoshapes
+  report **`shape`** (preset geometry), **`fill`**, **`border`**, **`borderPt`**,
+  **`fontSize`**, **`fontColor`** and **`fontFace`** (theme colors resolved) --
+  the read mirror of el.add's write vocabulary. This lets an agent re-create or
+  modify a styled table/diagram from `state` alone, without reading raw XML.
+- Engine **architecture**: moved the two leaf modules `cli/args.ts` and
+  `core/errors.ts` into the `infra` foundation (`infra/args.ts`,
+  `infra/errors.ts`). This removes the real `cli` ⇄ `commands` package cycle
+  (commands no longer import *up* into `cli` for the arg parser) and the
+  `infra` → `core` upward dependency (the error taxonomy now lives in the
+  foundation everyone imports *downward*), so the code finally matches the
+  strictly-downward layer model documented in `ARCHITECTURE.md`. Pure internal
+  relocation -- no CLI, exit-code or ops-schema change. Also tabled the missing
+  exit code **8 (`E_INTEGRITY`)** in the README.
+- Skills `ppt` + `ppt-prepare`: both `SKILL.md` now **import** their
+  `meta/control.md` eagerly via `@${CLAUDE_SKILL_DIR}/meta/control.md` (the
+  control-tag conventions were previously only referenced in prose, so they
+  could be skipped). README and `plugin/README.md` updated to document **both**
+  shipped skills (the plugin was renamed `powerpoint` -> `ppt`, and
+  `ppt-prepare` is now shipped, not "future").
+- Skills `ppt` + `ppt-prepare`: **control-tag cleanup** so each `meta/control.md`
+  is genuinely self-contained (as it claims). Defined the previously
+  undocumented `<objective>` tag; added the optional `<step condition="...">`
+  attribute (the task-list prose already assumed skippable steps); and added
+  `<define>`/`<expand>` for reusable blocks so `<template>` is now **output
+  only**. The two `SKILL.md` no longer overload the self-closing `<template/>`
+  as a back-reference -- repeated formats use `<define>`/`<expand>`, one-shot
+  output stays an inline `<template>`.
+- Skill `ppt`: **header cleanup + alignment** with `ppt-prepare` -- the
+  copyright moved out of the YAML front-matter into an HTML comment, and the
+  front-matter now sets `user-invocable`, `disable-model-invocation`,
+  `model: opus` and `effort: high` (a gated/looped skill needs high effort or
+  gates get skipped).
+- Skills `ppt` + `ppt-prepare`: **prose trimmed for fewer prompt tokens**
+  without behavior change -- removed text that the now-imported
+  `meta/control.md` already defines, collapsed the repeated
+  `node .../pptc.mjs` prefix in the command reference into a single lead-in,
+  and tightened verbose rules. No instruction, gate, quality criterion or
+  image-prompt rule was dropped.
+- Skill `ppt-prepare`: **split the final phase** -- PHASE 7 is now "Speaker
+  Notes & Q&A" (produce notes, Q&A and assemble the plan), and the hand-off
+  is its own **PHASE 8: Handoff** with a delivery selection box: *Save &
+  finish* (the `<deck>-plan.md` is the deliverable) vs. *Save & hand off to
+  `ppt`* (also seed the deck sidecar and point the user to the build). Eight
+  phases total; the phase-marker table covers PHASE 4–8.
+- Skill `ppt-prepare`: new ground rule **"never guess content -- research,
+  then ask"**: on an unclear fact or content gap, do not invent it; where web
+  research helps, research first and present the findings as the selection-box
+  options, never a silent guess.
+- Skills `ppt` + `ppt-prepare`: the reference-files rule now just points at the
+  `references/` directory and states the **lazy-load** convention (each step's
+  `Read …` line pulls in only what it needs) instead of cataloguing every file
+  -- the per-step `Read` lines are the single source. The `ppt` style-catalog
+  re-read moved from the catalogue into STEP 7 so nothing was lost.
+
 ## 0.2.15 (plugin 0.2.20)
 
 - New command **`pptc verify <deck> [--strict]`**: checks a finished deck

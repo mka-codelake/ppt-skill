@@ -64,6 +64,10 @@ titles, capacity-checked text, speaker notes, footer rules) and
 color-faithful image prompts written onto picture placeholders --
 overlay-aware, so covered regions become negative space.
 
+A companion skill, **`ppt-prepare`**, plans the *content* first (story,
+MECE arguments, headline titles, a per-slide plan) and hands the approved
+plan to `ppt`.
+
 ```
 /plugin marketplace add Brusdeylins/ppt-skill
 /plugin install ppt@ppt-skill
@@ -80,18 +84,26 @@ or build an in-house package that bundles your company templates (see
 (language, image style, ...) persist in a `<deck>.md` sidecar next to the
 deck.
 
-The skill definition lives in
-[`plugin/skills/ppt/SKILL.md`](plugin/skills/ppt/SKILL.md).
+The skill definitions live in
+[`plugin/skills/ppt/SKILL.md`](plugin/skills/ppt/SKILL.md) and
+[`plugin/skills/ppt-prepare/SKILL.md`](plugin/skills/ppt-prepare/SKILL.md);
+each imports its own `meta/control.md`.
 
 ### Use it on claude.ai (web -- no build, no Node setup)
 
 Not a developer? Each skill is published as a ready-to-upload ZIP on the
-[Releases page](https://github.com/Brusdeylins/ppt-skill/releases):
-download `ppt.zip` from the latest release, then in claude.ai open
-**Settings -> Customize -> Skills -> "+"** and upload it. That is the
-whole install -- no clone, no `npm`. The bundled pptc is self-contained
-and runs on the claude.ai Node runtime. (claude.ai uploads one skill per
-ZIP; a future second skill ships as its own `ppt-prepare.zip`.)
+[Releases page](https://github.com/Brusdeylins/ppt-skill/releases). Steps:
+
+1. **Enable code execution** (skills require it, otherwise they appear
+   greyed out): **Settings → Capabilities → "Code execution and file
+   creation"**. On Team/Enterprise plans the org owner enables it under
+   **Organization settings → Skills**.
+2. Download `ppt.zip` and `ppt-prepare.zip` from the latest release.
+3. Open the **sidebar → Customize → Skills → Create skill → Upload skill**
+   and upload each ZIP -- one skill per ZIP, so upload **both** separately.
+
+That is the whole install -- no clone, no `npm`. The bundled pptc is
+self-contained and runs on the claude.ai code-execution runtime.
 
 ## Quick Start
 
@@ -214,7 +226,10 @@ The deck read model and the **`rev` token** for optimistic locking.
 
 - `--level summary` -- ids, indices, titles, layout indices only
 - `--level text` (default) -- plus all placeholder texts and notes
-- `--level full` -- plus every shape (type, name, text, table contents)
+- `--level full` -- plus every shape with geometry and styling: type,
+  name, `frame`, text, table cells + column widths, and autoshape
+  preset/fill/border/font -- enough to recreate or edit a styled table or
+  diagram without touching the raw XML
 - `--slide SEL` -- restrict to one slide
 
 Read-before-write protocol: take `rev` from here and pass it to
@@ -407,6 +422,7 @@ Exactly one JSON document on stdout; logs (if any) on stderr.
 | 5 | engine | `E_ENGINE` |
 | 6 | revision conflict | `E_REV_CONFLICT` |
 | 7 | lint under `--strict` | `E_LINT` |
+| 8 | integrity (self-verify / `verify --strict`) | `E_INTEGRITY` |
 
 ## Architecture in a Nutshell
 
@@ -476,7 +492,7 @@ npm install        # dependencies
 npm test           # build + vitest (unit, golden, integration, contract)
 npm run lint       # eslint (incl. TSDoc) + tsc --noEmit
 npm run build      # esbuild bundle -> dst/pptc.mjs
-npm run plugin:sync # rebuild + copy the bundle into the plugin (bin/VERSION)
+npm run plugin:sync # rebuild + copy the bundle into the plugin (scripts/VERSION)
 npm run skill:zip  # package each skill as deploy/<skill>.zip (claude.ai upload)
 ```
 
@@ -489,25 +505,28 @@ in-house builds with your own company templates) and released.
 
 Each skill is packaged as a self-contained ZIP with the skill folder at
 the ZIP root (e.g. `ppt/SKILL.md`), written to `deploy/` (a git-ignored
-build artifact). The ZIP is uploaded at claude.ai → Settings → Customize
-→ Skills. Every variant runs `plugin:sync` first, so the bundled pptc is
-always fresh.
+build artifact). The ZIP is uploaded in claude.ai via the sidebar →
+Customize → Skills → Create skill → Upload skill (code execution must be
+enabled under Settings → Capabilities). Every variant runs `plugin:sync`
+first, so the bundled pptc is always fresh.
 
 ```
 npm run skill:zip               # PUBLIC: bundles only the neutral default
                                 #   template  ->  deploy/ppt.zip
-npm run skill:zip:internal      # IN-HOUSE: also bundles every template in
-                                #   ./private-templates  ->  deploy/ppt-internal.zip
-npm run skill:zip -- --from DIR # IN-HOUSE: bundles every template in DIR instead
+npm run skill:zip:internal      # IN-HOUSE: REPLACES the neutral default with
+                                #   every template in ./private-templates  ->  deploy/ppt-internal.zip
+npm run skill:zip -- --from DIR # IN-HOUSE: same, but from DIR instead
                                 #   (no need to pre-stage files)  ->  deploy/ppt-internal.zip
 ```
 
 - **Public build** ships only `assets/neutral-template.pptx` -- this is
   the ZIP attached to GitHub releases for non-developers.
 - **Internal build** overlays your own `.potx`/`.pptx` (plus optional
-  `<name>.md` sidecars) into the skill's `assets/`. When no template is
-  named the skill then offers them as choices (the neutral default stays
-  available). Sources come from `private-templates/` (git-ignored) or any
+  `<name>.md` sidecars) into the skill's `assets/` and **drops the neutral
+  default** (`neutral-template.pptx`) -- the in-house package ships ONLY your
+  templates, so no one picks the generic Office look by accident. When no
+  template is named the skill uses your template (or, with several, offers a
+  choice). Sources come from `private-templates/` (git-ignored) or any
   `--from <dir>`.
 - **Company templates never touch git.** They live only inside the
   internal ZIP; `private-templates/` and `deploy/` are both git-ignored,

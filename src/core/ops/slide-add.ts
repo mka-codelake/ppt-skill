@@ -7,7 +7,7 @@
 **  optionally filling it in the same op.
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import type { SlideAddOp } from "../../schema/ops.js"
 import { newPlanEntry, registerRef, type OpHandler, type PlanContext } from "./registry.js"
 import { planFill } from "./fill-common.js"

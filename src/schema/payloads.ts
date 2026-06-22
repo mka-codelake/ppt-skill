@@ -57,7 +57,7 @@ export const ParagraphSchema = z.object({
 /**  Rich text content: a single plain string or a list of paragraphs.  */
 export const RichTextSchema = z.union([z.string(), z.array(ParagraphSchema).min(1)])
 
-/**  Table payload: headers, rows, optional styling and cell merges.  */
+/**  Table payload: headers, rows and optional styling.  */
 export const TableSchema = z.object({
     headers: z.array(z.string()).optional(),
     rows: z.array(z.array(z.union([z.string(), z.number(), z.boolean()]))).min(1),
@@ -71,13 +71,7 @@ export const TableSchema = z.object({
         headerHeight: z.number().positive().optional(),
         /**  fixed body-row height in inches (uniform rows)  */
         rowHeight: z.number().positive().optional()
-    }).strict().optional(),
-    merge: z.array(z.object({
-        row: z.number().int().min(0),
-        col: z.number().int().min(0),
-        row2: z.number().int().min(0),
-        col2: z.number().int().min(0)
-    }).strict()).optional()
+    }).strict().optional()
 }).strict()
 
 /**  Chart types supported by the chart element (PptxGenJS naming).  */

@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from "
 import { tmpdir } from "node:os"
 import { createHash } from "node:crypto"
 import path from "node:path"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "./errors.js"
 
 /**
  *  Resolve a payload argument to its raw string content.

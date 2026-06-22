@@ -158,11 +158,15 @@ Mayer.)
 Speaker notes
 -------------
 
--   Every content slide gets notes via the `notes` field: 40-70 words
-    covering the core message, key numbers, and the transition to the
-    next slide.
+-   **Presented decks:** every content slide gets notes via the `notes`
+    field: 40-70 words covering the core message, key numbers, and the
+    transition to the next slide.
+-   **Self-study / teaching decks SKIP notes** -- the slide is read without
+    a presenter, so it must be self-contained; the explaining text belongs
+    ON the slide, not in a notes pane no one opens.
 -   Slides with charts/images additionally get 1-2 sentences
-    describing the visual (doubles as accessibility text).
+    describing the visual (doubles as accessibility text) -- on a self-study
+    deck this description is on the slide, not in notes.
 
 Structural slides
 -----------------

@@ -10,11 +10,11 @@
 
 import { readdirSync, existsSync, readFileSync } from "node:fs"
 import path from "node:path"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { narrateTemplate } from "../core/describe/narrate.js"
 import type { Layout, TemplateInfo } from "../core/model.js"
 import { DeckArchive, readTemplateInfo } from "../engine/reader.js"
-import { parse } from "../cli/args.js"
+import { parse } from "../infra/args.js"
 
 /**  load template info plus the optional human-curated sidecar markdown  */
 const loadTemplate = async (file: string): Promise<{ info: TemplateInfo, sidecar: string | null }> => {

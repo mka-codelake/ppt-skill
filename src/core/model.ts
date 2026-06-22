@@ -42,7 +42,7 @@ export interface Placeholder {
     /**  fraction (0..1) of this PICTURE placeholder's area covered by the
          overlapping text shapes (union, overlap-safe). High coverage
          (about 0.65 or more) marks a true BACKGROUND image: the prompt carries
-         no text and keep one even tone so the overlay text stays legible.
+         no text and keeps one even tone so the overlay text stays legible.
          Undefined for non-picture placeholders or when nothing overlaps.  */
     coverage?: number
 }
@@ -109,6 +109,29 @@ export interface ShapeInfo {
     text: string | null
     /**  table cell texts (rows x cols) when the shape is a table  */
     table?: string[][]
+    /**  column widths in inches for a table shape (read-only insight: el.add
+         tables auto-distribute columns, this cannot be passed back)  */
+    colWidths?: number[]
+    /**  preset autoshape geometry (rect, roundRect, diamond, ...) when the
+         shape carries an `a:prstGeom`; pass back as el.add `shape` to recreate  */
+    shape?: string
+    /**  solid fill color RRGGBB (theme colors resolved) when present; mirrors
+         el.add `fill`  */
+    fill?: string
+    /**  outline color RRGGBB (theme colors resolved) when present; mirrors
+         el.add `border`  */
+    border?: string
+    /**  outline width in points when present; mirrors el.add `borderPt`  */
+    borderPt?: number
+    /**  font size in points of the first text run when present; mirrors
+         el.add `fontSize`  */
+    fontSize?: number
+    /**  font color RRGGBB of the first text run when present; mirrors
+         el.add `fontColor`  */
+    fontColor?: string
+    /**  typeface of the first text run when present; pass it as the `font` of
+         a slide.fill / el run to preserve it (e.g. a monospace code block)  */
+    fontFace?: string
 }
 
 /**  One slide of an existing deck (read model).  */

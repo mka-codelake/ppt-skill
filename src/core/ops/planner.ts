@@ -9,7 +9,7 @@
 **  deck is written. Failures here leave the deck untouched by construction.
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import type { Op, OpsDocument } from "../../schema/ops.js"
 import type { DeckState, Layout, TemplateInfo } from "../model.js"
 import { newPlanEntry, type MutationPlan, type OpHandler, type PlanContext, type SlidePlanEntry } from "./registry.js"

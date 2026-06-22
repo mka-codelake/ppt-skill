@@ -14,9 +14,10 @@ import JSZip from "jszip"
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import type { Document, Element } from "@xmldom/xmldom"
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import { inchToEmu, type Frame } from "../core/model.js"
 import { HLINK_ATTR } from "./text.js"
+import { partText, cleanContentTypes } from "./parts.js"
 import { NS_A, NS_P, NS_R, NS_REL, elements, firstElement, parseXml, serializeXml } from "./xml.js"
 
 /**  per-output-slide work items, in final slide order  */
@@ -35,14 +36,6 @@ export interface PostSlideWork {
 interface Post {
     zip: JSZip
     rid: number
-}
-
-/**  read an archive part as string (must exist)  */
-const partText = async (zip: JSZip, part: string): Promise<string> => {
-    const f = zip.file(part)
-    if (f === null)
-        throw new PptcError("E_ENGINE", `output archive is missing part ${part}`)
-    return await f.async("string")
 }
 
 /**  slide part paths referenced from the presentation, in sldIdLst order  */
@@ -126,24 +119,6 @@ const gcParts = async (zip: JSZip, kept: string[]): Promise<void> => {
     }
     if (pruned)
         zip.file(presRelsPart, serializeXml(presRels))
-}
-
-/**  drop content-type overrides that are duplicates or whose part vanished  */
-export const cleanContentTypes = async (zip: JSZip): Promise<void> => {
-    const ct = parseXml(await partText(zip, "[Content_Types].xml"))
-    const seen = new Set<string>()
-    let changed = false
-    for (const o of elements(ct, "Override")) {
-        const part = (o.getAttribute("PartName") ?? "").replace(/^\//, "")
-        if (zip.file(part) === null || seen.has(part)) {
-            o.parentNode?.removeChild(o)
-            changed = true
-        }
-        else
-            seen.add(part)
-    }
-    if (changed)
-        zip.file("[Content_Types].xml", serializeXml(ct))
 }
 
 /**  drop section slide references whose sldId vanished (user-created
@@ -396,12 +371,20 @@ const fillPicturePlaceholder = (
     return true
 }
 
+/**  ensure a notesSlide content-type override exists for a part  */
+const ensureNotesOverride = async (zip: JSZip, notesPart: string): Promise<void> => {
+    const ct = await partText(zip, "[Content_Types].xml")
+    if (!ct.includes(notesPart))
+        zip.file("[Content_Types].xml", ct.replace("</Types>",
+            `<Override PartName="/${notesPart}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`))
+}
+
 /**  write speaker notes: create or replace the slide's notesSlide part  */
 const setNotes = async (post: Post, slidePart: string, slideRels: Document, text: string): Promise<void> => {
     const base = path.posix.basename(slidePart, ".xml")
     const notesPart = `ppt/notesSlides/notesSlide-pptc-${base}.xml`
     const escaped = text.split("\n").map((line) =>
-        `<a:p><a:r><a:t>${line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</a:t></a:r></a:p>`).join("")
+        `<a:p><a:r><a:t>${xmlEscape(line)}</a:t></a:r></a:p>`).join("")
     post.zip.file(notesPart,
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         + "<p:notes xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\""
@@ -420,10 +403,7 @@ const setNotes = async (post: Post, slidePart: string, slideRels: Document, text
         + "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster\" Target=\"../notesMasters/notesMaster1.xml\"/>"
         + `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="../slides/${path.posix.basename(slidePart)}"/>`
         + "</Relationships>")
-    const ct = await partText(post.zip, "[Content_Types].xml")
-    if (!ct.includes(notesPart))
-        post.zip.file("[Content_Types].xml", ct.replace("</Types>",
-            `<Override PartName="/${notesPart}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`))
+    await ensureNotesOverride(post.zip, notesPart)
     /*  drop an existing notes rel, then point the slide at the new part  */
     for (const rel of elements(slideRels, "Relationship"))
         if ((rel.getAttribute("Type") ?? "").endsWith("/notesSlide"))
@@ -496,10 +476,7 @@ const dedupeSharedNotes = async (zip: JSZip, slides: string[]): Promise<void> =>
                 if ((r.getAttribute("Type") ?? "").endsWith("/notesSlide"))
                     r.setAttribute("Target", `../notesSlides/${path.posix.basename(clone)}`)
             zip.file(slideRelsPart, serializeXml(slideRels))
-            const ct = await partText(zip, "[Content_Types].xml")
-            if (!ct.includes(clone))
-                zip.file("[Content_Types].xml", ct.replace("</Types>",
-                    `<Override PartName="/${clone}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`))
+            await ensureNotesOverride(zip, clone)
         }
     }
 }

@@ -8,7 +8,7 @@
 **  plus img.prompts (prompt-box overlays on picture placeholders).
 */
 
-import { PptcError } from "../errors.js"
+import { PptcError } from "../../infra/errors.js"
 import type { Op } from "../../schema/ops.js"
 import type { ElementSpec } from "../../schema/payloads.js"
 import type { Frame, ShapeInfo } from "../model.js"

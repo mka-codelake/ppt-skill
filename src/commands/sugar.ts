@@ -9,10 +9,10 @@
 **  implementation behind these shortcuts.
 */
 
-import { PptcError } from "../core/errors.js"
+import { PptcError } from "../infra/errors.js"
 import type { Op } from "../schema/ops.js"
 import { DeckArchive, readDeckState } from "../engine/reader.js"
-import { parse, type Parsed } from "../cli/args.js"
+import { parse, type Parsed } from "../infra/args.js"
 import { executeOps, type ExecuteResult } from "./apply.js"
 
 /**  shared flags of all sugar commands  */
