@@ -13,6 +13,11 @@ import type { Layout, TemplateInfo } from "../model.js"
 import { describePosition, nearestAspect } from "./position.js"
 import { renderMinimap } from "./minimap.js"
 
+/**  coverage at or above which a picture placeholder is a true BACKGROUND
+     image (overlay text covers most of it): the prompt then carries no
+     text and keeps one even tone so the text on top stays legible  */
+const BACKGROUND_COVERAGE = 0.65
+
 /**
  *  Derive a suitability hint for a layout from its placeholder structure.
  *
@@ -76,6 +81,10 @@ export const narrateLayout = (layout: Layout, info: TemplateInfo): string => {
             parts.push("overlaid by "
                 + ph.overlays.map((o) => `${o.name} (${o.region})`).join(", ")
                 + " -- keep these regions calm in images")
+        if (ph.coverage !== undefined)
+            parts.push(ph.coverage >= BACKGROUND_COVERAGE
+                ? `~${Math.round(ph.coverage * 100)}% text-covered -- background image: carry NO text and keep one even tone (light text on a dark image, dark text on a light image)`
+                : `~${Math.round(ph.coverage * 100)}% text-covered`)
         lines.push(parts.join(" — "))
     }
     return lines.join("\n")
@@ -102,6 +111,13 @@ export const narrateTemplate = (info: TemplateInfo, source: string, sidecar: str
     head.push("")
     head.push(`Layouts: ${info.layouts.length} -- addressable in \`slide.add\` by index or name.`)
     head.push("Placeholders are filled in `slide.fill` via their `idx` number.")
+    if (info.contentArea !== undefined) {
+        const c = info.contentArea
+        head.push(`Content area (guide-aligned): x ${c.x}" y ${c.y}" w ${c.w.toFixed(2)}" h ${c.h.toFixed(2)}"`
+            + " -- place `el.add` tables/textboxes/diagrams inside this box on title-only layouts.")
+    }
+    if (info.guides !== undefined)
+        head.push(`Guides (in): horizontal [${info.guides.horizontal.join(", ")}], vertical [${info.guides.vertical.join(", ")}].`)
     if (sidecar !== null) {
         head.push("")
         head.push("## Notes from the template documentation")

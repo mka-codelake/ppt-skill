@@ -145,14 +145,29 @@ export const addElement = (slide: GenSlide, gen: GenRoot, el: ElementSpec): void
                 ...(el.border !== undefined && { line: { color: el.border, width: el.borderPt ?? 1 } })
             })
             break
-        case "table":
-            slide.addTable(genTableRows(el.data), {
+        case "table": {
+            const st = el.data.style
+            const opts: Record<string, unknown> = {
                 ...frame,
-                border: { type: "solid", color: el.data.style?.border ?? "ACACAC", pt: 0.5 },
-                ...(el.data.style?.fontSize !== undefined && { fontSize: el.data.style.fontSize }),
+                border: { type: "solid", color: st?.border ?? "ACACAC", pt: 0.5 },
                 valign: "middle"
-            })
+            }
+            if (st?.fontSize !== undefined)
+                opts.fontSize = st.fontSize
+            /*  fixed header/row heights -> uniform tables across the deck  */
+            if (st?.headerHeight !== undefined || st?.rowHeight !== undefined) {
+                const hh = st.headerHeight ?? st.rowHeight
+                const rh = st.rowHeight ?? st.headerHeight
+                const heights: number[] = []
+                if (el.data.headers !== undefined)
+                    heights.push(hh as number)
+                for (let i = 0; i < el.data.rows.length; i++)
+                    heights.push(rh as number)
+                opts.rowH = heights
+            }
+            slide.addTable(genTableRows(el.data), opts)
             break
+        }
         case "chart": {
             const { type, extra } = chartType(gen, el.data.type)
             const isXY = el.data.type === "scatter" || el.data.type === "bubble"

@@ -242,4 +242,72 @@ describe("write-path features", () => {
         await expectIntact(DECK)
         await expectIntact(path.join(TMP, "variant-out.pptx"))
     })
+
+    it("does not accumulate dangling slide relationships across many applies", async () => {
+        const deck = path.join(TMP, "churn.pptx")
+        writeFileSync(deck, await buildEmptyDeck(TEMPLATE))
+        await executeOps(deck, { ops: [
+            { op: "slide.add", layout: "CONTENT", placeholders: { title: { text: "A" } } },
+            { op: "slide.add", layout: "CONTENT", placeholders: { title: { text: "B" } } }
+        ] }, opts)
+        /*  automizer re-imports every slide on each apply and mints a fresh
+            "-created" rel; without the prune the rels file would grow by one
+            per slide per apply until PowerPoint demands a repair  */
+        for (let i = 0; i < 6; i++)
+            await executeOps(deck, { ops: [
+                { op: "meta.props", set: { title: `pass ${i}` } }
+            ] }, opts)
+        /*  grow the deck on a later apply: docProps/app.xml must follow,
+            or PowerPoint demands a repair over the stale slide count  */
+        await executeOps(deck, { ops: [
+            { op: "slide.add", layout: "CONTENT", placeholders: { title: { text: "C" } } }
+        ] }, opts)
+        const zip = await JSZip.loadAsync(readFileSync(deck))
+        const pres = await (zip.file("ppt/presentation.xml") as JSZip.JSZipObject).async("string")
+        const rels = await (zip.file("ppt/_rels/presentation.xml.rels") as JSZip.JSZipObject).async("string")
+        const app = await (zip.file("docProps/app.xml") as JSZip.JSZipObject).async("string")
+        const slideCount = [...pres.matchAll(/<p:sldId /g)].length
+        const slideRels = [...rels.matchAll(/Type="[^"]*\/slide"/g)].length
+        expect(slideRels).toBe(slideCount)
+        expect(/<Slides>(\d+)<\/Slides>/.exec(app)?.[1]).toBe(String(slideCount))
+        await expectIntact(deck)
+    })
+
+    it("repairs two slides that share one notesSlide", async () => {
+        const deck = path.join(TMP, "sharednotes.pptx")
+        writeFileSync(deck, await buildEmptyDeck(TEMPLATE))
+        await executeOps(deck, { ops: [
+            { op: "slide.add", layout: "CONTENT", placeholders: { title: { text: "N1" } }, notes: "notes one" },
+            { op: "slide.add", layout: "CONTENT", placeholders: { title: { text: "N2" } }, notes: "notes two" }
+        ] }, opts)
+        /*  inject the aliasing automizer's part renumbering can leave behind:
+            point the second slide's notes rel at the first slide's notes part  */
+        const zip = await JSZip.loadAsync(readFileSync(deck))
+        const relsParts = Object.keys(zip.files)
+            .filter((f) => /^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(f))
+        const targets: { part: string, text: string, notes: string }[] = []
+        for (const part of relsParts) {
+            const txt = await (zip.file(part) as JSZip.JSZipObject).async("string")
+            const m = /Target="(\.\.\/notesSlides\/[^"]+)"/.exec(txt)
+            if (m !== null)
+                targets.push({ part, text: txt, notes: m[1] as string })
+        }
+        expect(targets.length).toBeGreaterThanOrEqual(2)
+        const a = targets[0] as { part: string, text: string, notes: string }
+        const b = targets[1] as { part: string, text: string, notes: string }
+        zip.file(b.part, b.text.replace(b.notes, a.notes))   // b now shares a's notes
+        writeFileSync(deck, await zip.generateAsync({ type: "nodebuffer" }))
+        /*  any apply must re-establish a 1:1 slide <-> notesSlide mapping  */
+        await executeOps(deck, { ops: [{ op: "meta.props", set: { title: "x" } }] }, opts)
+        const z2 = await JSZip.loadAsync(readFileSync(deck))
+        const refs = new Map<string, number>()
+        for (const part of Object.keys(z2.files).filter((f) => /^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(f))) {
+            const txt = await (z2.file(part) as JSZip.JSZipObject).async("string")
+            const m = /Target="\.\.\/notesSlides\/([^"]+)"/.exec(txt)
+            if (m !== null)
+                refs.set(m[1] as string, (refs.get(m[1] as string) ?? 0) + 1)
+        }
+        expect(Math.max(...refs.values())).toBe(1)
+        await expectIntact(deck)
+    })
 })

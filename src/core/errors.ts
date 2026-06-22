@@ -23,6 +23,7 @@ export type ErrorCode =
     | "E_ENGINE"         /*  unexpected failure inside the OOXML engine */
     | "E_REV_CONFLICT"   /*  expectRev does not match the deck state    */
     | "E_LINT"           /*  lint findings escalated by --strict        */
+    | "E_INTEGRITY"      /*  written deck fails OOXML repair-trigger check */
 
 /**
  *  Process exit code per error class (0 is success and not listed).
@@ -37,7 +38,8 @@ const EXIT_CODES: Record<ErrorCode, number> = {
     E_TEMPLATE: 4,
     E_ENGINE: 5,
     E_REV_CONFLICT: 6,
-    E_LINT: 7
+    E_LINT: 7,
+    E_INTEGRITY: 8
 }
 
 /**

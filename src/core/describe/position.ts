@@ -97,6 +97,67 @@ export const regionWithin = (outer: Frame, inner: Frame): string | null => {
 }
 
 /**
+ *  Fraction (0..1) of an outer box covered by inner boxes -- their UNION,
+ *  clipped to the outer box, so overlapping inners are not double-counted.
+ *  Tells a partly-overlaid picture (negative space, subject moves aside)
+ *  from a true background image (text covers most of it).
+ *
+ *  @param outer - the picture frame
+ *  @param inners - overlapping shape frames
+ *  @returns covered fraction in [0, 1], 0 when the outer area is zero
+ */
+export const coverageFraction = (outer: Frame, inners: Frame[]): number => {
+    const area = outer.w * outer.h
+    if (area <= 0)
+        return 0
+    /*  clip each inner to the outer box, drop the ones that fall outside  */
+    const rects: Frame[] = []
+    for (const f of inners) {
+        const x = Math.max(f.x, outer.x)
+        const y = Math.max(f.y, outer.y)
+        const r = Math.min(f.x + f.w, outer.x + outer.w)
+        const b = Math.min(f.y + f.h, outer.y + outer.h)
+        if (r > x && b > y)
+            rects.push({ x, y, w: r - x, h: b - y })
+    }
+    if (rects.length === 0)
+        return 0
+    /*  union area via coordinate compression: cut the outer box into vertical
+        strips at every distinct x edge, then for each strip merge the
+        y-intervals of the rects that span it and sum their length  */
+    const xs = Array.from(new Set(rects.flatMap((f) => [f.x, f.x + f.w]))).sort((a, b) => a - b)
+    let covered = 0
+    for (let i = 0; i + 1 < xs.length; i++) {
+        const x0 = xs[i] as number
+        const x1 = xs[i + 1] as number
+        const stripW = x1 - x0
+        if (stripW <= 0)
+            continue
+        const ivals = rects
+            .filter((f) => f.x <= x0 && f.x + f.w >= x1)
+            .map((f): [number, number] => [f.y, f.y + f.h])
+            .sort((a, b) => a[0] - b[0])
+        let yCov = 0
+        let openS = Infinity
+        let openE = -Infinity
+        for (const [s, e] of ivals) {
+            if (s > openE) {
+                if (openE > openS)
+                    yCov += openE - openS
+                openS = s
+                openE = e
+            }
+            else if (e > openE)
+                openE = e
+        }
+        if (openE > openS)
+            yCov += openE - openS
+        covered += stripW * yCov
+    }
+    return Math.min(1, covered / area)
+}
+
+/**
  *  Express a box's aspect ratio as the nearest common photo/screen ratio.
  *
  *  @param frame - box geometry in inches

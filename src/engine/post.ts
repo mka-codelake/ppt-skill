@@ -101,16 +101,25 @@ const gcParts = async (zip: JSZip, kept: string[]): Promise<void> => {
     const orphanNotes = Object.keys(zip.files)
         .filter((f) => /^ppt\/notesSlides\/notesSlide[^/]*\.xml$/.test(f) && !referencedNotes.has(f))
     await removeParts(zip, orphanNotes)
-    /*  drop presentation relationships whose target part vanished
-        (stale slide rels from a previous apply trigger a repair)  */
+    /*  drop presentation relationships that are stale: either the target
+        part vanished, or it is a /slide rel that no <p:sldId> points at.
+        automizer mints a fresh "-created" slide rel on every re-import but
+        only wires ONE into the sldIdLst; the rest pile up pointing at parts
+        that still exist (so the vanished-target check misses them) until the
+        thousand-strong rels file makes PowerPoint demand a repair.  */
     const presRelsPart = "ppt/_rels/presentation.xml.rels"
     const presRels = parseXml(await partText(zip, presRelsPart))
+    const pres = parseXml(await partText(zip, "ppt/presentation.xml"))
+    const liveSlideRids = new Set(elements(pres, "p:sldId")
+        .map((s) => s.getAttribute("r:id") ?? ""))
     let pruned = false
     for (const rel of elements(presRels, "Relationship")) {
         if (rel.getAttribute("TargetMode") === "External")
             continue
         const target = path.posix.normalize(path.posix.join("ppt", rel.getAttribute("Target") ?? ""))
-        if (zip.file(target) === null) {
+        const isSlide = (rel.getAttribute("Type") ?? "").endsWith("/slide")
+        if (zip.file(target) === null
+            || (isSlide && !liveSlideRids.has(rel.getAttribute("Id") ?? ""))) {
             rel.parentNode?.removeChild(rel)
             pruned = true
         }
@@ -438,6 +447,118 @@ const wireHyperlinks = (post: Post, slide: Document, slideRels: Document): void 
     }
 }
 
+/**  ensure every slide owns its own notesSlide. The pptc notes part name is
+     derived from the slide part basename, but pptx-automizer renumbers slide
+     parts across applies, so a stale notes rel can survive on a slide whose
+     basename no longer matches -- leaving two slides pointing at one notes
+     part that carries a single back-reference. PowerPoint repairs that. Any
+     shared pptc notes part is cloned so each referencing slide gets its own,
+     with a back-reference to it.  */
+const dedupeSharedNotes = async (zip: JSZip, slides: string[]): Promise<void> => {
+    /*  notes part -> referencing slide parts, in slide order  */
+    const refs = new Map<string, string[]>()
+    for (const slidePart of slides) {
+        const relsText = await zip.file(`ppt/slides/_rels/${path.posix.basename(slidePart)}.rels`)?.async("string")
+        if (relsText === undefined)
+            continue
+        const rel = elements(parseXml(relsText), "Relationship").find((r) =>
+            (r.getAttribute("Type") ?? "").endsWith("/notesSlide"))
+        if (rel === undefined)
+            continue
+        const notesPart = path.posix.normalize(path.posix.join("ppt/slides", rel.getAttribute("Target") ?? ""))
+        refs.set(notesPart, [...(refs.get(notesPart) ?? []), slidePart])
+    }
+    const setBackref = async (notesPart: string, slidePart: string): Promise<void> => {
+        const relsPart = `ppt/notesSlides/_rels/${path.posix.basename(notesPart)}.rels`
+        const doc = parseXml(await partText(zip, relsPart))
+        for (const back of elements(doc, "Relationship"))
+            if ((back.getAttribute("Type") ?? "").endsWith("/slide"))
+                back.setAttribute("Target", `../slides/${path.posix.basename(slidePart)}`)
+        zip.file(relsPart, serializeXml(doc))
+    }
+    for (const [notesPart, owners] of refs) {
+        if (owners.length < 2 || !/notesSlide-pptc-/.test(notesPart))
+            continue
+        /*  the first owner keeps the original part; the rest get private clones  */
+        await setBackref(notesPart, owners[0] as string)
+        for (let i = 1; i < owners.length; i++) {
+            const slidePart = owners[i] as string
+            let clone = `ppt/notesSlides/notesSlide-pptc-${path.posix.basename(slidePart, ".xml")}.xml`
+            if (clone === notesPart || zip.file(clone) !== null)
+                clone = `ppt/notesSlides/notesSlide-pptc-${path.posix.basename(slidePart, ".xml")}-${i}.xml`
+            zip.file(clone, await partText(zip, notesPart))
+            zip.file(`ppt/notesSlides/_rels/${path.posix.basename(clone)}.rels`,
+                await partText(zip, `ppt/notesSlides/_rels/${path.posix.basename(notesPart)}.rels`))
+            await setBackref(clone, slidePart)
+            const slideRelsPart = `ppt/slides/_rels/${path.posix.basename(slidePart)}.rels`
+            const slideRels = parseXml(await partText(zip, slideRelsPart))
+            for (const r of elements(slideRels, "Relationship"))
+                if ((r.getAttribute("Type") ?? "").endsWith("/notesSlide"))
+                    r.setAttribute("Target", `../notesSlides/${path.posix.basename(clone)}`)
+            zip.file(slideRelsPart, serializeXml(slideRels))
+            const ct = await partText(zip, "[Content_Types].xml")
+            if (!ct.includes(clone))
+                zip.file("[Content_Types].xml", ct.replace("</Types>",
+                    `<Override PartName="/${clone}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`))
+        }
+    }
+}
+
+/**  read a slide's title text (title/ctrTitle placeholder), "" if none  */
+const slideTitle = (slide: Document): string => {
+    for (const sp of elements(slide, "p:sp")) {
+        const type = firstElement(sp, "p:ph")?.getAttribute("type") ?? ""
+        if (type === "title" || type === "ctrTitle")
+            return elements(sp, "a:t").map((n) => n.textContent ?? "").join("")
+    }
+    return ""
+}
+
+/**  escape text for an XML text node  */
+const xmlEscape = (s: string): string =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+
+/**  keep docProps/app.xml in sync with the real slides. automizer writes
+     this extended-properties part once and does NOT grow its slide list on
+     later applies, so a deck that gained slides ends up declaring fewer
+     slides than it has -- which makes PowerPoint demand a repair on open.
+     The leading TitlesOfParts entries (fonts, theme, OLE servers) and every
+     HeadingPairs group except the last (the slide-title group) are kept; the
+     slide count, the slide-title HeadingPairs count and the title list are
+     rewritten from the actual slides.  */
+const syncAppProperties = async (zip: JSZip, slides: string[]): Promise<void> => {
+    const part = "docProps/app.xml"
+    const f = zip.file(part)
+    if (f === null)
+        return
+    let xml = await f.async("string")
+    const hp = /<HeadingPairs>([\s\S]*?)<\/HeadingPairs>/.exec(xml)
+    const tp = /<TitlesOfParts>([\s\S]*?)<\/TitlesOfParts>/.exec(xml)
+    if (hp === null || tp === null)
+        return
+    const hpBody = hp[1] ?? ""
+    const tpBody = tp[1] ?? ""
+    const n = slides.length
+    const titles: string[] = []
+    for (const slidePart of slides)
+        titles.push(slideTitle(parseXml(await partText(zip, slidePart))))
+    /*  the last HeadingPairs group is the slide titles; everything before it
+        (fonts/theme/OLE) sums to the count of leading TitlesOfParts entries  */
+    const counts = [...hpBody.matchAll(/<vt:i4>(\d+)<\/vt:i4>/g)].map((m) => Number(m[1]))
+    const leading = counts.slice(0, -1).reduce((a, b) => a + b, 0)
+    let seen = 0
+    const newHp = hpBody.replace(/<vt:i4>\d+<\/vt:i4>/g, (m) =>
+        ++seen === counts.length ? `<vt:i4>${n}</vt:i4>` : m)
+    const kept = [...tpBody.matchAll(/<vt:lpstr>([\s\S]*?)<\/vt:lpstr>/g)]
+        .map((m) => m[1] as string).slice(0, leading)
+    const lpstr = [...kept, ...titles.map(xmlEscape)].map((e) => `<vt:lpstr>${e}</vt:lpstr>`).join("")
+    xml = xml
+        .replace(/<Slides>\d+<\/Slides>/, `<Slides>${n}</Slides>`)
+        .replace(hp[0], `<HeadingPairs>${newHp}</HeadingPairs>`)
+        .replace(tp[0], `<TitlesOfParts><vt:vector size="${leading + n}" baseType="lpstr">${lpstr}</vt:vector></TitlesOfParts>`)
+    zip.file(part, xml)
+}
+
 /**  update document core properties  */
 const setProps = async (zip: JSZip, props: Record<string, string>): Promise<void> => {
     const part = "docProps/core.xml"
@@ -537,8 +658,10 @@ export const postProcess = async (
         await setProps(zip, props)
     /*  final sweeps: orphan assets, stale section refs and stale or
         duplicate content-type overrides accumulate across applies  */
+    await dedupeSharedNotes(zip, slides)
     await gcAssets(zip)
     await pruneSectionRefs(zip)
     await cleanContentTypes(zip)
+    await syncAppProperties(zip, slides)
     return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" })
 }

@@ -152,9 +152,31 @@ Content, layout & storyboard  (Phase 6 — Content & Layout)
 
 Work slide by slide, the message kept visible as the yardstick.
 
+- **Self-study decks must be self-explanatory.** If PHASE 1 found the deck
+  is READ without a presenter, every slide stands alone (Duarte slidedoc,
+  Mayer): plan, per slide, a one-line **takeaway** ("what this means for
+  you") beside the exhibit, plan how a code/table/diagram gets EXPLAINED
+  for a beginner (lead-in + key element highlighted + glossed entries),
+  and a **source/URL** for any claim or data. A bare exhibit under a title
+  is not a finished slide. When a slide would hold little text, plan a
+  picture/infographic with meaningful content rather than empty space.
+- **Land a point on every slide.** Showing the status quo or "what we
+  already do" is NOT enough. Each slide must close on a conclusion -- the
+  **Fazit / implication** ("so: persist these steps as a skill") -- or a
+  pointed **question** ("wouldn't it be better if everyone could reuse
+  it?"). For every slide ask: are these few sentences enough, and what is
+  the takeaway the reader should leave with? If there is no point, the
+  slide is not done.
+- **Each chapter has a Fazit, twice.** Synthesize every chapter's slides
+  and their takeaways into one chapter **Fazit** (its core point). The
+  chapter divider states that Fazit as a subtitle (an advance organizer up
+  front), and each chapter ENDS with a short "Key takeaways" slide (2-4
+  bullets, closing on the Fazit). Plan both per chapter; `ppt`'s divider
+  image is then derived from the whole chapter, not just its title.
 - **Content:** content that PROVES the message (~6 bullets, ~6-8 words
   each); prefer one visual over a bullet list (assertion-evidence).
-  Detail belongs in the speaker notes, not on the slide.
+  On a live deck detail goes to the speaker notes; on a self-study deck
+  the explaining text stays ON the slide (~100-250 words is fine).
 - **Layout intent (not a concrete template layout -- that is `ppt`'s
   job):** name a layout TYPE and say why it serves the message. The
   realizable content types are exactly these five (plus the structural
@@ -171,7 +193,9 @@ Work slide by slide, the message kept visible as the yardstick.
   - **code block** -- verbatim code, or a file/folder tree, in a
     MONOSPACE font (ideally one from the template's own font family),
     set as rich text. Use it instead of an SVG whenever the content is
-    literally code or a directory tree.
+    literally code or a directory tree. `ppt` renders it as a content
+    BODY PLACEHOLDER filled with the code font (bullets off), NOT as a
+    free `el.add` textbox -- it is placeholder text, not an exhibit.
   - **SVG graphic** -- a custom-drawn diagram for any other visual shape:
     sequence/flow, cycle, hierarchy/pyramid, timeline, two/three-column
     comparison, or a structure diagram.

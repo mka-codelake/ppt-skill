@@ -47,6 +47,10 @@ calling any image generator and without doing web research.
   for the user's own terminal work; the skill itself keeps the explicit
   path (deterministic in every install variant).
 - Execute each Bash call as a separate tool call.
+- **Slide numbers are 1-based for the user.** PowerPoint counts slides
+  from 1 (slide 1 = the first slide). When you name a slide to the user,
+  use that 1-based number (not pptc's 0-based `index`); address ops by
+  `title:`/`id:` to stay unambiguous.
 - Every pptc command emits exactly one JSON envelope on stdout; parse it.
   `"ok": false` carries a stable `error.code` -- react to it, do not retry
   blindly. Exit 7 = lint failure: W_TEXT_OVERFLOW -> shorten or split,
@@ -89,6 +93,7 @@ node <skill-dir>/scripts/pptc.mjs tpl inspect <tpl>               # precise JSON
 node <skill-dir>/scripts/pptc.mjs new <deck.pptx> --template <tpl>
 node <skill-dir>/scripts/pptc.mjs state <deck.pptx>               # slides + rev token
 node <skill-dir>/scripts/pptc.mjs apply <deck.pptx> --ops @<ops.json> --rev <rev> [--dry-run] [--strict] [--template <tpl>]
+node <skill-dir>/scripts/pptc.mjs verify <deck.pptx> [--strict]   # check for PowerPoint repair triggers (exit 8 on --strict)
 node <skill-dir>/scripts/pptc.mjs schema                          # ops JSON schema
 
 # quick edits (no ops document)
@@ -319,6 +324,15 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     (never rely on auto-shrink), then re-validate.</if>
     Then apply for real with `--rev <rev/>` and record the new <rev/>.
 
+    **Verify the write (mandatory).** `apply` self-checks its output against
+    every known PowerPoint "repair" trigger and refuses to write a corrupt
+    deck. <if condition="exit 8 / E_INTEGRITY">the deck was NOT written and is
+    unchanged; this is an engine defect, not a content problem -- report the
+    `details.findings` to the user verbatim and stop (do not retry blindly).</if>
+    After the apply succeeds, run `verify <deck>` as an explicit gate; on any
+    `result.findings` tell the user the deck would prompt a repair, and do not
+    present it as finished.
+
     </step>
 
 7.  <step id="STEP 7: Image Prompts">
@@ -349,8 +363,8 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         ADDED as an overlay (`img.prompts` only pushes a shape, it never
         removes the image) -- the existing image stays untouched.
 
-    For EVERY picture placeholder you (re)prompt, perform an individual
-    creative step (no template motifs):
+    <for items="each picture placeholder you (re)prompt">
+    Perform an individual creative step per placeholder (no template motifs):
 
     1.  Determine layout role + sidecar constraints (e.g. dark background
         on title/closing layouts with a white line when the style is
@@ -364,15 +378,32 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
             slide-local and does NOT appear in `tpl inspect`. Re-read it
             every turn so boxes the user added since the last prompt are
             honored.
-        Each overlapping shape becomes a NEGATIVE-SPACE clause ("the
+        Use the picture placeholder's `coverage` (reported by `tpl
+        inspect`/`describe`) to pick the mode -- see
+        `references/prompt-formula.md` → "Background image vs. negative
+        space":
+        <if condition="coverage < 0.65 -- partial overlay">
+        each overlapping shape becomes a NEGATIVE-SPACE clause ("the
         [region] is a vast empty [color] canvas creating significant
         negative space") and the subject moves to a free region.
+        </if>
+        <else>
+        the whole frame is a true BACKGROUND image, not a subject: carry
+        NO text (this OVERRIDES the title-text rule), keep ONE even tone (a
+        dark backdrop with no bright hotspots, or a light backdrop with no
+        dark blocks), and SET the overlay placeholder's text colour to
+        contrast that tone — light text (`lt1`) on a dark backdrop, dark
+        text (`dk1`) on a light one — via the `slide.fill` run colour, so
+        the words stay legible.
+        </else>
         NEVER explain why -- typographic words (title/footer/caption/
         label) make the image model render pseudo text. End prompts
         with "No text. No letters. No symbols." unless the prompt
-        deliberately embeds quoted text.
-    2.  Choose a motif that makes THIS slide's message tangible and does
-        not repeat a motif already used in the deck. If the slide message,
+        deliberately embeds quoted text (never on a background image).
+    2.  Choose a motif that makes THIS slide's POINT tangible -- its
+        message AND its takeaway/Fazit, leaning toward the resolution the
+        slide concludes with, not just the problem -- and does not repeat a
+        motif already used in the deck. If the slide message, its Fazit,
         deck topic and role do NOT determine a concrete, non-generic motif
         -- or a strong metaphor could plausibly go several clearly
         different ways -- ASK the user ONE short, targeted question (offer
@@ -388,6 +419,7 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         ratio in the prompt TEXT -- pptc derives it from the placeholder
         geometry and prints it in the box header (`IMAGE PROMPT · <ratio>`);
         the mirrored markdown header shows the same ratio.
+    </for>
 
     Write all prompts into the deck via ONE `img.prompts` op per slide
     (prompt text per picture-placeholder idx) and `apply --rev <rev/>`.
@@ -413,13 +445,17 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 8.  <step id="STEP 8: Report">
 
     Walk the final checklist in `references/content-rules.md`; list any
-    open items. Then report with this <template/>:
+    open items. **Final integrity gate:** run `verify <deck>` once more on
+    the finished deck; it must report `result.ok: true` (no findings) before
+    you call the deck done -- a deck that would prompt a PowerPoint repair is
+    never a finished deliverable. Then report with this <template/>:
 
     <template>
     **Deck updated**: `<deck/>` (rev `<rev/>`)
 
     - Slides: <slide-count/> (<changed/> changed/new)
     - Image prompts written: <prompt-count/>
+    - Integrity: <verify-result/>
     - Open checklist items: <open-items/>
     </template>
 

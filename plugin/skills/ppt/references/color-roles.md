@@ -27,3 +27,8 @@ Usage rules
 -   Primary slot default is `accent1`. If a template uses a different
     slot as its brand color, the template sidecar (or the user) may
     override the primary slot; everything else stays the same.
+-   On a true BACKGROUND image (high `coverage`), a `dk1`/`dk2` (dark) or
+    `lt1`/`lt2` (light) tone DOMINATES the whole frame and the accent
+    stays faint or absent. Pair a dark backdrop with light overlay text,
+    a light backdrop with dark overlay text -- see
+    `prompt-formula.md` → "Background image vs. negative space".

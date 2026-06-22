@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest"
 import { estimateCapacity, estimateUsedLines } from "../../src/core/describe/capacity.js"
-import { describePosition, horizontalBand, nearestAspect, regionWithin, verticalBand } from "../../src/core/describe/position.js"
+import { coverageFraction, describePosition, horizontalBand, nearestAspect, regionWithin, verticalBand } from "../../src/core/describe/position.js"
 import { renderMinimap } from "../../src/core/describe/minimap.js"
 import { suitabilityHint } from "../../src/core/describe/narrate.js"
 import { lintPlaceholderText } from "../../src/core/lint.js"
@@ -100,5 +100,34 @@ describe("regionWithin (picture overlay regions)", () => {
     })
     it("returns null for disjoint boxes", () => {
         expect(regionWithin({ x: 0, y: 0, w: 5, h: 7.5 }, { x: 6, y: 1, w: 4, h: 1 })).toBeNull()
+    })
+})
+
+describe("coverageFraction (background-image detection)", () => {
+    const pic = { x: 0, y: 0, w: 10, h: 10 }
+    it("is 0 with no overlaps and 1 when fully covered", () => {
+        expect(coverageFraction(pic, [])).toBe(0)
+        expect(coverageFraction(pic, [{ x: 0, y: 0, w: 10, h: 10 }])).toBeCloseTo(1)
+    })
+    it("sums a partial overlap", () => {
+        expect(coverageFraction(pic, [{ x: 0, y: 5, w: 10, h: 5 }])).toBeCloseTo(0.5)
+    })
+    it("does not double-count overlapping inners (union, not sum)", () => {
+        const a = { x: 0, y: 0, w: 6, h: 10 }
+        const b = { x: 4, y: 0, w: 6, h: 10 }
+        expect(coverageFraction(pic, [a, b])).toBeCloseTo(1)
+    })
+    it("clips inners to the picture box", () => {
+        expect(coverageFraction(pic, [{ x: -5, y: 0, w: 10, h: 10 }])).toBeCloseTo(0.5)
+    })
+    it("treats a title+footer band as partial, a full body box as background", () => {
+        const slide = { x: 0, y: 0, w: 13.33, h: 7.5 }
+        const titleFooter = coverageFraction(slide, [
+            { x: 0, y: 0, w: 13.33, h: 1.2 },
+            { x: 0, y: 7, w: 13.33, h: 0.5 }
+        ])
+        expect(titleFooter).toBeLessThan(0.65)
+        const fullBody = coverageFraction(slide, [{ x: 0, y: 1, w: 13.33, h: 6.5 }])
+        expect(fullBody).toBeGreaterThanOrEqual(0.65)
     })
 })

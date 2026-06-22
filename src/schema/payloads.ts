@@ -66,7 +66,11 @@ export const TableSchema = z.object({
         headerFg: ColorSchema.optional(),
         altRowBg: ColorSchema.optional(),
         fontSize: z.number().positive().optional(),
-        border: ColorSchema.optional()
+        border: ColorSchema.optional(),
+        /**  fixed header-row height in inches (uniform headers across tables)  */
+        headerHeight: z.number().positive().optional(),
+        /**  fixed body-row height in inches (uniform rows)  */
+        rowHeight: z.number().positive().optional()
     }).strict().optional(),
     merge: z.array(z.object({
         row: z.number().int().min(0),

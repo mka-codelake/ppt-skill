@@ -39,6 +39,12 @@ export interface Placeholder {
     /**  text shapes overlapping this PICTURE placeholder: image prompts
          must keep these regions calm (text sits on top)  */
     overlays?: { name: string, region: string }[]
+    /**  fraction (0..1) of this PICTURE placeholder's area covered by the
+         overlapping text shapes (union, overlap-safe). High coverage
+         (about 0.65 or more) marks a true BACKGROUND image: the prompt carries
+         no text and keep one even tone so the overlay text stays legible.
+         Undefined for non-picture placeholders or when nothing overlaps.  */
+    coverage?: number
 }
 
 /**  Estimated text capacity of a text placeholder.  */
@@ -73,6 +79,16 @@ export interface TemplateInfo {
     colors: Record<string, string>
     /**  all layouts in slide-master order  */
     layouts: Layout[]
+    /**  the master's drawing guides in inches: horizontal guide Y-positions
+         and vertical guide X-positions (sorted). Absent when the template
+         defines none. Use them to place `el.add` elements on the template's
+         own grid instead of guessing coordinates.  */
+    guides?: { horizontal: number[], vertical: number[] }
+    /**  the clean content rectangle (inches): the largest body placeholder
+         snapped to the nearest guides -- the target frame for an `el.add`
+         table/textbox/diagram on a title-only layout. Absent when neither a
+         body placeholder nor guides are available.  */
+    contentArea?: Frame
 }
 
 /**  A shape found on an existing slide (read model).  */

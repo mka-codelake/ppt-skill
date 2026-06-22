@@ -220,6 +220,21 @@ The deck read model and the **`rev` token** for optimistic locking.
 Read-before-write protocol: take `rev` from here and pass it to
 `apply --rev` (or `expectRev` in the ops document).
 
+### Verify decks
+
+#### `pptc verify <deck> [--strict]`
+
+Checks a finished deck against every known PowerPoint **"repair" trigger**
+(dangling relationships, stale `docProps/app.xml`, shared notesSlides, broken
+content types, schema-order and reference errors). `apply` already self-verifies
+its own output before writing, so a freshly built deck is clean by construction;
+run `verify` as an explicit gate after a build, or on any `.pptx` whose origin
+you do not control.
+
+- `result.ok` -- `true` when there are no findings
+- `result.findings` -- the list of repair triggers (empty when clean)
+- `--strict` -- any finding is a hard failure (exit 8) instead of a report
+
 ### Write decks
 
 #### `pptc new <deck> --template <tpl> [--force] [--ops @file] [--strict]`

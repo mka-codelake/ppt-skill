@@ -15,7 +15,7 @@ import type { Document, Element } from "@xmldom/xmldom"
 import { PptcError } from "../core/errors.js"
 import { contentHash, requireFile } from "../infra/fs.js"
 import { estimateCapacity } from "../core/describe/capacity.js"
-import { regionWithin } from "../core/describe/position.js"
+import { regionWithin, coverageFraction } from "../core/describe/position.js"
 import { elements, firstElement, drawingText, parseXml } from "./xml.js"
 import { emuToInch } from "../core/model.js"
 import type {
@@ -280,24 +280,91 @@ export const readTemplateInfo = async (archive: DeckArchive): Promise<TemplateIn
             if (pic.kind !== "picture" || pic.frame === null)
                 continue
             const overlays: { name: string, region: string }[] = []
+            const covering: Frame[] = []
             for (const other of placeholders) {
                 if (other === pic || other.kind === "picture" || other.frame === null)
                     continue
                 const region = regionWithin(pic.frame, other.frame)
-                if (region !== null)
+                if (region !== null) {
                     overlays.push({ name: other.name, region })
+                    covering.push(other.frame)
+                }
             }
             for (const f of reserved) {
                 const region = regionWithin(pic.frame, f)
-                if (region !== null)
+                if (region !== null) {
                     overlays.push({ name: "footer/slide-number", region })
+                    covering.push(f)
+                }
             }
-            if (overlays.length > 0)
+            if (overlays.length > 0) {
                 pic.overlays = overlays
+                pic.coverage = coverageFraction(pic.frame, covering)
+            }
         }
         layouts.push({ index, name, placeholders, reserved })
     }
-    return { slideSize, fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors, layouts }
+    /*  drawing guides (PowerPoint p15 guides) from the master: `pos` is in
+        1/8 pt (inch = pos/576); orient="horz" is a horizontal line at a Y
+        coordinate, otherwise a vertical line at an X coordinate  */
+    const guides = { horizontal: [] as number[], vertical: [] as number[] }
+    try {
+        const master = await archive.xml("ppt/slideMasters/slideMaster1.xml")
+        for (const g of elements(master, "p15:guide")) {
+            const pos = Number(g.getAttribute("pos"))
+            if (!Number.isFinite(pos))
+                continue
+            if (g.getAttribute("orient") === "horz")
+                guides.horizontal.push(pos / 576)
+            else
+                guides.vertical.push(pos / 576)
+        }
+    }
+    catch {
+        /*  no master or no guides -- leave the lists empty  */
+    }
+    const uniqSort = (xs: number[]): number[] =>
+        Array.from(new Set(xs.map((v) => Math.round(v * 100) / 100))).sort((a, b) => a - b)
+    guides.horizontal = uniqSort(guides.horizontal)
+    guides.vertical = uniqSort(guides.vertical)
+    const hasGuides = guides.horizontal.length + guides.vertical.length > 0
+
+    /*  content area: the largest body placeholder, its edges snapped to the
+        nearest guides -- the clean target for `el.add` on title-only layouts  */
+    let contentArea: Frame | undefined
+    const bodies = layouts
+        .flatMap((l) => l.placeholders)
+        .filter((p) => p.kind === "body" && p.frame !== null)
+        .map((p) => p.frame as Frame)
+    if (bodies.length > 0) {
+        const biggest = bodies.reduce((a, b) => (a.w * a.h >= b.w * b.h ? a : b))
+        const snap = (v: number, cand: number[]): number => {
+            let best = v
+            let bestD = 0.4
+            for (const c of cand) {
+                const d = Math.abs(c - v)
+                if (d < bestD) {
+                    bestD = d
+                    best = c
+                }
+            }
+            return best
+        }
+        const x1 = snap(biggest.x, guides.vertical)
+        const x2 = snap(biggest.x + biggest.w, guides.vertical)
+        const y1 = snap(biggest.y, guides.horizontal)
+        const y2 = snap(biggest.y + biggest.h, guides.horizontal)
+        contentArea = { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) }
+    }
+
+    return {
+        slideSize,
+        fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") },
+        colors,
+        layouts,
+        ...(hasGuides ? { guides } : {}),
+        ...(contentArea !== undefined ? { contentArea } : {})
+    }
 }
 
 /**  classify a non-placeholder shape element  */

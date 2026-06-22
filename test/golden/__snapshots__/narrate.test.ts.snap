@@ -8,6 +8,7 @@ Accent colors: #4F81BD, #C0504D, #9BBB59
 
 Layouts: 11 -- addressable in \`slide.add\` by index or name.
 Placeholders are filled in \`slide.fill\` via their \`idx\` number.
+Content area (guide-aligned): x 0.5" y 1.75" w 9.00" h 4.95" -- place \`el.add\` tables/textboxes/diagrams inside this box on title-only layouts.
 
 ## Layout 0: "TITLE_SLIDE"
 

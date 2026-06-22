@@ -15,6 +15,7 @@ import { cmdApply } from "../commands/apply.js"
 import { cmdNew } from "../commands/new.js"
 import { cmdSchema } from "../commands/schema.js"
 import { cmdState } from "../commands/state.js"
+import { cmdVerify } from "../commands/verify.js"
 import { cmdFooter, cmdMove, cmdNote, cmdRm, cmdText } from "../commands/sugar.js"
 import { cmdTplDescribe, cmdTplInspect, cmdTplList, cmdTplValidate } from "../commands/tpl.js"
 import { cmdUpdate } from "../commands/update.js"
@@ -24,6 +25,7 @@ const USAGE = `pptc ${VERSION} -- deterministic PowerPoint CLI for LLM agents
 
 Read templates:   tpl list <dir> | tpl describe <tpl> | tpl inspect <tpl> | tpl validate <tpl>
 Read decks:       state <deck> [--slide SEL] [--level summary|text|full]
+Verify decks:     verify <deck> [--strict]  (check for PowerPoint repair triggers)
 Write decks:      new <deck> --template <tpl> [--ops @file]
                   apply <deck> (--ops @file|- | -e '<op>') [--template <tpl>] [--dry-run] [--strict] [--rev R] [--out F]
 Micro edits:      text|note|footer|rm|move <deck> --slide SEL ...
@@ -36,11 +38,12 @@ Human console:    --plain on help, state, tpl list, tpl describe and
                   tpl validate prints readable text instead of the JSON envelope
 
 Slide selectors:  id:N | title:... | index:N | $ref | bare index
-Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint`
+Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint, 8 integrity`
 
 /**  command dispatch table  */
 const COMMANDS: Record<string, (argv: string[]) => unknown> = {
     "state": cmdState,
+    "verify": cmdVerify,
     "new": cmdNew,
     "apply": cmdApply,
     "schema": cmdSchema,

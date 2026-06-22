@@ -41,6 +41,8 @@ gated, collaborative, story-first process -- then hand it to `ppt`.
 - **One phase at a time:** stay inside a phase until its `<gate/>` is
   approved (see `meta/control.md`). At most ~3 clarifying questions per
   phase before you make a proposal; never interrogate.
+- **Slide numbers are 1-based for the user:** the plan numbers slides from
+  1 (slide 1 = the first slide), matching how PowerPoint counts them.
 - **Story-first is non-negotiable:** PHASE 4 does not begin without an
   approved storyline (PHASE 3). Honor the Story/Slide barrier below.
 - **Advance only through the gate:** the selection box (the host's
@@ -214,10 +216,10 @@ gated, collaborative, story-first process -- then hand it to `ppt`.
     chapter with this <template/>. Emit it once per chapter so every
     chapter is a self-contained Markdown table with its OWN header row —
     NEVER one table spanning chapters (without a repeated header the rows
-    after the first chapter stop rendering as a table). Use simple
-    single-space-padded pipes; do NOT hand-align the columns to equal
-    width. List the structural slides (title, agenda, chapter dividers,
-    closing) in one leading table of the same shape.
+    after the first chapter stop rendering as a table). Pad every column
+    to a uniform width so the pipes line up vertically (clean columns, no
+    ragged shifts). List the structural slides (title, agenda, chapter
+    dividers, closing) in one leading table of the same shape.
 
     <template>
     ### <chapter-marker/> Chapter <c/> — <chapter-title/>

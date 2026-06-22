@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.2.15 (plugin 0.2.20)
+
+- New command **`pptc verify <deck> [--strict]`**: checks a finished deck
+  against every known PowerPoint "repair" trigger and reports the findings
+  (`--strict` makes any finding exit 8). The validation now SHIPS in the
+  engine (`src/engine/verify.ts`), so it travels with the skill bundle and
+  runs on any machine -- the skill verifies its own deliverable instead of
+  the user discovering corruption in PowerPoint.
+- Engine: **`apply` self-verifies its output before writing**. The post-pass
+  repairs the known triggers; if any survive, the apply fails atomically with
+  the new `E_INTEGRITY` (exit 8) and the deck is left untouched -- a corrupt
+  `.pptx` is never written.
+- Skill `ppt`: STEP 6 verifies every write and STEP 8 runs a final integrity
+  gate; the report now carries an integrity line. The validator is now a
+  single source of truth shared by the engine and the test suite, and a new
+  **bundle-sync contract test** fails if the skill's embedded engine drifts
+  from the built one (forgetting `npm run plugin:sync` no longer ships a stale
+  engine to fresh machines).
+- Engine **fix (repair prompt)**: `apply` now prunes **dangling `/slide`
+  relationships** from `presentation.xml.rels`. pptx-automizer mints a
+  fresh `…-created` slide relationship on every re-import but wires only
+  one into the `sldIdLst`; the rest piled up pointing at parts that still
+  exist (so the existing dead-target sweep missed them) until a
+  thousand-strong rels file made PowerPoint demand a repair on open. The
+  post-pass now drops every `/slide` rel no `<p:sldId>` references, and the
+  integrity validator fails on any such dangling rel.
+- Engine **fix (repair prompt)**: the post-pass now enforces a **1:1
+  slide ↔ notesSlide** mapping. The pptc notes part name is derived from the
+  slide part basename, but automizer renumbers slide parts across applies,
+  so a stale notes rel could leave two slides pointing at one notesSlide
+  (which carries a single back-reference) -- invalid, and a repair trigger.
+  Shared pptc notes parts are now cloned so each slide owns its notes; the
+  integrity validator fails on any notesSlide referenced by more than one
+  slide.
+- Engine **fix (repair prompt)**: the post-pass now keeps
+  **`docProps/app.xml`** in sync with the actual slides. automizer writes
+  that extended-properties part once and does not grow its slide list on a
+  later apply, so a deck that gained slides ended up declaring fewer than it
+  had (`<Slides>`, the slide-title `HeadingPairs` count and the
+  `TitlesOfParts` list) -- another repair trigger. The slide count, the
+  slide-title group and the title list are rewritten from the real slides;
+  the integrity validator fails on a stale count or a `HeadingPairs` /
+  `TitlesOfParts` size mismatch.
+
 ## 0.2.14 (plugin 0.2.19)
 
 - Engine: `tpl describe` now also reports the capacity of the **title**

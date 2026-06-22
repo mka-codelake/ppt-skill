@@ -19,6 +19,7 @@ import type { MutationPlan, SlidePlanEntry } from "../core/ops/registry.js"
 import { atomicWrite, cacheDir } from "../infra/fs.js"
 import { addElement, type GenRoot, type GenSlide } from "./elements.js"
 import { postProcess, type PostSlideWork } from "./post.js"
+import { verifyBytes } from "./verify.js"
 import { ensureSeed } from "./seed.js"
 import { setShapeText } from "./text.js"
 
@@ -135,6 +136,15 @@ const executePlan = async (
             }))
     }))
     const finalBytes = await postProcess(readFileSync(tmpFile), work, plan.props)
+    /*  self-verify before writing: the post-pass repairs every known
+        PowerPoint "repair" trigger, so a finding here is a residual defect.
+        Fail atomically rather than emit a .pptx the user only discovers is
+        broken when PowerPoint refuses to open it. The target stays untouched.  */
+    const findings = await verifyBytes(finalBytes)
+    if (findings.length > 0)
+        throw new PptcError("E_INTEGRITY",
+            `the engine produced ${findings.length} integrity violation(s); deck not written`,
+            { findings })
     atomicWrite(path.resolve(outFile), finalBytes)
 
     const refIndexes: Record<string, number> = {}

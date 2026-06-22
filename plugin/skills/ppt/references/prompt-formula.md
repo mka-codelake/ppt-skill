@@ -19,6 +19,13 @@ Element rules
 -   **Subject with primary accent**: the main subject carries ONE
     visible element in the template's primary accent color, named with
     hue and hex code, e.g. `a deep blue (#1F4E79) blazer`.
+-   **Gaze faces the slide centre**: when the image shows people or
+    faces, they must look/face TOWARD the slide's content, never off the
+    outer edge. Derive the direction from the placeholder geometry: a
+    picture placeholder on the LEFT half -> subjects face/look RIGHT
+    (toward centre); on the RIGHT half -> they face/look LEFT. Put it in
+    the prompt, e.g. `the person is turned toward the left, looking into
+    frame` for a right-side placeholder.
 -   **Scene / text-in-image**: where the scene plausibly carries text
     (screens, banners, whiteboards, signs) -- and ALWAYS on title-role
     images -- embed the slide title or deck topic:
@@ -59,14 +66,53 @@ Per-image creative step
 Never template the motif. For each picture placeholder, decide
 deliberately:
 
-1.  What does THIS slide say (the slide message)?
+1.  What is THIS slide's POINT -- its message AND its takeaway / Fazit
+    (the conclusion it lands), not just its topic or the problem it states?
 2.  What is the placeholder's role (title / chapter / content /
     background / contact)?
-3.  Which single motif makes the message tangible without repeating
-    a motif already used in this deck?
+3.  Which single motif makes that POINT tangible -- leaning toward the
+    resolution the slide concludes with, not only the status quo -- without
+    repeating a motif already used in this deck? A slide whose Fazit is
+    "capture and reuse" should show capture/reuse, not just the repetition;
+    one whose point is "share it" should hint at sharing, not only the
+    locked-away problem.
 
-Background-image layouts get calm, low-contrast motifs (text sits on
-top). Contact placeholders get neutral business portraits.
+A chapter / divider image synthesizes the WHOLE chapter: make the
+chapter's core point tangible -- derived from all its slides and their
+Fazits together -- not just the literal chapter title.
+
+Contact placeholders get neutral business portraits.
+
+Background image vs. negative space
+-----------------------------------
+
+`tpl inspect`/`describe` report a `coverage` per picture placeholder --
+the share of the image the overlay text sits on. It splits two modes:
+
+-   **Partial overlay (coverage < 65%)** -- negative-space mode (above):
+    keep the overlaid regions calm and move the subject into the free
+    area. The image still has a real subject.
+-   **True background image (coverage >= 65%)** -- the text sits on the
+    WHOLE image, so it is a backdrop, not a subject:
+    -   **No text in the image, ever.** This OVERRIDES the title-text
+        rule -- a backdrop carries no embedded words (they collide with
+        the real text on top). Always end with `No text. No letters. No
+        symbols.`
+    -   **One even tone, no clashing luminance.** Pick a single tone and
+        hold it across the frame, phrased positively:
+        -   a DARK backdrop (deep, low-key, `dk1`/`dk2`) with NO bright
+            hotspots -- e.g. `evenly lit deep charcoal (#1F1F1F) field,
+            soft low-key gradient, no bright highlights` -- paired with
+            LIGHT overlay text; OR
+        -   a LIGHT backdrop (high-key, `lt1`/`lt2`) with NO dark blocks
+            -- e.g. `clean high-key off-white (#F2F2F2) surface, soft even
+            light` -- paired with DARK overlay text.
+    -   **Accent stays subtle** -- the primary accent appears only as a
+        faint, low-contrast element, or not at all; the tone dominates so
+        the text on top stays readable.
+    -   **Contrast the overlay text** -- the SKILL sets the placeholder
+        text colour to contrast the chosen tone (light on dark, dark on
+        light) so the words stay legible (see STEP 7).
 
 Example (title role, 2:3 placeholder, stock photo, accent1 = #1F4E79)
 --------------------------------------------------------------------

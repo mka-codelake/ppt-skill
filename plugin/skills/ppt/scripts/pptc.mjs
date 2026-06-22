@@ -2913,8 +2913,8 @@ var require_utils = __commonJS({
       var result = transform2[inputType][outputType](input);
       return result;
     };
-    exports.resolve = function(path9) {
-      var parts = path9.split("/");
+    exports.resolve = function(path10) {
+      var parts = path10.split("/");
       var result = [];
       for (var index = 0; index < parts.length; index++) {
         var part = parts[index];
@@ -8767,18 +8767,18 @@ var require_object = __commonJS({
       var object2 = new ZipObject(name, zipObjectContent, o);
       this.files[name] = object2;
     };
-    var parentFolder = function(path9) {
-      if (path9.slice(-1) === "/") {
-        path9 = path9.substring(0, path9.length - 1);
+    var parentFolder = function(path10) {
+      if (path10.slice(-1) === "/") {
+        path10 = path10.substring(0, path10.length - 1);
       }
-      var lastSlash = path9.lastIndexOf("/");
-      return lastSlash > 0 ? path9.substring(0, lastSlash) : "";
+      var lastSlash = path10.lastIndexOf("/");
+      return lastSlash > 0 ? path10.substring(0, lastSlash) : "";
     };
-    var forceTrailingSlash = function(path9) {
-      if (path9.slice(-1) !== "/") {
-        path9 += "/";
+    var forceTrailingSlash = function(path10) {
+      if (path10.slice(-1) !== "/") {
+        path10 += "/";
       }
-      return path9;
+      return path10;
     };
     var folderAdd = function(name, createFolders) {
       createFolders = typeof createFolders !== "undefined" ? createFolders : defaults.createFolders;
@@ -9744,9 +9744,9 @@ var require_load = __commonJS({
 var require_lib3 = __commonJS({
   "node_modules/jszip/lib/index.js"(exports, module) {
     "use strict";
-    function JSZip4() {
-      if (!(this instanceof JSZip4)) {
-        return new JSZip4();
+    function JSZip5() {
+      if (!(this instanceof JSZip5)) {
+        return new JSZip5();
       }
       if (arguments.length) {
         throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");
@@ -9755,7 +9755,7 @@ var require_lib3 = __commonJS({
       this.comment = null;
       this.root = "";
       this.clone = function() {
-        var newObj = new JSZip4();
+        var newObj = new JSZip5();
         for (var i in this) {
           if (typeof this[i] !== "function") {
             newObj[i] = this[i];
@@ -9764,16 +9764,16 @@ var require_lib3 = __commonJS({
         return newObj;
       };
     }
-    JSZip4.prototype = require_object();
-    JSZip4.prototype.loadAsync = require_load();
-    JSZip4.support = require_support();
-    JSZip4.defaults = require_defaults();
-    JSZip4.version = "3.10.1";
-    JSZip4.loadAsync = function(content, options) {
-      return new JSZip4().loadAsync(content, options);
+    JSZip5.prototype = require_object();
+    JSZip5.prototype.loadAsync = require_load();
+    JSZip5.support = require_support();
+    JSZip5.defaults = require_defaults();
+    JSZip5.version = "3.10.1";
+    JSZip5.loadAsync = function(content, options) {
+      return new JSZip5().loadAsync(content, options);
     };
-    JSZip4.external = require_external();
-    module.exports = JSZip4;
+    JSZip5.external = require_external();
+    module.exports = JSZip5;
   }
 });
 
@@ -15828,7 +15828,7 @@ var require_dom_parser = __commonJS({
     function normalizeLineEndings(input) {
       return input.replace(/\r[\n\u0085]/g, "\n").replace(/[\r\u0085\u2028\u2029]/g, "\n");
     }
-    function DOMParser2(options) {
+    function DOMParser3(options) {
       options = options || {};
       if (options.locator === void 0) {
         options.locator = true;
@@ -15845,7 +15845,7 @@ var require_dom_parser = __commonJS({
       this.locator = !!options.locator;
       this.xmlns = this.assign(/* @__PURE__ */ Object.create(null), options.xmlns);
     }
-    DOMParser2.prototype.parseFromString = function(source, mimeType) {
+    DOMParser3.prototype.parseFromString = function(source, mimeType) {
       if (!isValidMimeType(mimeType)) {
         throw new TypeError('DOMParser.parseFromString: the provided mimeType "' + mimeType + '" is not valid.');
       }
@@ -16067,7 +16067,7 @@ var require_dom_parser = __commonJS({
       throw "onWarningStopParsing";
     }
     exports.__DOMHandler = DOMHandler;
-    exports.DOMParser = DOMParser2;
+    exports.DOMParser = DOMParser3;
     exports.normalizeLineEndings = normalizeLineEndings;
     exports.onErrorStopParsing = onErrorStopParsing;
     exports.onWarningStopParsing = onWarningStopParsing;
@@ -16594,10 +16594,10 @@ var require_xml_helper = __commonJS({
         }
         return max;
       }
-      static getRelationshipTargetsByPrefix(archive, path9, prefix) {
+      static getRelationshipTargetsByPrefix(archive, path10, prefix) {
         return __awaiter(this, void 0, void 0, function* () {
           const prefixes = typeof prefix === "string" ? [prefix] : prefix;
-          return _XmlHelper.getRelationshipItems(archive, path9, (element, targets) => {
+          return _XmlHelper.getRelationshipItems(archive, path10, (element, targets) => {
             prefixes.forEach((prefix2) => {
               const target = _XmlHelper.parseRelationTarget(element, prefix2);
               if (target.prefix) {
@@ -16650,9 +16650,9 @@ var require_xml_helper = __commonJS({
         }
         return relType === subtype && file2.indexOf(prefix) === 0;
       }
-      static getTargetsByRelationshipType(archive, path9, type) {
+      static getTargetsByRelationshipType(archive, path10, type) {
         return __awaiter(this, void 0, void 0, function* () {
-          return yield _XmlHelper.getRelationshipItems(archive, path9, (element, rels) => {
+          return yield _XmlHelper.getRelationshipItems(archive, path10, (element, rels) => {
             const target = element.getAttribute("Type");
             if (target === type) {
               rels.push({
@@ -16664,10 +16664,10 @@ var require_xml_helper = __commonJS({
           });
         });
       }
-      static getRelationshipItems(archive, path9, cb, tag2) {
+      static getRelationshipItems(archive, path10, cb, tag2) {
         return __awaiter(this, void 0, void 0, function* () {
           tag2 = tag2 || "Relationship";
-          const xml = yield _XmlHelper.getXmlFromArchive(archive, path9);
+          const xml = yield _XmlHelper.getXmlFromArchive(archive, path10);
           const relationshipItems = xml.getElementsByTagName(tag2);
           const rels = [];
           for (const i in relationshipItems) {
@@ -16690,9 +16690,9 @@ var require_xml_helper = __commonJS({
         }
         return false;
       }
-      static replaceAttribute(archive, path9, tagName, attributeName, attributeValue, replaceValue, replaceAttributeName) {
+      static replaceAttribute(archive, path10, tagName, attributeName, attributeValue, replaceValue, replaceAttributeName) {
         return __awaiter(this, void 0, void 0, function* () {
-          const xml = yield _XmlHelper.getXmlFromArchive(archive, path9);
+          const xml = yield _XmlHelper.getXmlFromArchive(archive, path10);
           const elements2 = xml.getElementsByTagName(tagName);
           for (const i in elements2) {
             const element = elements2[i];
@@ -16700,14 +16700,14 @@ var require_xml_helper = __commonJS({
               element.setAttribute(replaceAttributeName || attributeName, replaceValue);
             }
             if (element.getAttribute !== void 0) {
-              content_tracker_1.contentTracker.trackRelation(path9, {
+              content_tracker_1.contentTracker.trackRelation(path10, {
                 Id: element.getAttribute("Id"),
                 Target: element.getAttribute("Target"),
                 Type: element.getAttribute("Type")
               });
             }
           }
-          _XmlHelper.writeXmlToArchive(archive, path9, xml);
+          _XmlHelper.writeXmlToArchive(archive, path10, xml);
         });
       }
       static getTargetByRelId(archive, relsPath, element, type) {
@@ -16749,15 +16749,15 @@ var require_xml_helper = __commonJS({
       static isElementCreationId(selector) {
         return selector.indexOf("{") === 0 && selector.split("-").length === 5;
       }
-      static findByElementCreationId(archive, path9, creationId) {
+      static findByElementCreationId(archive, path10, creationId) {
         return __awaiter(this, void 0, void 0, function* () {
-          const slideXml = yield _XmlHelper.getXmlFromArchive(archive, path9);
+          const slideXml = yield _XmlHelper.getXmlFromArchive(archive, path10);
           return _XmlHelper.findByCreationId(slideXml, creationId);
         });
       }
-      static findByElementName(archive, path9, name, nameIdx) {
+      static findByElementName(archive, path10, name, nameIdx) {
         return __awaiter(this, void 0, void 0, function* () {
-          const slideXml = yield _XmlHelper.getXmlFromArchive(archive, path9);
+          const slideXml = yield _XmlHelper.getXmlFromArchive(archive, path10);
           return _XmlHelper.findByName(slideXml, name, nameIdx);
         });
       }
@@ -19173,7 +19173,7 @@ var require_yauzl = __commonJS({
     exports.ZipFile = ZipFile;
     exports.Entry = Entry;
     exports.RandomAccessReader = RandomAccessReader;
-    function open(path9, options, callback) {
+    function open(path10, options, callback) {
       if (typeof options === "function") {
         callback = options;
         options = null;
@@ -19185,7 +19185,7 @@ var require_yauzl = __commonJS({
       if (options.validateEntrySizes == null) options.validateEntrySizes = true;
       if (options.strictFileNames == null) options.strictFileNames = false;
       if (callback == null) callback = defaultCallback;
-      fs.open(path9, "r", function(err, fd) {
+      fs.open(path10, "r", function(err, fd) {
         if (err) return callback(err);
         fromFd(fd, options, function(err2, zipfile) {
           if (err2) fs.close(fd, defaultCallback);
@@ -19787,7 +19787,7 @@ var require_extract_zip = __commonJS({
     var debug = require_src()("extract-zip");
     var { createWriteStream, promises: fs } = __require("fs");
     var getStream = require_get_stream();
-    var path9 = __require("path");
+    var path10 = __require("path");
     var { promisify } = __require("util");
     var stream = __require("stream");
     var yauzl = require_yauzl();
@@ -19824,12 +19824,12 @@ var require_extract_zip = __commonJS({
               this.zipfile.readEntry();
               return;
             }
-            const destDir = path9.dirname(path9.join(this.opts.dir, entry.fileName));
+            const destDir = path10.dirname(path10.join(this.opts.dir, entry.fileName));
             try {
               await fs.mkdir(destDir, { recursive: true });
               const canonicalDestDir = await fs.realpath(destDir);
-              const relativeDestDir = path9.relative(this.opts.dir, canonicalDestDir);
-              if (relativeDestDir.split(path9.sep).includes("..")) {
+              const relativeDestDir = path10.relative(this.opts.dir, canonicalDestDir);
+              if (relativeDestDir.split(path10.sep).includes("..")) {
                 throw new Error(`Out of bound path "${canonicalDestDir}" found while processing file ${entry.fileName}`);
               }
               await this.extractEntry(entry);
@@ -19851,7 +19851,7 @@ var require_extract_zip = __commonJS({
         if (this.opts.onEntry) {
           this.opts.onEntry(entry, this.zipfile);
         }
-        const dest = path9.join(this.opts.dir, entry.fileName);
+        const dest = path10.join(this.opts.dir, entry.fileName);
         const mode = entry.externalFileAttributes >> 16 & 65535;
         const IFMT = 61440;
         const IFDIR = 16384;
@@ -19865,7 +19865,7 @@ var require_extract_zip = __commonJS({
         if (!isDir) isDir = madeBy === 0 && entry.externalFileAttributes === 16;
         debug("extracting entry", { filename: entry.fileName, isDir, isSymlink: symlink });
         const procMode = this.getExtractedMode(mode, isDir) & 511;
-        const destDir = isDir ? dest : path9.dirname(dest);
+        const destDir = isDir ? dest : path10.dirname(dest);
         const mkdirOptions = { recursive: true };
         if (isDir) {
           mkdirOptions.mode = procMode;
@@ -19907,7 +19907,7 @@ var require_extract_zip = __commonJS({
     };
     module.exports = async function(zipPath, opts) {
       debug("creating target directory", opts.dir);
-      if (!path9.isAbsolute(opts.dir)) {
+      if (!path10.isAbsolute(opts.dir)) {
         throw new Error("Target directory is expected to be absolute");
       }
       await fs.mkdir(opts.dir, { recursive: true });
@@ -20121,12 +20121,12 @@ var require_archive_fs = __commonJS({
       }
       folder(dir) {
         return __awaiter(this, void 0, void 0, function* () {
-          const path9 = this.getPath(dir);
+          const path10 = this.getPath(dir);
           const files = [];
-          if (!(0, file_helper_1.exists)(path9)) {
+          if (!(0, file_helper_1.exists)(path10)) {
             return files;
           }
-          let entries = yield fs_1.promises.readdir(path9, { withFileTypes: true });
+          let entries = yield fs_1.promises.readdir(path10, { withFileTypes: true });
           for (let entry of entries) {
             if (!entry.isDirectory()) {
               files.push({
@@ -20143,8 +20143,8 @@ var require_archive_fs = __commonJS({
           if (!this.archive) {
             yield this.initialize();
           }
-          const path9 = this.getPath(file2);
-          return yield fs_1.promises.readFile(path9);
+          const path10 = this.getPath(file2);
+          return yield fs_1.promises.readFile(path10);
         });
       }
       getPath(file2) {
@@ -20163,9 +20163,9 @@ var require_archive_fs = __commonJS({
       }
       remove(file2) {
         return __awaiter(this, void 0, void 0, function* () {
-          const path9 = this.getPath(file2);
-          if ((0, file_helper_1.exists)(path9)) {
-            yield fs_1.promises.unlink(path9);
+          const path10 = this.getPath(file2);
+          if ((0, file_helper_1.exists)(path10)) {
+            yield fs_1.promises.unlink(path10);
           }
         });
       }
@@ -20443,11 +20443,11 @@ var require_xml_relationship_helper = __commonJS({
         this.tag = tag2 || "Relationship";
         return this;
       }
-      initialize(archive, file2, path9, prefix) {
+      initialize(archive, file2, path10, prefix) {
         return __awaiter(this, void 0, void 0, function* () {
           this.archive = archive;
           this.file = file2;
-          this.path = path9 + "/";
+          this.path = path10 + "/";
           const fileProxy = yield this.archive;
           this.xml = yield xml_helper_1.XmlHelper.getXmlFromArchive(fileProxy, this.path + this.file);
           yield this.readTargets();
@@ -22269,9 +22269,9 @@ var require_xml_template_helper = __commonJS({
         };
       }
       getNameFromSlideInfo(slideXml) {
-        const slideTitle = slideXml.getElementsByTagName("p:ph");
-        if (slideTitle.length && slideTitle[0].getAttribute("type") === "title") {
-          const titleElement = slideTitle[0].parentNode.parentNode.parentNode;
+        const slideTitle2 = slideXml.getElementsByTagName("p:ph");
+        if (slideTitle2.length && slideTitle2[0].getAttribute("type") === "title") {
+          const titleElement = slideTitle2[0].parentNode.parentNode.parentNode;
           const nameFragments = this.parseTitleElement(titleElement);
           if (nameFragments.length) {
             return nameFragments.join(" ");
@@ -22388,9 +22388,9 @@ var require_xml_slide_helper = __commonJS({
        * @param params
        */
       constructor(slideXml, params) {
-        this.getAndExtractDimensions = (path9) => __awaiter(this, void 0, void 0, function* () {
+        this.getAndExtractDimensions = (path10) => __awaiter(this, void 0, void 0, function* () {
           try {
-            const xml = yield xml_helper_1.XmlHelper.getXmlFromArchive(this.sourceArchive, path9);
+            const xml = yield xml_helper_1.XmlHelper.getXmlFromArchive(this.sourceArchive, path10);
             if (!xml)
               return null;
             const sldSz = xml.getElementsByTagName("p:sldSz")[0];
@@ -22401,7 +22401,7 @@ var require_xml_slide_helper = __commonJS({
             }
             return null;
           } catch (error51) {
-            console.warn(`Error while fetching XML from path ${path9}: ${error51}`);
+            console.warn(`Error while fetching XML from path ${path10}: ${error51}`);
             return null;
           }
         });
@@ -23896,10 +23896,10 @@ var require_has_shapes = __commonJS({
           return this.getSlideHelperInstance(this.sourceTemplate.archive, this.sourcePath, this.sourceNumber);
         });
       }
-      getSlideHelperInstance(archive, path9, number4) {
+      getSlideHelperInstance(archive, path10, number4) {
         return __awaiter(this, void 0, void 0, function* () {
           try {
-            const slideXml = yield xml_helper_1.XmlHelper.getXmlFromArchive(archive, path9);
+            const slideXml = yield xml_helper_1.XmlHelper.getXmlFromArchive(archive, path10);
             const sourceLayoutId = yield xml_relationship_helper_1.XmlRelationshipHelper.getSlideLayoutNumber(archive, number4);
             return new xml_slide_helper_1.XmlSlideHelper(slideXml, {
               sourceArchive: archive,
@@ -25386,11 +25386,11 @@ var require_count_helper = __commonJS({
 var require_pptxgen_cjs = __commonJS({
   "node_modules/pptx-automizer/node_modules/pptxgenjs/dist/pptxgen.cjs.js"(exports, module) {
     "use strict";
-    var JSZip4 = require_lib3();
+    var JSZip5 = require_lib3();
     function _interopDefaultLegacy(e) {
       return e && typeof e === "object" && "default" in e ? e : { "default": e };
     }
-    var JSZip__default = /* @__PURE__ */ _interopDefaultLegacy(JSZip4);
+    var JSZip__default = /* @__PURE__ */ _interopDefaultLegacy(JSZip5);
     var __assign = function() {
       __assign = Object.assign || function __assign2(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -38048,7 +38048,7 @@ var require_dist = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.types = exports.setConcurrency = exports.disableTypes = exports.disableFS = exports.imageSize = void 0;
     var fs = __require("fs");
-    var path9 = __require("path");
+    var path10 = __require("path");
     var queue_1 = require_queue();
     var index_1 = require_types();
     var detector_1 = require_detector();
@@ -38089,7 +38089,7 @@ var require_dist = __commonJS({
         await handle.close();
       }
     }
-    function readFileSync8(filepath) {
+    function readFileSync9(filepath) {
       const descriptor = fs.openSync(filepath, "r");
       try {
         const { size } = fs.fstatSync(descriptor);
@@ -38113,11 +38113,11 @@ var require_dist = __commonJS({
       if (typeof input !== "string" || globalOptions.disabledFS) {
         throw new TypeError("invalid invocation. input should be a Uint8Array");
       }
-      const filepath = path9.resolve(input);
+      const filepath = path10.resolve(input);
       if (typeof callback === "function") {
         queue.push(() => readFileAsync(filepath).then((input2) => process.nextTick(callback, null, lookup(input2, filepath))).catch(callback));
       } else {
-        const input2 = readFileSync8(filepath);
+        const input2 = readFileSync9(filepath);
         return lookup(input2, filepath);
       }
     }
@@ -38514,6 +38514,25 @@ Options:
 
 Example:
   pptc state deck.pptx --level full --slide title:Agenda`,
+  "verify": `pptc verify <deck> [--strict]
+
+Check a finished deck against every known PowerPoint "repair" trigger
+(dangling relationships, stale docProps/app.xml, shared notesSlides,
+broken content types, schema-order and reference errors). 'apply'
+already runs this on its own output before writing, so a freshly built
+deck is clean by construction; use 'verify' as an explicit gate after a
+build, or on any .pptx whose origin you do not control.
+
+Options:
+  --strict       any finding is a hard failure (exit 8) instead of a
+                 successful report with findings in the result
+
+Result:
+  result.ok        true when the deck has no findings
+  result.findings  human-readable list of repair triggers (empty = clean)
+
+Example:
+  pptc verify deck.pptx --strict`,
   "new": `pptc new <deck> --template <tpl> [--force] [--ops @file] [--strict]
 
 Create a valid, zero-slide deck carrying the template's masters,
@@ -38723,7 +38742,8 @@ var EXIT_CODES = {
   E_TEMPLATE: 4,
   E_ENGINE: 5,
   E_REV_CONFLICT: 6,
-  E_LINT: 7
+  E_LINT: 7,
+  E_INTEGRITY: 8
 };
 var PptcError = class extends Error {
   /**  stable machine-readable error code  */
@@ -38805,7 +38825,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.2.14" : "0.0.0-dev";
+var VERSION = true ? "0.2.15" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -39258,6 +39278,48 @@ var regionWithin = (outer, inner) => {
   if (vBand === "full height")
     return hBand;
   return `${vBand}, ${hBand}`;
+};
+var coverageFraction = (outer, inners) => {
+  const area = outer.w * outer.h;
+  if (area <= 0)
+    return 0;
+  const rects = [];
+  for (const f of inners) {
+    const x = Math.max(f.x, outer.x);
+    const y = Math.max(f.y, outer.y);
+    const r = Math.min(f.x + f.w, outer.x + outer.w);
+    const b = Math.min(f.y + f.h, outer.y + outer.h);
+    if (r > x && b > y)
+      rects.push({ x, y, w: r - x, h: b - y });
+  }
+  if (rects.length === 0)
+    return 0;
+  const xs = Array.from(new Set(rects.flatMap((f) => [f.x, f.x + f.w]))).sort((a, b) => a - b);
+  let covered = 0;
+  for (let i = 0; i + 1 < xs.length; i++) {
+    const x0 = xs[i];
+    const x1 = xs[i + 1];
+    const stripW = x1 - x0;
+    if (stripW <= 0)
+      continue;
+    const ivals = rects.filter((f) => f.x <= x0 && f.x + f.w >= x1).map((f) => [f.y, f.y + f.h]).sort((a, b) => a[0] - b[0]);
+    let yCov = 0;
+    let openS = Infinity;
+    let openE = -Infinity;
+    for (const [s, e] of ivals) {
+      if (s > openE) {
+        if (openE > openS)
+          yCov += openE - openS;
+        openS = s;
+        openE = e;
+      } else if (e > openE)
+        openE = e;
+    }
+    if (openE > openS)
+      yCov += openE - openS;
+    covered += stripW * yCov;
+  }
+  return Math.min(1, covered / area);
 };
 var nearestAspect = (frame) => {
   if (frame.h === 0)
@@ -40258,10 +40320,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path9) {
-  if (!path9)
+function getElementAtPath(obj, path10) {
+  if (!path10)
     return obj;
-  return path9.reduce((acc, key) => acc?.[key], obj);
+  return path10.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -40670,11 +40732,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path9, issues) {
+function prefixIssues(path10, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path9);
+    iss.path.unshift(path10);
     return iss;
   });
 }
@@ -40821,16 +40883,16 @@ function flattenError(error51, mapper = (issue2) => issue2.message) {
 }
 function formatError(error51, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error52, path9 = []) => {
+  const processError = (error52, path10 = []) => {
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path9, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path10, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path9, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path10, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path9, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path10, ...issue2.path]);
       } else {
-        const fullpath = [...path9, ...issue2.path];
+        const fullpath = [...path10, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -40857,17 +40919,17 @@ function formatError(error51, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error51, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error52, path9 = []) => {
+  const processError = (error52, path10 = []) => {
     var _a3, _b;
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path9, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path10, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path9, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path10, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path9, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path10, ...issue2.path]);
       } else {
-        const fullpath = [...path9, ...issue2.path];
+        const fullpath = [...path10, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -40899,8 +40961,8 @@ function treeifyError(error51, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path9 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path9) {
+  const path10 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path10) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -53592,13 +53654,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path9 = ref.slice(1).split("/").filter(Boolean);
-  if (path9.length === 0) {
+  const path10 = ref.slice(1).split("/").filter(Boolean);
+  if (path10.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path9[0] === defsKey) {
-    const key = path9[1];
+  if (path10[0] === defsKey) {
+    const key = path10[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -54048,7 +54110,11 @@ var TableSchema = external_exports.object({
     headerFg: ColorSchema.optional(),
     altRowBg: ColorSchema.optional(),
     fontSize: external_exports.number().positive().optional(),
-    border: ColorSchema.optional()
+    border: ColorSchema.optional(),
+    /**  fixed header-row height in inches (uniform headers across tables)  */
+    headerHeight: external_exports.number().positive().optional(),
+    /**  fixed body-row height in inches (uniform rows)  */
+    rowHeight: external_exports.number().positive().optional()
   }).strict().optional(),
   merge: external_exports.array(external_exports.object({
     row: external_exports.number().int().min(0),
@@ -54533,24 +54599,78 @@ var readTemplateInfo = async (archive) => {
       if (pic.kind !== "picture" || pic.frame === null)
         continue;
       const overlays = [];
+      const covering = [];
       for (const other of placeholders) {
         if (other === pic || other.kind === "picture" || other.frame === null)
           continue;
         const region = regionWithin(pic.frame, other.frame);
-        if (region !== null)
+        if (region !== null) {
           overlays.push({ name: other.name, region });
+          covering.push(other.frame);
+        }
       }
       for (const f of reserved) {
         const region = regionWithin(pic.frame, f);
-        if (region !== null)
+        if (region !== null) {
           overlays.push({ name: "footer/slide-number", region });
+          covering.push(f);
+        }
       }
-      if (overlays.length > 0)
+      if (overlays.length > 0) {
         pic.overlays = overlays;
+        pic.coverage = coverageFraction(pic.frame, covering);
+      }
     }
     layouts.push({ index, name, placeholders, reserved });
   }
-  return { slideSize, fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") }, colors, layouts };
+  const guides = { horizontal: [], vertical: [] };
+  try {
+    const master = await archive.xml("ppt/slideMasters/slideMaster1.xml");
+    for (const g of elements(master, "p15:guide")) {
+      const pos = Number(g.getAttribute("pos"));
+      if (!Number.isFinite(pos))
+        continue;
+      if (g.getAttribute("orient") === "horz")
+        guides.horizontal.push(pos / 576);
+      else
+        guides.vertical.push(pos / 576);
+    }
+  } catch {
+  }
+  const uniqSort = (xs) => Array.from(new Set(xs.map((v) => Math.round(v * 100) / 100))).sort((a, b) => a - b);
+  guides.horizontal = uniqSort(guides.horizontal);
+  guides.vertical = uniqSort(guides.vertical);
+  const hasGuides = guides.horizontal.length + guides.vertical.length > 0;
+  let contentArea;
+  const bodies = layouts.flatMap((l) => l.placeholders).filter((p) => p.kind === "body" && p.frame !== null).map((p) => p.frame);
+  if (bodies.length > 0) {
+    const biggest = bodies.reduce((a, b) => a.w * a.h >= b.w * b.h ? a : b);
+    const snap = (v, cand) => {
+      let best = v;
+      let bestD = 0.4;
+      for (const c of cand) {
+        const d = Math.abs(c - v);
+        if (d < bestD) {
+          bestD = d;
+          best = c;
+        }
+      }
+      return best;
+    };
+    const x1 = snap(biggest.x, guides.vertical);
+    const x2 = snap(biggest.x + biggest.w, guides.vertical);
+    const y1 = snap(biggest.y, guides.horizontal);
+    const y2 = snap(biggest.y + biggest.h, guides.horizontal);
+    contentArea = { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) };
+  }
+  return {
+    slideSize,
+    fonts: { major: fontOf("a:majorFont"), minor: fontOf("a:minorFont") },
+    colors,
+    layouts,
+    ...hasGuides ? { guides } : {},
+    ...contentArea !== void 0 ? { contentArea } : {}
+  };
 };
 var shapeType = (el) => {
   switch (el.nodeName) {
@@ -54649,8 +54769,8 @@ var readDeckState = async (archive) => {
 
 // src/engine/session.ts
 var import_pptx_automizer = __toESM(require_dist2(), 1);
-import { readFileSync as readFileSync6, rmSync } from "node:fs";
-import path6 from "node:path";
+import { readFileSync as readFileSync7, rmSync } from "node:fs";
+import path7 from "node:path";
 
 // src/engine/elements.ts
 var chartType = (gen, type) => {
@@ -54762,14 +54882,28 @@ var addElement = (slide, gen, el) => {
         ...el.border !== void 0 && { line: { color: el.border, width: el.borderPt ?? 1 } }
       });
       break;
-    case "table":
-      slide.addTable(genTableRows(el.data), {
+    case "table": {
+      const st = el.data.style;
+      const opts = {
         ...frame,
-        border: { type: "solid", color: el.data.style?.border ?? "ACACAC", pt: 0.5 },
-        ...el.data.style?.fontSize !== void 0 && { fontSize: el.data.style.fontSize },
+        border: { type: "solid", color: st?.border ?? "ACACAC", pt: 0.5 },
         valign: "middle"
-      });
+      };
+      if (st?.fontSize !== void 0)
+        opts.fontSize = st.fontSize;
+      if (st?.headerHeight !== void 0 || st?.rowHeight !== void 0) {
+        const hh = st.headerHeight ?? st.rowHeight;
+        const rh = st.rowHeight ?? st.headerHeight;
+        const heights = [];
+        if (el.data.headers !== void 0)
+          heights.push(hh);
+        for (let i = 0; i < el.data.rows.length; i++)
+          heights.push(rh);
+        opts.rowH = heights;
+      }
+      slide.addTable(genTableRows(el.data), opts);
       break;
+    }
     case "chart": {
       const { type, extra } = chartType(gen, el.data.type);
       const isXY = el.data.type === "scatter" || el.data.type === "bubble";
@@ -54954,12 +55088,15 @@ var gcParts = async (zip, kept) => {
   await removeParts(zip, orphanNotes);
   const presRelsPart = "ppt/_rels/presentation.xml.rels";
   const presRels = parseXml(await partText(zip, presRelsPart));
+  const pres = parseXml(await partText(zip, "ppt/presentation.xml"));
+  const liveSlideRids = new Set(elements(pres, "p:sldId").map((s) => s.getAttribute("r:id") ?? ""));
   let pruned = false;
   for (const rel of elements(presRels, "Relationship")) {
     if (rel.getAttribute("TargetMode") === "External")
       continue;
     const target = path4.posix.normalize(path4.posix.join("ppt", rel.getAttribute("Target") ?? ""));
-    if (zip.file(target) === null) {
+    const isSlide = (rel.getAttribute("Type") ?? "").endsWith("/slide");
+    if (zip.file(target) === null || isSlide && !liveSlideRids.has(rel.getAttribute("Id") ?? "")) {
       rel.parentNode?.removeChild(rel);
       pruned = true;
     }
@@ -55242,6 +55379,90 @@ var wireHyperlinks = (post, slide, slideRels) => {
     hlink.setAttributeNS(NS_R, "r:id", rid);
   }
 };
+var dedupeSharedNotes = async (zip, slides) => {
+  const refs = /* @__PURE__ */ new Map();
+  for (const slidePart of slides) {
+    const relsText = await zip.file(`ppt/slides/_rels/${path4.posix.basename(slidePart)}.rels`)?.async("string");
+    if (relsText === void 0)
+      continue;
+    const rel = elements(parseXml(relsText), "Relationship").find((r) => (r.getAttribute("Type") ?? "").endsWith("/notesSlide"));
+    if (rel === void 0)
+      continue;
+    const notesPart = path4.posix.normalize(path4.posix.join("ppt/slides", rel.getAttribute("Target") ?? ""));
+    refs.set(notesPart, [...refs.get(notesPart) ?? [], slidePart]);
+  }
+  const setBackref = async (notesPart, slidePart) => {
+    const relsPart = `ppt/notesSlides/_rels/${path4.posix.basename(notesPart)}.rels`;
+    const doc = parseXml(await partText(zip, relsPart));
+    for (const back of elements(doc, "Relationship"))
+      if ((back.getAttribute("Type") ?? "").endsWith("/slide"))
+        back.setAttribute("Target", `../slides/${path4.posix.basename(slidePart)}`);
+    zip.file(relsPart, serializeXml(doc));
+  };
+  for (const [notesPart, owners] of refs) {
+    if (owners.length < 2 || !/notesSlide-pptc-/.test(notesPart))
+      continue;
+    await setBackref(notesPart, owners[0]);
+    for (let i = 1; i < owners.length; i++) {
+      const slidePart = owners[i];
+      let clone2 = `ppt/notesSlides/notesSlide-pptc-${path4.posix.basename(slidePart, ".xml")}.xml`;
+      if (clone2 === notesPart || zip.file(clone2) !== null)
+        clone2 = `ppt/notesSlides/notesSlide-pptc-${path4.posix.basename(slidePart, ".xml")}-${i}.xml`;
+      zip.file(clone2, await partText(zip, notesPart));
+      zip.file(
+        `ppt/notesSlides/_rels/${path4.posix.basename(clone2)}.rels`,
+        await partText(zip, `ppt/notesSlides/_rels/${path4.posix.basename(notesPart)}.rels`)
+      );
+      await setBackref(clone2, slidePart);
+      const slideRelsPart = `ppt/slides/_rels/${path4.posix.basename(slidePart)}.rels`;
+      const slideRels = parseXml(await partText(zip, slideRelsPart));
+      for (const r of elements(slideRels, "Relationship"))
+        if ((r.getAttribute("Type") ?? "").endsWith("/notesSlide"))
+          r.setAttribute("Target", `../notesSlides/${path4.posix.basename(clone2)}`);
+      zip.file(slideRelsPart, serializeXml(slideRels));
+      const ct = await partText(zip, "[Content_Types].xml");
+      if (!ct.includes(clone2))
+        zip.file("[Content_Types].xml", ct.replace(
+          "</Types>",
+          `<Override PartName="/${clone2}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/></Types>`
+        ));
+    }
+  }
+};
+var slideTitle = (slide) => {
+  for (const sp of elements(slide, "p:sp")) {
+    const type = firstElement(sp, "p:ph")?.getAttribute("type") ?? "";
+    if (type === "title" || type === "ctrTitle")
+      return elements(sp, "a:t").map((n) => n.textContent ?? "").join("");
+  }
+  return "";
+};
+var xmlEscape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+var syncAppProperties = async (zip, slides) => {
+  const part = "docProps/app.xml";
+  const f = zip.file(part);
+  if (f === null)
+    return;
+  let xml = await f.async("string");
+  const hp = /<HeadingPairs>([\s\S]*?)<\/HeadingPairs>/.exec(xml);
+  const tp = /<TitlesOfParts>([\s\S]*?)<\/TitlesOfParts>/.exec(xml);
+  if (hp === null || tp === null)
+    return;
+  const hpBody = hp[1] ?? "";
+  const tpBody = tp[1] ?? "";
+  const n = slides.length;
+  const titles = [];
+  for (const slidePart of slides)
+    titles.push(slideTitle(parseXml(await partText(zip, slidePart))));
+  const counts = [...hpBody.matchAll(/<vt:i4>(\d+)<\/vt:i4>/g)].map((m) => Number(m[1]));
+  const leading = counts.slice(0, -1).reduce((a, b) => a + b, 0);
+  let seen = 0;
+  const newHp = hpBody.replace(/<vt:i4>\d+<\/vt:i4>/g, (m) => ++seen === counts.length ? `<vt:i4>${n}</vt:i4>` : m);
+  const kept = [...tpBody.matchAll(/<vt:lpstr>([\s\S]*?)<\/vt:lpstr>/g)].map((m) => m[1]).slice(0, leading);
+  const lpstr = [...kept, ...titles.map(xmlEscape)].map((e) => `<vt:lpstr>${e}</vt:lpstr>`).join("");
+  xml = xml.replace(/<Slides>\d+<\/Slides>/, `<Slides>${n}</Slides>`).replace(hp[0], `<HeadingPairs>${newHp}</HeadingPairs>`).replace(tp[0], `<TitlesOfParts><vt:vector size="${leading + n}" baseType="lpstr">${lpstr}</vt:vector></TitlesOfParts>`);
+  zip.file(part, xml);
+};
 var setProps = async (zip, props) => {
   const part = "docProps/core.xml";
   const text = await zip.file(part)?.async("string");
@@ -55325,16 +55546,145 @@ var postProcess = async (bytes, work, props) => {
   }
   if (props !== null)
     await setProps(zip, props);
+  await dedupeSharedNotes(zip, slides);
   await gcAssets(zip);
   await pruneSectionRefs(zip);
   await cleanContentTypes(zip);
+  await syncAppProperties(zip, slides);
   return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 };
 
-// src/engine/seed.ts
+// src/engine/verify.ts
 var import_jszip3 = __toESM(require_lib3(), 1);
-import { readFileSync as readFileSync5, writeFileSync as writeFileSync3, existsSync as existsSync2 } from "node:fs";
+var import_xmldom2 = __toESM(require_lib4(), 1);
 import path5 from "node:path";
+import { readFileSync as readFileSync5 } from "node:fs";
+var verifyArchive = async (zip) => {
+  const findings = [];
+  const names = new Set(Object.keys(zip.files).filter((n) => !n.endsWith("/")));
+  const text = async (part) => await zip.file(part).async("string");
+  for (const n of names)
+    if (n.endsWith(".xml") || n.endsWith(".rels"))
+      try {
+        const parser = new import_xmldom2.DOMParser({
+          onError: (_level, msg) => {
+            throw new Error(msg);
+          }
+        });
+        parser.parseFromString(await text(n), "application/xml");
+      } catch (err) {
+        findings.push(`${n}: malformed XML (${String(err).slice(0, 80)})`);
+      }
+  for (const n of names)
+    if (/^ppt\/slides\/slide\d+\.xml$/.test(n)) {
+      const ids = [...(await text(n)).matchAll(/<p:cNvPr id="(\d+)"/g)].map((m) => m[1]);
+      const dup = [...new Set(ids.filter((id) => ids.indexOf(id) !== ids.lastIndexOf(id)))];
+      if (dup.length > 0)
+        findings.push(`${n}: duplicate cNvPr ids ${dup.join(",")}`);
+    }
+  for (const n of names)
+    if (n.endsWith(".rels")) {
+      const relIds = [...(await text(n)).matchAll(/<Relationship Id="([^"]+)"/g)].map((m) => m[1]);
+      const dupIds = [...new Set(relIds.filter((id) => relIds.indexOf(id) !== relIds.lastIndexOf(id)))];
+      if (dupIds.length > 0)
+        findings.push(`${n}: duplicate relationship ids ${dupIds.join(",")}`);
+      const base = path5.posix.dirname(path5.posix.dirname(n));
+      for (const m of (await text(n)).matchAll(/<Relationship [^>]*?\/>/g)) {
+        if (m[0].includes('TargetMode="External"'))
+          continue;
+        const target = /Target="([^"]+)"/.exec(m[0])?.[1] ?? "";
+        const full = path5.posix.normalize(path5.posix.join(base, target));
+        if (!names.has(full))
+          findings.push(`${n}: dead relationship target ${target}`);
+      }
+    }
+  const ct = await text("[Content_Types].xml");
+  const overrides = [...ct.matchAll(/<Override PartName="([^"]+)"/g)].map((m) => m[1]);
+  for (const o of new Set(overrides)) {
+    if (!names.has(o.replace(/^\//, "")))
+      findings.push(`[Content_Types].xml: override for missing part ${o}`);
+    if (overrides.filter((x) => x === o).length > 1)
+      findings.push(`[Content_Types].xml: duplicate override ${o}`);
+  }
+  const defaults = new Set([...ct.matchAll(/<Default Extension="([^"]+)"/g)].map((m) => m[1].toLowerCase()));
+  const overridden = new Set(overrides.map((o) => o.replace(/^\//, "")));
+  for (const n of names)
+    if (n !== "[Content_Types].xml" && !overridden.has(n) && !defaults.has(n.split(".").pop()?.toLowerCase() ?? ""))
+      findings.push(`${n}: no content type (neither default nor override)`);
+  const pres = await text("ppt/presentation.xml");
+  const rels = await text("ppt/_rels/presentation.xml.rels");
+  const relMap = new Map([...rels.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g)].map((m) => [m[1], m[2]]));
+  for (const m of pres.matchAll(/<p:sldId [^>]*r:id="([^"]+)"/g)) {
+    const target = relMap.get(m[1]);
+    if (target === void 0 || !names.has(path5.posix.normalize(path5.posix.join("ppt", target))))
+      findings.push(`presentation.xml: sldId ${m[1]} does not resolve to a slide part`);
+  }
+  const seq = [...pres.matchAll(/<p:(sldMasterIdLst|notesMasterIdLst|handoutMasterIdLst|sldIdLst|sldSz|notesSz)[ >/]/g)].map((m) => m[1]);
+  const sldAt = seq.indexOf("sldIdLst");
+  if (sldAt >= 0) {
+    for (const lst of ["notesMasterIdLst", "handoutMasterIdLst"])
+      if (seq.includes(lst) && seq.indexOf(lst) > sldAt)
+        findings.push(`presentation.xml: ${lst} appears after sldIdLst (schema order violated)`);
+  }
+  if (seq.includes("sldSz") && seq.includes("notesSz") && seq.indexOf("sldSz") > seq.indexOf("notesSz"))
+    findings.push("presentation.xml: sldSz appears after notesSz (schema order violated)");
+  const liveSlideRids = new Set([...pres.matchAll(/<p:sldId [^>]*r:id="([^"]+)"/g)].map((m) => m[1]));
+  for (const m of rels.matchAll(/<Relationship Id="([^"]+)"[^>]*Type="[^"]*\/slide"[^>]*\/>/g))
+    if (!liveSlideRids.has(m[1]))
+      findings.push(`presentation.xml.rels: dangling slide relationship ${m[1]} (no sldId references it)`);
+  const realIds = new Set([...pres.matchAll(/<p:sldId [^>]*\bid="(\d+)"/g)].map((m) => m[1]));
+  for (const m of pres.matchAll(/<p14:sldId id="(\d+)"/g))
+    if (!realIds.has(m[1]))
+      findings.push(`presentation.xml: section references removed slide id ${m[1]}`);
+  if (names.has("docProps/app.xml")) {
+    const app = await text("docProps/app.xml");
+    const slideCount = [...pres.matchAll(/<p:sldId /g)].length;
+    const declared = /<Slides>(\d+)<\/Slides>/.exec(app);
+    if (declared !== null && Number(declared[1]) !== slideCount)
+      findings.push(`docProps/app.xml: declares ${declared[1]} slides, deck has ${slideCount}`);
+    const hp = /<HeadingPairs>([\s\S]*?)<\/HeadingPairs>/.exec(app);
+    const tp = /<TitlesOfParts>([\s\S]*?)<\/TitlesOfParts>/.exec(app);
+    if (hp !== null && tp !== null) {
+      const sum = [...(hp[1] ?? "").matchAll(/<vt:i4>(\d+)<\/vt:i4>/g)].reduce((a, m) => a + Number(m[1]), 0);
+      const entries = [...(tp[1] ?? "").matchAll(/<vt:lpstr>/g)].length;
+      if (sum !== entries)
+        findings.push(`docProps/app.xml: HeadingPairs sum ${sum} != TitlesOfParts ${entries}`);
+    }
+  }
+  const notesRef = /* @__PURE__ */ new Map();
+  for (const n of names)
+    if (/^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(n))
+      for (const m of (await text(n)).matchAll(/Target="\.\.\/notesSlides\/([^"]+)"/g)) {
+        const part = m[1];
+        notesRef.set(part, [...notesRef.get(part) ?? [], n]);
+      }
+  for (const [part, owners] of notesRef)
+    if (owners.length > 1)
+      findings.push(`notesSlide ${part} is referenced by ${owners.length} slides (must be 1:1)`);
+  const isAsset = (f) => /^ppt\/(charts|embeddings|media)\//.test(f) && !f.includes("/_rels/");
+  const live = /* @__PURE__ */ new Set();
+  for (const n of names)
+    if (n.endsWith(".rels")) {
+      const base = path5.posix.dirname(path5.posix.dirname(n));
+      for (const m of (await text(n)).matchAll(/<Relationship [^>]*?\/>/g)) {
+        if (m[0].includes('TargetMode="External"'))
+          continue;
+        const target = /Target="([^"]+)"/.exec(m[0])?.[1] ?? "";
+        live.add(path5.posix.normalize(path5.posix.join(base, target)));
+      }
+    }
+  for (const n of names)
+    if (isAsset(n) && !live.has(n))
+      findings.push(`${n}: orphan asset (not referenced from any part)`);
+  return findings;
+};
+var verifyBytes = async (bytes) => await verifyArchive(await import_jszip3.default.loadAsync(bytes));
+var verifyFile = async (file2) => await verifyBytes(readFileSync5(file2));
+
+// src/engine/seed.ts
+var import_jszip4 = __toESM(require_lib3(), 1);
+import { readFileSync as readFileSync6, writeFileSync as writeFileSync3, existsSync as existsSync2 } from "node:fs";
+import path6 from "node:path";
 var SEED_FORMAT = 4;
 var slideFromLayout = (layoutXml) => {
   const layout = parseXml(layoutXml);
@@ -55376,7 +55726,7 @@ var layoutOrder = async (zip) => {
   const order = [];
   for (const masterPart of Object.keys(zip.files).filter((f) => /^ppt\/slideMasters\/slideMaster\d+\.xml$/.test(f)).sort()) {
     const master = parseXml(await zip.file(masterPart).async("string"));
-    const relsFile = zip.file(`ppt/slideMasters/_rels/${path5.posix.basename(masterPart)}.rels`);
+    const relsFile = zip.file(`ppt/slideMasters/_rels/${path6.posix.basename(masterPart)}.rels`);
     if (relsFile === null)
       continue;
     const rels = parseXml(await relsFile.async("string"));
@@ -55384,13 +55734,13 @@ var layoutOrder = async (zip) => {
     for (const layoutId of elements(master, "p:sldLayoutId")) {
       const target = relMap.get(layoutId.getAttribute("r:id") ?? "");
       if (target !== void 0 && target.includes("slideLayouts/"))
-        order.push(path5.posix.normalize(path5.posix.join("ppt/slideMasters", target)));
+        order.push(path6.posix.normalize(path6.posix.join("ppt/slideMasters", target)));
     }
   }
   return order;
 };
 var buildSeed = async (templateBytes) => {
-  const zip = await import_jszip3.default.loadAsync(templateBytes);
+  const zip = await import_jszip4.default.loadAsync(templateBytes);
   const get = async (part) => {
     const f = zip.file(part);
     if (f === null)
@@ -55447,8 +55797,8 @@ var buildSeed = async (templateBytes) => {
   };
 };
 var ensureSeed = async (templatePath) => {
-  const bytes = readFileSync5(templatePath);
-  const seedPath = path5.join(cacheDir(), `seed-${SEED_FORMAT}-${contentHash(bytes)}.pptx`);
+  const bytes = readFileSync6(templatePath);
+  const seedPath = path6.join(cacheDir(), `seed-${SEED_FORMAT}-${contentHash(bytes)}.pptx`);
   if (!existsSync2(seedPath)) {
     const seed = await buildSeed(bytes);
     writeFileSync3(seedPath, seed.bytes);
@@ -55456,8 +55806,8 @@ var ensureSeed = async (templatePath) => {
   return seedPath;
 };
 var buildEmptyDeck = async (templatePath) => {
-  const seed = await buildSeed(readFileSync5(templatePath));
-  const zip = await import_jszip3.default.loadAsync(seed.bytes);
+  const seed = await buildSeed(readFileSync6(templatePath));
+  const zip = await import_jszip4.default.loadAsync(seed.bytes);
   const pres = await zip.file("ppt/presentation.xml").async("string");
   const presRels = await zip.file("ppt/_rels/presentation.xml.rels").async("string");
   const ct = await zip.file("[Content_Types].xml").async("string");
@@ -55526,7 +55876,7 @@ var executePlan = async (deckFile, outFile, plan, seedPath, tmpName, tmpFile) =>
     removeExistingSlides: true,
     verbosity: 0
   });
-  let pres = automizer.loadRoot(path6.resolve(deckFile)).load(path6.resolve(deckFile), "self");
+  let pres = automizer.loadRoot(path7.resolve(deckFile)).load(path7.resolve(deckFile), "self");
   if (seedPath !== null)
     pres = pres.load(seedPath, "seed");
   for (const entry of plan.entries) {
@@ -55544,8 +55894,15 @@ var executePlan = async (deckFile, outFile, plan, seedPath, tmpName, tmpFile) =>
       ...f.frame !== void 0 && { frame: f.frame }
     }))
   }));
-  const finalBytes = await postProcess(readFileSync6(tmpFile), work, plan.props);
-  atomicWrite(path6.resolve(outFile), finalBytes);
+  const finalBytes = await postProcess(readFileSync7(tmpFile), work, plan.props);
+  const findings = await verifyBytes(finalBytes);
+  if (findings.length > 0)
+    throw new PptcError(
+      "E_INTEGRITY",
+      `the engine produced ${findings.length} integrity violation(s); deck not written`,
+      { findings }
+    );
+  atomicWrite(path7.resolve(outFile), finalBytes);
   const refIndexes = {};
   for (const [name, entry] of plan.refs)
     refIndexes[name] = plan.entries.indexOf(entry);
@@ -55560,7 +55917,7 @@ var runSession = async (deckFile, outFile, plan, templatePath) => {
     );
   const seedPath = needsSeed ? await ensureSeed(templatePath) : null;
   const tmpName = `pptc-session-${process.pid}.pptx`;
-  const tmpFile = path6.join(cacheDir(), tmpName);
+  const tmpFile = path7.join(cacheDir(), tmpName);
   try {
     return await withStdoutShield(() => executePlan(deckFile, outFile, plan, seedPath, tmpName, tmpFile));
   } catch (err) {
@@ -55684,7 +56041,7 @@ var cmdApply = async (argv) => {
 
 // src/commands/new.ts
 import { existsSync as existsSync3, rmSync as rmSync2 } from "node:fs";
-import path7 from "node:path";
+import path8 from "node:path";
 var cmdNew = async (argv) => {
   const args = parse3(argv, {
     "template": { type: "string" },
@@ -55699,12 +56056,12 @@ var cmdNew = async (argv) => {
     throw new PptcError("E_FILE", `'${deckFile}' already exists -- use --force to overwrite`);
   const opsArg = args.str("ops");
   if (opsArg === null) {
-    atomicWrite(path7.resolve(deckFile), await buildEmptyDeck(templatePath));
-    return { file: path7.resolve(deckFile), result: { created: true, slideCount: 0 } };
+    atomicWrite(path8.resolve(deckFile), await buildEmptyDeck(templatePath));
+    return { file: path8.resolve(deckFile), result: { created: true, slideCount: 0 } };
   }
   const rawDoc = parseJson(resolvePayload(opsArg));
   const doc = Array.isArray(rawDoc) ? { ops: rawDoc } : rawDoc;
-  const stage = path7.join(cacheDir(), `pptc-new-${process.pid}.pptx`);
+  const stage = path8.join(cacheDir(), `pptc-new-${process.pid}.pptx`);
   try {
     atomicWrite(stage, await buildEmptyDeck(templatePath));
     const result = await executeOps(stage, doc, {
@@ -55712,7 +56069,7 @@ var cmdNew = async (argv) => {
       dryRun: false,
       strict: args.flag("strict"),
       expectRev: null,
-      outFile: path7.resolve(deckFile)
+      outFile: path8.resolve(deckFile)
     });
     return { ...result, result: { ...result.result, created: true } };
   } finally {
@@ -55802,6 +56159,24 @@ var cmdState = async (argv) => {
   };
 };
 
+// src/commands/verify.ts
+var cmdVerify = async (argv) => {
+  const args = parse3(argv, { "strict": { type: "boolean" } }, ["deck"]);
+  const deck = args.positionals[0];
+  requireFile(deck, "deck");
+  const findings = await verifyFile(deck);
+  if (args.flag("strict") && findings.length > 0)
+    throw new PptcError(
+      "E_INTEGRITY",
+      `${findings.length} integrity violation(s) -- this deck will prompt a repair in PowerPoint`,
+      { findings }
+    );
+  return {
+    file: deck,
+    result: { ok: findings.length === 0, findings }
+  };
+};
+
 // src/commands/sugar.ts
 var COMMON = {
   "slide": { type: "string" },
@@ -55878,8 +56253,8 @@ var cmdMove = async (argv) => {
 };
 
 // src/commands/tpl.ts
-import { readdirSync, existsSync as existsSync4, readFileSync as readFileSync7 } from "node:fs";
-import path8 from "node:path";
+import { readdirSync, existsSync as existsSync4, readFileSync as readFileSync8 } from "node:fs";
+import path9 from "node:path";
 
 // src/core/describe/minimap.ts
 var MAP_W = 40;
@@ -55917,6 +56292,7 @@ var renderMinimap = (layout, slideW, slideH) => {
 };
 
 // src/core/describe/narrate.ts
+var BACKGROUND_COVERAGE = 0.65;
 var suitabilityHint = (layout) => {
   const text = layout.placeholders.filter((p) => p.kind === "body");
   const pics = layout.placeholders.filter((p) => p.kind === "picture");
@@ -55961,6 +56337,8 @@ var narrateLayout = (layout, info) => {
       parts.push(`~${ph.capacity.lines} lines of ~${ph.capacity.charsPerLine} chars`);
     if (ph.overlays !== void 0 && ph.overlays.length > 0)
       parts.push("overlaid by " + ph.overlays.map((o) => `${o.name} (${o.region})`).join(", ") + " -- keep these regions calm in images");
+    if (ph.coverage !== void 0)
+      parts.push(ph.coverage >= BACKGROUND_COVERAGE ? `~${Math.round(ph.coverage * 100)}% text-covered -- background image: carry NO text and keep one even tone (light text on a dark image, dark text on a light image)` : `~${Math.round(ph.coverage * 100)}% text-covered`);
     lines.push(parts.join(" \u2014 "));
   }
   return lines.join("\n");
@@ -55976,6 +56354,12 @@ var narrateTemplate = (info, source, sidecar) => {
   head.push("");
   head.push(`Layouts: ${info.layouts.length} -- addressable in \`slide.add\` by index or name.`);
   head.push("Placeholders are filled in `slide.fill` via their `idx` number.");
+  if (info.contentArea !== void 0) {
+    const c = info.contentArea;
+    head.push(`Content area (guide-aligned): x ${c.x}" y ${c.y}" w ${c.w.toFixed(2)}" h ${c.h.toFixed(2)}" -- place \`el.add\` tables/textboxes/diagrams inside this box on title-only layouts.`);
+  }
+  if (info.guides !== void 0)
+    head.push(`Guides (in): horizontal [${info.guides.horizontal.join(", ")}], vertical [${info.guides.vertical.join(", ")}].`);
   if (sidecar !== null) {
     head.push("");
     head.push("## Notes from the template documentation");
@@ -55989,7 +56373,7 @@ var narrateTemplate = (info, source, sidecar) => {
 var loadTemplate = async (file2) => {
   const info = await readTemplateInfo(await DeckArchive.open(file2));
   const sidecarPath = file2.replace(/\.(potx|pptx)$/i, ".md");
-  const sidecar = sidecarPath !== file2 && existsSync4(sidecarPath) ? readFileSync7(sidecarPath, "utf8") : null;
+  const sidecar = sidecarPath !== file2 && existsSync4(sidecarPath) ? readFileSync8(sidecarPath, "utf8") : null;
   return { info, sidecar };
 };
 var filterLayouts = (info, selector) => {
@@ -56010,12 +56394,12 @@ var cmdTplList = (argv) => {
   if (!existsSync4(dir))
     throw new PptcError("E_FILE", `directory not found: '${dir}'`);
   const templates = readdirSync(dir).filter((f) => /\.(potx|pptx)$/i.test(f)).sort().map((f) => ({
-    file: path8.join(dir, f),
-    sidecar: existsSync4(path8.join(dir, f.replace(/\.(potx|pptx)$/i, ".md")))
+    file: path9.join(dir, f),
+    sidecar: existsSync4(path9.join(dir, f.replace(/\.(potx|pptx)$/i, ".md")))
   }));
   if (args.flag("plain"))
-    return { plain: templates.length === 0 ? `(no templates in ${path8.resolve(dir)})` : templates.map((t) => `${t.file}${t.sidecar ? "  [+ sidecar]" : ""}`).join("\n") };
-  return { result: { dir: path8.resolve(dir), templates } };
+    return { plain: templates.length === 0 ? `(no templates in ${path9.resolve(dir)})` : templates.map((t) => `${t.file}${t.sidecar ? "  [+ sidecar]" : ""}`).join("\n") };
+  return { result: { dir: path9.resolve(dir), templates } };
 };
 var cmdTplDescribe = async (argv) => {
   const args = parse3(argv, {
@@ -56027,19 +56411,19 @@ var cmdTplDescribe = async (argv) => {
   const { info, sidecar } = await loadTemplate(file2);
   const filtered = filterLayouts(info, args.str("layout"));
   if (args.flag("plain"))
-    return { plain: narrateTemplate(filtered, path8.basename(file2), sidecar) };
+    return { plain: narrateTemplate(filtered, path9.basename(file2), sidecar) };
   if ((args.str("format") ?? "text") === "json")
-    return { file: path8.resolve(file2), result: filtered };
+    return { file: path9.resolve(file2), result: filtered };
   return {
-    file: path8.resolve(file2),
-    result: { description: narrateTemplate(filtered, path8.basename(file2), sidecar) }
+    file: path9.resolve(file2),
+    result: { description: narrateTemplate(filtered, path9.basename(file2), sidecar) }
   };
 };
 var cmdTplInspect = async (argv) => {
   const args = parse3(argv, { "layout": { type: "string" } }, ["template"]);
   const file2 = args.positionals[0];
   const { info } = await loadTemplate(file2);
-  return { file: path8.resolve(file2), result: filterLayouts(info, args.str("layout")) };
+  return { file: path9.resolve(file2), result: filterLayouts(info, args.str("layout")) };
 };
 var validate = (info, hasNotesMaster) => {
   const issues = [];
@@ -56073,11 +56457,11 @@ var cmdTplValidate = async (argv) => {
     throw new PptcError("E_LINT", "template validation failed", { issues });
   if (args.flag("plain"))
     return { plain: [
-      `${path8.resolve(file2)}: ${issues.length === 0 ? "ok" : "warn"} (${info.layouts.length} layouts)`,
+      `${path9.resolve(file2)}: ${issues.length === 0 ? "ok" : "warn"} (${info.layouts.length} layouts)`,
       ...issues.map((i) => `  ${i.severity}: ${i.message}`)
     ].join("\n") };
   return {
-    file: path8.resolve(file2),
+    file: path9.resolve(file2),
     result: {
       status: issues.length === 0 ? "ok" : "warn",
       layouts: info.layouts.map((l) => ({ index: l.index, name: l.name })),
@@ -56107,6 +56491,7 @@ var USAGE = `pptc ${VERSION} -- deterministic PowerPoint CLI for LLM agents
 
 Read templates:   tpl list <dir> | tpl describe <tpl> | tpl inspect <tpl> | tpl validate <tpl>
 Read decks:       state <deck> [--slide SEL] [--level summary|text|full]
+Verify decks:     verify <deck> [--strict]  (check for PowerPoint repair triggers)
 Write decks:      new <deck> --template <tpl> [--ops @file]
                   apply <deck> (--ops @file|- | -e '<op>') [--template <tpl>] [--dry-run] [--strict] [--rev R] [--out F]
 Micro edits:      text|note|footer|rm|move <deck> --slide SEL ...
@@ -56119,9 +56504,10 @@ Human console:    --plain on help, state, tpl list, tpl describe and
                   tpl validate prints readable text instead of the JSON envelope
 
 Slide selectors:  id:N | title:... | index:N | $ref | bare index
-Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint`;
+Exit codes:       0 ok, 2 input, 3 addressing, 4 file, 5 engine, 6 rev conflict, 7 lint, 8 integrity`;
 var COMMANDS = {
   "state": cmdState,
+  "verify": cmdVerify,
   "new": cmdNew,
   "apply": cmdApply,
   "schema": cmdSchema,

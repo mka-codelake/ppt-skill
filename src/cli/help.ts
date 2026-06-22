@@ -26,6 +26,26 @@ Options:
 Example:
   pptc state deck.pptx --level full --slide title:Agenda`,
 
+    "verify": `pptc verify <deck> [--strict]
+
+Check a finished deck against every known PowerPoint "repair" trigger
+(dangling relationships, stale docProps/app.xml, shared notesSlides,
+broken content types, schema-order and reference errors). 'apply'
+already runs this on its own output before writing, so a freshly built
+deck is clean by construction; use 'verify' as an explicit gate after a
+build, or on any .pptx whose origin you do not control.
+
+Options:
+  --strict       any finding is a hard failure (exit 8) instead of a
+                 successful report with findings in the result
+
+Result:
+  result.ok        true when the deck has no findings
+  result.findings  human-readable list of repair triggers (empty = clean)
+
+Example:
+  pptc verify deck.pptx --strict`,
+
     "new": `pptc new <deck> --template <tpl> [--force] [--ops @file] [--strict]
 
 Create a valid, zero-slide deck carrying the template's masters,
