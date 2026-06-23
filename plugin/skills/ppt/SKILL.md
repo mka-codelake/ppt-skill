@@ -291,7 +291,23 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     Build ONE ops document for the change set, obeying
     `references/content-rules.md`:
 
-    -   Texts written AGAINST the placeholder capacity from STEP 2.
+    -   **Preserve approved wording — do not rewrite the plan.** When a
+        ppt-prepare plan or the user supplies a slide's content (headline,
+        bullets, body), write it to the slide AS GIVEN: do NOT paraphrase,
+        summarize, re-order, merge or "improve" it. That wording was already
+        approved in ppt-prepare; your job here is to PLACE it, not to author
+        it anew. Composing text yourself is only for content the plan/user did
+        not provide.
+    -   **Capacity overflow needs confirmation, never a silent rewrite.** If
+        supplied content exceeds the placeholder capacity from STEP 2
+        (W_TEXT_OVERFLOW on `--dry-run --strict`), do NOT quietly shorten or
+        condense it. Surface the overflow, PROPOSE a shortened version (or a
+        roomier layout) and apply it only after the user confirms — or let the
+        user shorten it. Any change to approved/user wording is gated on
+        explicit confirmation.
+    -   Texts written within the placeholder capacity from STEP 2 — but for
+        self-authored content only; supplied wording follows the two rules
+        above.
     -   Action titles, unique per slide; one message per slide; ~6 bullets
         of ~6-8 words, `level` <= 2. On a PRESENTED deck, details go into
         `notes` (40-70 words: message, numbers, transition; for visuals + 1-2
@@ -330,8 +346,11 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         them.
 
     Validate: `apply --ops ... --rev <rev/> --dry-run --strict`.
-    <if condition="exit 7 / W_TEXT_OVERFLOW">shorten or split the slide
-    (never rely on auto-shrink), then re-validate.</if>
+    <if condition="exit 7 / W_TEXT_OVERFLOW">never rely on auto-shrink. For
+    SELF-AUTHORED text, shorten or split the slide, then re-validate. For
+    APPROVED/user-supplied wording, do NOT shorten it silently — propose a
+    shortening (or a roomier layout) and re-validate only after the user
+    confirms (see the preserve rule above).</if>
     Then apply for real with `--rev <rev/>` and record the new <rev/>.
 
     **Verify the write (mandatory).** `apply` self-checks its output against
@@ -497,6 +516,10 @@ Non-Goals
 -   **No destroying generated images or user content** (see Execution
     Rules): prompt boxes are additive; a user-placed image is final and is
     re-prompted only on explicit request.
+-   **No rewriting approved content**: when a ppt-prepare plan or the user
+    supplies the wording, place it verbatim; paraphrasing, summarizing or
+    shortening it (e.g. to fit capacity) happens only after explicit user
+    confirmation, never as a build-time side effect.
 -   **No web research**: deck content comes from the user's input and
     the conversation context only.
 -   **No raw XML editing**: all mutations go through pptc ops.

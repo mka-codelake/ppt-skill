@@ -131,10 +131,15 @@ Rule of thumb: ~3 minutes per slide. 30 minutes -> ~10 slides. Eight
 strong slides beat twelve half-strong ones.
 
 
-Headlines & title-reading test  (Phase 5 — Titles)
---------------------------------------------------
+Headlines & title-reading test  (Phase 5 — Slide Headlines)
+-----------------------------------------------------------
 
-A slide title is a **headline** when it (1) makes an assertion, not just
+This phase writes the **per-slide headline** — one on-slide title for each
+content slide, the line that sits at the top of that slide. It is NOT the
+single presentation/deck title (that belongs to `ppt`'s deck setup); never
+collapse the per-slide headlines into one deck title.
+
+A slide headline is a true headline when it (1) makes an assertion, not just
 names a topic, (2) carries the slide's message, (3) is understandable
 without the slide body.
 
@@ -188,12 +193,15 @@ Work slide by slide, the message kept visible as the yardstick.
   front), and each chapter ENDS with a short "Key takeaways" slide (2-4
   bullets, closing on the Fazit). Plan both per chapter; `ppt`'s divider
   image is then derived from the whole chapter, not just its title.
-- **Content:** content that PROVES the message (~6 bullets, ~6-8 words
-  each); prefer one visual over a bullet list (assertion-evidence).
-  On a live deck detail goes to the speaker notes; on a self-study deck
-  the explaining text stays ON the slide (~100-250 words is fine).
+- **Content:** content that PROVES the message; prefer the single strongest
+  visual exhibit over a bullet list (assertion-evidence), and use bullets
+  only when a short list is genuinely the best proof (then ~6, ~6-8 words
+  each). On a live deck detail goes to the speaker notes; on a self-study
+  deck the explaining text stays ON the slide (~100-250 words is fine).
 - **Layout intent (not a concrete template layout -- that is `ppt`'s
-  job):** name a layout TYPE and say why it serves the message. The
+  job):** name a layout TYPE and say why it serves the message. Choose by
+  FIT to the message -- **no type is the default**, least of all bullets;
+  weigh all six equally and pick the one that proves THIS message best. The
   realizable content types are exactly these six (plus the structural
   roles title / agenda / chapter-divider / closing -- the closing carries
   only 1-2 words; if the final slide needs more, use key-message or
@@ -202,8 +210,9 @@ Work slide by slide, the message kept visible as the yardstick.
   - **key-message** -- ONE short sentence, nothing more (the single
     central statement). Never a bullet list, quote block, or snippet.
   - **bullets + image** -- a few short bullets (~6, ~6-8 words) in a text
-    placeholder, with one supporting image beside them; the default
-    assertion-evidence slide.
+    placeholder, with one supporting image beside them; an assertion-evidence
+    slide for when the proof is genuinely a short list plus a visual. It is
+    ONE option among the six, NOT a default to fall back on.
   - **table** -- tabular content (fields, comparisons, link lists).
   - **chart** -- quantitative data as a native, data-bound chart (bar,
     column, line, pie, doughnut, area, ...): trends over time, comparisons

@@ -193,23 +193,27 @@ Protocols
 
     </step>
 
-5.  <step id="PHASE 5: Titles">
+5.  <step id="PHASE 5: Slide Headlines">
 
-    Turn each message into a headline title. Order is irreversible:
-    message → title, never the reverse.
+    Turn each slide MESSAGE into its on-slide HEADLINE — one per content
+    slide. These are the per-slide titles that sit at the top of each slide,
+    NOT the single presentation/deck title (the deck title is `ppt`'s
+    deck-setup job, not this phase). Produce one headline per content slide;
+    never collapse them into one deck title. Order is irreversible:
+    message → headline, never the reverse.
 
     Read `references/methodology.md` → "Headlines & title-reading test".
 
-    -   Per slide: show the message → propose a headline title + rationale.
+    -   Per slide: show the message → propose a headline + rationale.
         Reject descriptors ("Market analysis") and offer an assertion.
-    -   Run the **"so what?"** gate on each title.
-    -   Run the **title-reading test** (mandatory): read the titles only —
+    -   Run the **"so what?"** gate on each headline.
+    -   Run the **title-reading test** (mandatory): read the headlines only —
         do they convey the topic, the core message, and what is expected?
-        On failure, name the weakest title and re-derive from its message.
+        On failure, name the weakest headline and re-derive from its message.
 
-    Result: a `message → title` list + the title-reading-test verdict.
+    Result: a `message → headline` list + the title-reading-test verdict.
 
-    Quality criteria for the gate: every title is an assertion (not a
+    Quality criteria for the gate: every headline is an assertion (not a
     descriptor); each derives from its message; title-reading test passes.
 
     <gate/>
@@ -224,9 +228,13 @@ Protocols
 
     Read `references/methodology.md` → "Content, layout & storyboard".
 
-    Per slide: content that PROVES the message (~6 bullets / one visual —
-    prefer assertion-evidence), then a recommended layout TYPE (visual
-    mapping) + why it serves the message; iterate until the user agrees.
+    Per slide: content that PROVES the message, then a recommended layout
+    TYPE + why it serves the message; iterate until the user agrees. Pick the
+    type by FIT to the message from the six equal-rank types (key-message |
+    bullets + image | table | chart | code block | SVG graphic) — **no type is
+    the default**; prefer the single strongest exhibit (assertion-evidence)
+    over a bullet list, and reach for bullets only when a short list is
+    genuinely the best proof (then ~6 of ~6-8 words).
 
     Present the per-slide plan **grouped by chapter**: emit one
     <expand name="chapter-plan"/> per chapter, so every chapter is a
@@ -281,7 +289,11 @@ Protocols
         by chapter and naming the resolved layout TYPE per slide from the
         fixed vocabulary (key-message | bullets + image | table | chart |
         code block | SVG graphic | title | agenda | chapter-divider |
-        closing).
+        closing). **Assembly only — carry the approved values over VERBATIM:**
+        the Phase 5 headlines and the Phase 6 content and layout exactly as
+        agreed. Do NOT re-summarize, re-densify or re-word anything already
+        approved (densification closed in Phase 4); this phase collects, it
+        does not re-derive.
         Omit the call-to-action line when the deck has none; omit the
         per-slide Speaker notes line for a teaching / self-study deck.
 
@@ -311,8 +323,10 @@ Protocols
         </template>
 
     Quality criteria for the gate: a red thread runs through the notes;
-    transitions present; time budget held; the plan is complete enough for
-    `ppt` to build without re-deriving the story.
+    transitions present; time budget held; the plan reproduces the approved
+    Phase 5 headlines and Phase 6 content VERBATIM (no further condensing);
+    the plan is complete enough for `ppt` to build without re-deriving the
+    story.
 
     <gate/>
 
@@ -324,8 +338,10 @@ Protocols
     not by code, so hand-off is purely file-based.
 
     1.  Ask for the intended deck file name (default `<project>.pptx`).
-    2.  Write the content plan to **`<deck>-plan.md`** next to where the deck
-        will live -- this happens on BOTH delivery paths.
+    2.  Write the content plan **exactly as assembled and approved in
+        PHASE 7** to **`<deck>-plan.md`** next to where the deck will live --
+        verbatim, no re-summarizing or re-condensing. This happens on BOTH
+        delivery paths.
     3.  Offer the two delivery paths via the **selection box** (this is the
         phase's gate):
         -   **Save & finish** — the plan file is the deliverable; stop here.

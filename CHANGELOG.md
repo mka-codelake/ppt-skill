@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.9.1 (plugin 0.9.1)
+
+Review fixes to the `ppt-prepare` and `ppt` skill prompts (no engine change):
+
+- `ppt-prepare` PHASE 5 renamed **"Titles" → "Slide Headlines"** and reworded
+  throughout: it produces one on-slide **headline per content slide**, NOT the
+  single presentation/deck title (that is `ppt`'s deck-setup job). Removes the
+  ambiguity that led the skill to set the deck title instead of per-slide
+  headings.
+- `ppt-prepare` PHASES 7–8: the final plan is now **assembled and written
+  VERBATIM** from the approved Phase 5 headlines and Phase 6 content. Assembly
+  only — no re-summarizing or re-densifying (densification closes in Phase 4).
+  Fixes Phase 8 re-condensing content instead of carrying Phase 6 over.
+- `ppt-prepare` PHASE 6 + methodology: removed the **"bullets + image is the
+  default"** framing. The six content types (key-message, bullets + image,
+  table, chart, code block, SVG graphic) are now chosen by FIT to the message
+  — **no type is the default** — fixing the skill's bias toward bullets+image.
+- `ppt` STEP 6: **preserve approved wording — do not rewrite the plan.** When a
+  ppt-prepare plan or the user supplies a slide's content, it is placed
+  verbatim; paraphrasing, summarizing or shortening it (e.g. to fit placeholder
+  capacity) now requires **explicit user confirmation** rather than happening
+  as a silent build-time side effect.
+
+
 ## 0.9.0 (plugin 0.9.0)
 
 Quality milestone: engine and plugin versions realigned to **0.9.0**. Rolls up
