@@ -1,13 +1,14 @@
 ---
 name: ppt-prepare
 description: >
-  Prepare the CONTENT of a presentation before any slide is built: a
-  story-first, collaborative method (Pyramid Principle, MECE, SCR
-  narrative, densification, headline titles) that produces an approved
-  storyline and a per-slide plan. Trigger when the user wants to structure,
-  plan, outline, or think through a talk/deck/pitch -- its message, story,
-  argument, slide messages, titles or speaker notes -- as opposed to
-  building the PPTX (that is the `ppt` skill, which this hands off to).
+  START HERE to create a NEW presentation from an idea or topic: a
+  story-first, collaborative method (Pyramid Principle, MECE, SCR narrative,
+  densification, headline titles) that produces an approved storyline and a
+  per-slide plan BEFORE any slide is built. Trigger when the user wants to
+  create, make, build, plan, structure, outline or think through a new
+  talk/deck/pitch/presentation -- its message, story, argument, slide
+  messages, titles or speaker notes. This is the entry point for any new deck;
+  it hands the approved plan to the `ppt` skill, which builds the PPTX.
 user-invocable: true
 disable-model-invocation: false
 model: opus
@@ -27,7 +28,7 @@ The imported `meta/control.md` defines the control tags, the phase-marker
 banners, the **Progress Task List** and the **Stage Gate**. Honor them:
 emit each phase's marker on entry, keep the eight phases as a live task
 list, and end every phase with its `<gate/>` (in PHASE 8 the gate is the
-delivery selection box).
+delivery choice).
 
 <objective>
 Produce an approved storyline and a per-slide plan (message, headline
@@ -46,8 +47,9 @@ Ground Rules
   DECIDES. Never decide content silently.
 - **Never guess content — research, then ask.** When a fact or content gap
   is unclear, do not invent it. Where web research would help, research it
-  first, then ask the user to close the gap via the selection box, offering
-  the researched findings as the options. A silent guess is never allowed.
+  first, then ask the user to close the gap via the **Asking the User**
+  procedure, offering the researched findings as the options. A silent guess
+  is never allowed.
 - **One phase at a time:** stay inside a phase until its `<gate/>` is
   approved (see `meta/control.md`). At most ~3 clarifying questions per
   phase before you make a proposal; never interrogate.
@@ -123,12 +125,14 @@ Do this once per conversation, not on every turn.
     Read `references/methodology.md` → "Audience & decision analysis".
 
     Adapt the entry to what the user brings:
-    -   vague idea / topic only → one open question: "What is the occasion
-        and who do you need to convince?"
-    -   clear assignment, no content → go straight to context capture
-    -   raw material / documents → read them, extract the essentials, fold
-        them into the brief
-    -   existing deck → analyse its structure, find gaps, use as a base
+    -   <if condition="a vague idea / topic only">one open question: "What is
+        the occasion and who do you need to convince?"</if>
+    -   <elseif condition="a clear assignment but no content">go straight to
+        context capture.</elseif>
+    -   <elseif condition="raw material / documents are provided">read them,
+        extract the essentials, fold them into the brief.</elseif>
+    -   <elseif condition="an existing deck is provided">analyse its structure,
+        find gaps, use it as a base.</elseif>
 
     Capture: presentation **type** (pitch / strategy / concept / teaching —
     established here together with goal and audience; the type sets the genre:
@@ -184,8 +188,9 @@ Do this once per conversation, not on every turn.
 
     1.  Propose the SCR narrative (Situation / Complication / Resolution,
         2–3 sentences each). On the first pass, explain the arc briefly.
-    2.  For change/buy-in decks, add a **Duarte sparkline** (oscillate
-        "what is" ↔ "what could be"); for analytical decks, plain SCR.
+    2.  <if condition="a change/buy-in deck">add a **Duarte sparkline**
+        (oscillate "what is" ↔ "what could be").</if>
+        <else>(an analytical deck) plain SCR.</else>
     3.  **Red-team** it: argue against the recommendation; close gaps or note
         appendix answers. Check consistency with the core message and that
         the complication is genuinely urgent.
@@ -312,11 +317,12 @@ Do this once per conversation, not on every turn.
 
     Read `references/methodology.md` → "Speaker notes & Q&A".
 
-    1.  **Presented decks:** speaker notes from each slide's MESSAGE (not its
-        bullets): 3–5 sentences + a one-line transition to the next slide.
-        **Teaching / self-study decks SKIP notes** — the slide must be
+    1.  <if condition="a presented deck (a speaker is present)">speaker notes
+        from each slide's MESSAGE (not its bullets): 3–5 sentences + a one-line
+        transition to the next slide.</if>
+        <else>(a teaching / self-study deck) SKIP notes — the slide must be
         self-contained, so the explaining text lives ON the slide (Phase 6),
-        not in a notes pane no reader opens.
+        not in a notes pane no reader opens.</else>
     2.  **Q&A pre-build:** 5–10 likely questions, each with a one-sentence
         answer and an optional appendix slide.
     3.  Assemble the final **content plan** as the following output, grouped
@@ -328,8 +334,10 @@ Do this once per conversation, not on every turn.
         agreed. Do NOT re-summarize, re-densify or re-word anything already
         approved (densification closed in Phase 4); this phase collects, it
         does not re-derive.
-        Omit the call-to-action line when the deck has none; omit the
-        per-slide Speaker notes line for a teaching / self-study deck.
+        <if condition="the deck has no call to action">omit the call-to-action
+        line.</if>
+        <if condition="a teaching / self-study deck">omit the per-slide Speaker
+        notes line.</if>
 
         <template>
         # Presentation plan: <project/>
@@ -382,22 +390,23 @@ Do this once per conversation, not on every turn.
         verbatim, no re-summarizing or re-condensing, and make sure its header
         carries deck language, title and topic. This happens on BOTH delivery
         paths.
-    3.  Offer the two delivery paths via the **selection box** (this is the
-        phase's gate):
+    3.  Offer the two delivery paths via the **Asking the User** procedure
+        (this is the phase's gate):
         -   **Save & finish** — the plan file is the deliverable; stop here.
         -   **Save & hand off to `ppt`** — also explain the build step.
     4.  Tell the user how to continue, by platform (the hand-off is file-based,
         and the two platforms share files differently):
-        -   **Claude Code (shared filesystem):** just run the **`ppt` skill**
-            on `<deck>.pptx` -- it finds `<deck>-plan.md` next to it
-            automatically; the deck language is set and the outline gate is
-            satisfied by this plan, so it goes straight to building (template,
-            placeholders, image prompts).
-        -   **claude.ai (sandboxed):** each skill runs in its own ephemeral
-            sandbox that is NOT shared, so `ppt` cannot see this file on disk.
-            **Download `<deck>-plan.md` and attach/upload it** when you run the
-            `ppt` skill (ideally in the same conversation). `ppt` reads its
-            setup straight from the plan -- there is no second file to carry.
+        -   <if condition="on Claude Code (shared filesystem)">just run the
+            **`ppt` skill** on `<deck>.pptx` -- it finds `<deck>-plan.md` next
+            to it automatically; the deck language is set and the outline gate
+            is satisfied by this plan, so it goes straight to building
+            (template, placeholders, image prompts).</if>
+        -   <else>(on claude.ai, sandboxed) each skill runs in its own
+            ephemeral sandbox that is NOT shared, so `ppt` cannot see this file
+            on disk. **Download `<deck>-plan.md` and attach/upload it** when you
+            run the `ppt` skill (ideally in the same conversation). `ppt` reads
+            its setup straight from the plan -- there is no second file to
+            carry.</else>
 
     Quality criteria: the plan is written to `<deck>-plan.md` and its header
     carries the setup (language, title, topic); NO separate sidecar is

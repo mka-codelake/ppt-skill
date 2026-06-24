@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.11.2 (plugin 0.11.2)
+
+- **Routing: a NEW deck starts with `ppt-prepare`, not `ppt`.** "Create a deck
+  about X" was matching `ppt` (which built immediately, skipping the
+  story-first planning). The skill descriptions are re-scoped: `ppt-prepare`
+  now owns "create / make / plan a new presentation" (the entry point) and
+  `ppt` owns "build from an approved plan / edit an existing deck". As a safety
+  net, when `ppt` is invoked for a brand-new deck from only an idea/topic (no
+  plan), it now OFFERS to plan with `ppt-prepare` first instead of building
+  blindly.
+- **Fix: the STEP 3 style pick no longer dangles on claude.ai.** Presenting
+  the full style catalog ended on a bare colon (no answerable question) where
+  no selection box exists. That path now routes through the central "Asking
+  the User" procedure and must end with a concrete question ("Which image
+  style? Reply with a name from the list above").
+- **Control-tag audit: the skills practice what they teach.** Both SKILLs are
+  meant to model the control-tag DSL, but several branch chains and case lists
+  in the `<flow>` were still written as prose ("If / Else if / Else", "for
+  change decks ... for analytical decks", per-placeholder "→" cases). They are
+  now expressed with `<if>/<elseif>/<else>` (e.g. ppt STEP 2 template choice,
+  STEP 4 routing, STEP 6 conditional ops, STEP 7 placeholder cases;
+  ppt-prepare PHASE 1 entry, PHASE 3 sparkline, PHASE 7 notes, PHASE 8
+  platform). All "selection box" mentions now route through the single "Asking
+  the User" procedure. Behaviour is unchanged; the prompts are just
+  consistent with what the deck teaches.
+
+
 ## 0.11.1 (plugin 0.11.1)
 
 - **Fix: gates work on claude.ai (no selection-box tool).** The Stage Gate

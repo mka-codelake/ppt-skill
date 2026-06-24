@@ -155,8 +155,8 @@ options):
     Map the reply (a number, a label, or free text) back to an option; free
     text matching none is an "Other" answer to act on.
     </else>
-3.  If the user declines or cancels, treat it as Cancel: do not advance; ask
-    what they want instead.
+3.  <if condition="the user declines or cancels">treat it as Cancel: do not
+    advance; ask what they want instead.</if>
 
 
 Stage Gate

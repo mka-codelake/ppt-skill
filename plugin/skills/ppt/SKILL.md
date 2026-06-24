@@ -1,11 +1,13 @@
 ---
 name: ppt
 description: >
-  Create and maintain professional PowerPoint presentations with the bundled
-  pptc CLI: template-aware, atomic, schema-validated. Trigger this skill when
-  the user wants to create, edit, or modify presentations, slides, PPTX files,
-  decks, chapters, or talks -- including adding text, images, charts, tables,
-  speaker notes, or image-generation prompts for slide picture placeholders.
+  Build, edit and maintain PowerPoint PPTX files with the bundled pptc CLI:
+  template-aware, atomic, schema-validated. Trigger this skill to BUILD a deck
+  from an approved content plan, or to edit/modify an EXISTING deck -- add or
+  change slides, text, images, charts, tables, speaker notes, footers, or
+  image-generation prompts for picture placeholders. For a brand-new deck from
+  just an idea or topic (no plan yet), the `ppt-prepare` skill runs FIRST to
+  plan the story; this skill then builds that plan into the PPTX.
 user-invocable: true
 disable-model-invocation: false
 model: opus
@@ -178,16 +180,21 @@ follow-ups within the same run.
     -   <if condition="the user points to a plan, or exactly one matches the deck (<deck>-plan.md)">
         adopt it -- its header pre-answers the STEP 3 setup (deck language,
         title, topic) and its body pre-answers the STEP 5 outline.</if>
-    -   <if condition="several plan files are found (ambiguous)">present a
-        selection box of the found plans (file name + the plan's
-        `# Presentation plan: <title>` line) and let the user choose --
-        with an option to build fresh without a plan. Do not pick one
-        silently.</if>
+    -   <if condition="several plan files are found (ambiguous)">ask which of
+        the found plans to use via the **Asking the User** procedure (file
+        name + the plan's `# Presentation plan: <title>` line) -- with an
+        option to build fresh without a plan. Do not pick one silently.</if>
     -   <if condition="the conversation shows a plan was just prepared (e.g. by ppt-prepare) but no *-plan.md is on disk">
         you are likely on **claude.ai**, where each skill runs in its own
         sandbox and files are NOT shared between runs. ASK the user to
         attach/upload the `<deck>-plan.md` file before building; do NOT
         silently re-derive the outline and discard their approved plan.</if>
+    -   <if condition="this is a brand-new deck (no file yet) and the user gave only an idea/topic/goal, not substantial slide content">
+        Story-first is the better path. Before building anything, OFFER (via
+        the **Asking the User** procedure) to plan the content first with the
+        **`ppt-prepare`** skill (recommended) vs. build directly from a quick
+        outline here. If they pick ppt-prepare, tell them to run it and stop;
+        build directly only when they choose to.</if>
     -   <else>proceed without a plan; you derive the outline yourself in
         STEP 5.</else>
 
@@ -200,33 +207,36 @@ follow-ups within the same run.
     Office design) in `assets/`, and an internal build may bundle ADDITIONAL
     templates there (e.g. company templates, not in the public release):
 
-    -   If the user names a template path, use it.
-    -   Else if the user names a directory (or the project documents a
-        template location, e.g. in `CLAUDE.md`), run `tpl list` on it.
-        <if condition="scan finds exactly one template">use it silently.</if>
-        <if condition="scan finds several">present a selection menu
-        (file + sidecar availability) and let the user choose.</if>
-    -   Else (no template named): scan the skill's OWN bundled templates
-        with `tpl list <skill-dir/>/assets`. (A public build bundles only
-        the neutral default; an internal build REPLACES it with the corporate
-        templates, so the neutral default is absent there.)
-        <if condition="exactly one template is bundled">use it; if it is the
-        neutral default, TELL the user the generic Office design is in use and
-        a corporate template can be supplied at any time.</if>
-        <if condition="several templates are bundled">present a selection menu
-        of the bundled templates and let the user choose; the user can still
-        point to an external file instead.</if>
+    -   <if condition="the user names a template path">use it.</if>
+    -   <elseif condition="the user names a directory (or the project documents a template location, e.g. in CLAUDE.md)">
+        run `tpl list` on it.
+        <if condition="the scan finds exactly one template">use it silently.</if>
+        <else>ask which to use via the **Asking the User** procedure (file +
+        sidecar availability).</else>
+        </elseif>
+    -   <else>
+        scan the skill's OWN bundled templates with `tpl list
+        <skill-dir/>/assets`. (A public build bundles only the neutral default;
+        an internal build REPLACES it with the corporate templates, so the
+        neutral default is absent there.)
+        <if condition="exactly one template is bundled">use it.
+        <if condition="it is the neutral default">TELL the user the generic
+        Office design is in use and a corporate template can be supplied at
+        any time.</if></if>
+        <else>ask which bundled template to use via the **Asking the User**
+        procedure; the user can still point to an external file instead.</else>
+        </else>
 
     A sidecar Markdown next to the template (`<name>.md` beside
     `<name>.potx`) carries template-specific knowledge -- layout-role
     map, footer pattern, design constraints. `tpl describe` includes it
-    automatically. When none exists, derive roles via name heuristics
-    and offer to write a sidecar for next time.
+    automatically. <if condition="no sidecar exists">derive roles via name
+    heuristics and offer to write a sidecar for next time.</if>
 
     Once the template is chosen, run `tpl validate` on it (layouts present,
-    notes master for speaker notes, ...); on a `fail`-grade issue (exit 7)
-    tell the user and pick another template rather than building on a broken
-    one. Then run `tpl inspect` (JSON) and `tpl describe` on the template.
+    notes master for speaker notes, ...). <if condition="tpl validate reports a fail-grade issue (exit 7)">tell
+    the user and pick another template rather than building on a broken
+    one.</if> Then run `tpl inspect` (JSON) and `tpl describe` on the template.
     Record:
 
     -   <colors/> = `result.colors` (theme palette; prefix `#` when used).
@@ -244,35 +254,38 @@ follow-ups within the same run.
 3.  <step id="STEP 3: Deck Setup">
 
     Resolve four setup values once per deck, then confirm them at a gate
-    and persist them. If STEP 1's `state` already carries `customProps`
-    (`pptcImageStyle`, `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`,
-    `pptcTopic`), adopt those -- the deck remembers its own setup. If a
-    ppt-prepare plan was found, its header answers deck language, title and
-    topic (image and info-graphic style are never in the plan -- they stay
-    `ppt`'s decision). Only resolve what is still missing.
+    and persist them.
+    <if condition="STEP 1's state already carries customProps (pptcImageStyle, pptcInfoStyle, pptcDeckLang, pptcTitle, pptcTopic)">
+    adopt those -- the deck remembers its own setup.</if>
+    <if condition="a ppt-prepare plan was found">its header answers deck
+    language, title and topic (image and info-graphic style are never in the
+    plan -- they stay `ppt`'s decision).</if>
+    Only resolve what is still missing.
 
     -   <deck-lang/>: the language of the deck (slide content, notes,
         footer, AI note), independent of the conversation language.
         Derive it ONLY from an explicit statement, the deck's `customProps`
-        (`pptcDeckLang`) or the plan; when it is not stated, ASK -- never
-        assume the conversation language is the deck language.
+        (`pptcDeckLang`) or the plan.
+        <if condition="the deck language is not stated in any of those">ASK --
+        never assume the conversation language is the deck language.</if>
     -   <deck-title/>: the presentation title (title slide + footer).
-        Derive from the request when obvious, otherwise ASK; never leave
-        the template's placeholder title in.
+        <if condition="the title is obvious from the request">derive it.</if>
+        <else>ASK.</else> Never leave the template's placeholder title in.
     -   **Image style** and **info-graphic style** from
         `references/style-catalog.md`. These are NEVER inferred: set them
         only from a LITERAL user statement (or the deck's `customProps`
-        `pptcImageStyle`/`pptcInfoStyle`). Do NOT derive
-        them from topic, tone, audience or template -- "serious tech talk →
-        cinematic" is the forbidden inference. If either is missing, show the
-        user the COMPLETE list from `style-catalog.md` -- EVERY style with its
-        one-line "Best for" note -- so they see ALL options. The catalog holds
-        more styles than a selection box can list (4 max), so present the full
-        set as a readable message FIRST, then take the pick via the selection
-        box (a few entries + an "Other" free-text option) or by free text.
-        Never silently narrow it to a curated few. The "Best for" notes guide
+        `pptcImageStyle`/`pptcInfoStyle`); do NOT derive them from topic, tone,
+        audience or template -- "serious tech talk → cinematic" is the
+        forbidden inference.
+        <if condition="the image style or the info-graphic style is still unset">
+        Show the COMPLETE list from `style-catalog.md` -- EVERY style with its
+        one-line "Best for" note (never a curated few) -- then ask for the pick
+        via the **Asking the User** procedure (offer a few representative
+        styles plus "Other -- type a style name"). The "Best for" notes guide
         the USER's choice; they are NOT an auto-pick default. WAIT for the
-        choice. Keep both chosen blocks verbatim in every prompt.
+        choice.
+        </if>
+        Keep both chosen blocks verbatim in every prompt.
 
     **Persist** the resolved setup INSIDE THE DECK as custom document
     properties -- one `meta.props` op with a `custom` map, applied with the
@@ -285,10 +298,10 @@ follow-ups within the same run.
     not deck setup may still go in a `<deck>.md` sidecar.)
 
     **Gate:** present the resolved setup (deck language, title, image
-    style, info-graphic style) and confirm it via the selection box before
-    any slide is created. A required value that is still unresolved -- the
-    deck language above all -- is ASKED here, never guessed. Do not defer
-    any of these to the STEP 5 outline gate.
+    style, info-graphic style) and confirm it via the **Asking the User**
+    procedure before any slide is created. A required value that is still
+    unresolved -- the deck language above all -- is ASKED here, never guessed.
+    Do not defer any of these to the STEP 5 outline gate.
 
     <gate/>
 
@@ -300,16 +313,19 @@ follow-ups within the same run.
     setup from STEP 3, only asking for values the sidecar did not answer):
 
     -   <if condition="the user works on an existing deck">
-        Show the structure briefly (chapters/slides) when it helps.
-        Derive operation and level **intent-first** from the request:
-        Set (whole deck) / Chapter / Slide. Only when ambiguous, ask via
-        a menu (level + target by `title:`/`id:`). For a small, scoped
-        edit skip the outline gate and continue with STEP 6; for a major
-        addition go through STEP 5 first.
+        Show the structure briefly (chapters/slides) where it helps. Derive
+        operation and level **intent-first** from the request: Set (whole
+        deck) / Chapter / Slide.
+        <if condition="the level or target is ambiguous">ask via a menu
+        (level + target by `title:`/`id:`).</if>
+        <if condition="it is a small, scoped edit">skip the outline gate and
+        continue with STEP 6.</if>
+        <else>(a major addition) go through STEP 5 first.</else>
         </if>
-    -   <if condition="the user starts a new deck">
-        Run `new <deck> --template <tpl>`, then continue with STEP 5.
-        </if>
+    -   <else>
+        (the user starts a new deck) Run `new <deck> --template <tpl>`, then
+        continue with STEP 5.
+        </else>
 
     </step>
 
@@ -331,8 +347,8 @@ follow-ups within the same run.
             type (bullets/image/graphic/structural), layout role.
         </else>
 
-    **Gate:** show the outline and confirm it via the selection box BEFORE
-    creating any slide; iterate until approved.
+    **Gate:** show the outline and confirm it via the **Asking the User**
+    procedure BEFORE creating any slide; iterate until approved.
 
     <gate/>
 
@@ -343,38 +359,39 @@ follow-ups within the same run.
     Build ONE ops document for the change set, obeying
     `references/content-rules.md`:
 
-    -   **Persist the setup into the deck.** When the deck is first built (or
-        whenever a setup value changed since the last `state`), include ONE
-        `meta.props` op with the `custom` map from STEP 3 (`pptcImageStyle`,
-        `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`, `pptcTopic`) so the
-        deck stays self-describing. Skip it when the values are unchanged.
-    -   **Preserve approved wording — do not rewrite the plan.** When a
-        ppt-prepare plan or the user supplies a slide's content (headline,
-        bullets, body), write it to the slide AS GIVEN: do NOT paraphrase,
-        summarize, re-order, merge or "improve" it. That wording was already
-        approved in ppt-prepare; your job here is to PLACE it, not to author
-        it anew. Composing text yourself is only for content the plan/user did
-        not provide.
-    -   **Capacity overflow needs confirmation, never a silent rewrite.** If
-        supplied content exceeds the placeholder capacity from STEP 2
-        (W_TEXT_OVERFLOW on `--dry-run --strict`), do NOT quietly shorten or
-        condense it. Surface the overflow, PROPOSE a shortened version (or a
-        roomier layout) and apply it only after the user confirms — or let the
-        user shorten it. Any change to approved/user wording is gated on
-        explicit confirmation.
+    -   **Persist the setup into the deck.**
+        <if condition="the deck is first built, or a setup value changed since the last `state`">
+        include ONE `meta.props` op with the `custom` map from STEP 3
+        (`pptcImageStyle`, `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`,
+        `pptcTopic`) so the deck stays self-describing.</if>
+        <else>the values are unchanged -- skip it.</else>
+    -   **Preserve approved wording — do not rewrite the plan.**
+        <if condition="a ppt-prepare plan or the user supplies a slide's content (headline, bullets, body)">
+        write it to the slide AS GIVEN: do NOT paraphrase, summarize, re-order,
+        merge or "improve" it. That wording was already approved in
+        ppt-prepare; your job here is to PLACE it, not to author it anew.</if>
+        Composing text yourself is only for content the plan/user did not
+        provide.
+    -   **Capacity overflow needs confirmation, never a silent rewrite.**
+        <if condition="supplied content exceeds the placeholder capacity from STEP 2 (W_TEXT_OVERFLOW on `--dry-run --strict`)">
+        do NOT quietly shorten or condense it. Surface the overflow, PROPOSE a
+        shortened version (or a roomier layout) and apply it only after the
+        user confirms — or let the user shorten it.</if>
+        Any change to approved/user wording is gated on explicit confirmation.
     -   Texts written within the placeholder capacity from STEP 2 — but for
         self-authored content only; supplied wording follows the two rules
         above.
     -   Action titles, unique per slide; one message per slide; ~6 bullets
-        of ~6-8 words, `level` <= 2. On a PRESENTED deck, details go into
-        `notes` (40-70 words: message, numbers, transition; for visuals + 1-2
-        descriptive sentences). On a SELF-STUDY / teaching deck, write NO
-        notes -- the slide is self-contained and the explaining text stays
-        on the slide.
-    -   Chapters: `slide.add` on the chapter-role layout. Agenda slide
-        derives from chapter titles -- when chapters change
-        (add/rename/remove), include the agenda `slide.fill` in the SAME
-        ops document.
+        of ~6-8 words, `level` <= 2.
+        <if condition="the deck is PRESENTED (a speaker is present)">details go
+        into `notes` (40-70 words: message, numbers, transition; for visuals +
+        1-2 descriptive sentences).</if>
+        <else>(a SELF-STUDY / teaching deck) write NO notes -- the slide is
+        self-contained and the explaining text stays on the slide.</else>
+    -   Chapters: `slide.add` on the chapter-role layout. The agenda slide
+        derives from chapter titles.
+        <if condition="chapters change (add/rename/remove)">include the agenda
+        `slide.fill` in the SAME ops document.</if>
     -   **Placeholders first**: anything that is TEXT goes into a layout
         placeholder via `slide.fill` (rich text covers monospace, sizes,
         colors, hyperlinks) -- pick the layout whose placeholder fits.
@@ -393,12 +410,13 @@ follow-ups within the same run.
     -   **Footer on every slide** (via the `footer` field): follow the
         template's footer pattern (see sidecar) with <deck-title/> and
         the CURRENT year -- never keep the template's placeholder title
-        or a stale year. On slides whose layout carries picture
-        placeholders, append the AI-image note in <deck-lang/> (e.g.
-        German "Bilder mit KI generiert", English "Images AI-generated").
-        Where the layout has NO footer placeholder (typically title and
-        closing layouts) but the slide carries images, place the note as
-        a small discreet `el.add` textbox near the bottom edge instead.
+        or a stale year.
+        <if condition="the slide's layout carries picture placeholders">append
+        the AI-image note in <deck-lang/> (e.g. German "Bilder mit KI
+        generiert", English "Images AI-generated").</if>
+        <if condition="the layout has NO footer placeholder (typically title and closing layouts) but the slide carries images">place
+        the note as a small discreet `el.add` textbox near the bottom edge
+        instead.</if>
     -   New slides get `$ref`s so later ops in the document can address
         them.
 
@@ -415,9 +433,9 @@ follow-ups within the same run.
     deck. <if condition="exit 8 / E_INTEGRITY">the deck was NOT written and is
     unchanged; this is an engine defect, not a content problem -- report the
     `details.findings` to the user verbatim and stop (do not retry blindly).</if>
-    After the apply succeeds, run `verify <deck>` as an explicit gate; on any
-    `result.findings` tell the user the deck would prompt a repair, and do not
-    present it as finished.
+    After the apply succeeds, run `verify <deck>` as an explicit gate.
+    <if condition="verify reports any `result.findings`">tell the user the deck
+    would prompt a repair, and do not present it as finished.</if>
 
     </step>
 
@@ -439,23 +457,23 @@ follow-ups within the same run.
     the `PptcPromptBox-<idx>` prefix among the slide's shapes -- no
     guessing, and never a name collision on re-apply. Per placeholder:
 
-    -   The user PROVIDES an image for this placeholder (a file path or an
-        upload) → INSERT it directly, do NOT write a prompt: `slide.fill`
-        the picture placeholder with `image: { image: "<path>" }` (or, on a
-        blank layout, `el.add` an image at the placeholder frame). This is
-        image INSERTION, not generation -- it is allowed (see Non-Goals).
-        Remove any stale `PptcPromptBox-<idx>` for that placeholder in the
-        SAME ops document.
-    -   Empty, or its prompt box still present → (re)write the prompt box.
-    -   The user asks for a NEW prompt and the old box is already gone →
-        that is the NORMAL post-generation state, not an error. Write a
-        FRESH `img.prompts` box; never assume a box still exists, and
-        never treat its absence as something to "restore".
-    -   The placeholder already holds an IMAGE → that is the user's
-        finished work. Do NOT write a box over it on your own. Only
-        re-prompt on an explicit user request, and even then the box is
-        ADDED as an overlay (`img.prompts` only pushes a shape, it never
-        removes the image) -- the existing image stays untouched.
+    -   <if condition="the user PROVIDES an image for this placeholder (a file path or an upload)">
+        INSERT it directly, do NOT write a prompt: `slide.fill` the picture
+        placeholder with `image: { image: "<path>" }` (or, on a blank layout,
+        `el.add` an image at the placeholder frame). This is image INSERTION,
+        not generation -- it is allowed (see Non-Goals). Remove any stale
+        `PptcPromptBox-<idx>` for that placeholder in the SAME ops document.</if>
+    -   <if condition="the placeholder is empty, or its prompt box is still present">
+        (re)write the prompt box.</if>
+    -   <if condition="the user asks for a NEW prompt and the old box is already gone">
+        that is the NORMAL post-generation state, not an error. Write a FRESH
+        `img.prompts` box; never assume a box still exists, and never treat its
+        absence as something to "restore".</if>
+    -   <if condition="the placeholder already holds an IMAGE">
+        that is the user's finished work. Do NOT write a box over it on your
+        own. Only re-prompt on an explicit user request, and even then the box
+        is ADDED as an overlay (`img.prompts` only pushes a shape, it never
+        removes the image) -- the existing image stays untouched.</if>
 
     <for items="each picture placeholder you (re)prompt">
     Perform an individual creative step per placeholder (no template motifs):
@@ -497,16 +515,15 @@ follow-ups within the same run.
     2.  Choose a motif that makes THIS slide's POINT tangible -- its
         message AND its takeaway/Fazit, leaning toward the resolution the
         slide concludes with, not just the problem -- and does not repeat a
-        motif already used in the deck. If the slide message, its Fazit,
-        deck topic and role do NOT determine a concrete, non-generic motif
-        -- or a strong metaphor could plausibly go several clearly
-        different ways -- ASK the user ONE short, targeted question (offer
-        2-3 motif directions, or invite free text) BEFORE composing. A
-        wrong motif costs the user a whole image-generation cycle, so a
-        quick question beats guessing; NEVER fall back to a generic filler
-        motif just to avoid asking.
-    3.  On title-role images (and wherever the scene carries text
-        surfaces), embed the slide title/topic as short text-in-image.
+        motif already used in the deck.
+        <if condition="the slide message, its Fazit, deck topic and role do NOT determine a concrete, non-generic motif -- or a strong metaphor could plausibly go several clearly different ways">
+        ASK the user ONE short, targeted question (offer 2-3 motif directions,
+        or invite free text) BEFORE composing.</if>
+        A wrong motif costs the user a whole image-generation cycle, so a quick
+        question beats guessing; NEVER fall back to a generic filler motif just
+        to avoid asking.
+    3.  <if condition="this is a title-role image, or the scene carries text surfaces">
+        embed the slide title/topic as short text-in-image.</if>
     4.  Compose the prompt per the formula, with the deck-wide style
         block and `#`-prefixed hex codes from <colors/> (primary
         `accent1` unless sidecar/user overrides). Do NOT put the aspect
@@ -517,10 +534,9 @@ follow-ups within the same run.
 
     Write all prompts into the deck via ONE `img.prompts` op per slide
     (prompt text per picture-placeholder idx) and `apply --rev <rev/>`.
-    If a prompt box for that placeholder already exists
-    (`PptcPromptBox-<idx>` among the slide's shapes), `el.rm` it by name
-    in the SAME ops document, BEFORE the `img.prompts`, so two boxes
-    never stack on one placeholder.
+    <if condition="a prompt box for that placeholder already exists (`PptcPromptBox-<idx>` among the slide's shapes)">
+    `el.rm` it by name in the SAME ops document, BEFORE the `img.prompts`, so
+    two boxes never stack on one placeholder.</if>
     Mirror each prompt to the user — emit one <expand name="image-prompt"/>
     per prompt:
 
