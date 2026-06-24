@@ -22,8 +22,12 @@ bundled [pptc](../README.md) CLI. The plugin ships **two skills**:
   removable boxes -- no image API is called.
 - **Edit-safe**: optimistic locking against concurrent PowerPoint
   edits; slides addressed by stable ids and titles, never indices.
-- **Per-deck memory**: language, styles and template notes persist in a
-  `<deck>.md` sidecar next to the deck.
+- **Per-deck memory**: language, styles and topic persist as custom document
+  properties INSIDE the `.pptx` (so a deck is self-describing and can be handed
+  to another person who continues via the skill).
+- **Version-aware**: on first activation each skill prints a one-line version
+  banner and does a best-effort check against the GitHub releases, flagging
+  when a newer version is available (silent offline, never blocks the work).
 
 ## Install
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.11.0 (plugin 0.11.0)
+
+- **Skills announce their version and check for updates.** On first activation
+  in a conversation, `ppt` and `ppt-prepare` now print a one-line version
+  banner (read from their bundled `VERSION`) and run a best-effort check
+  against the GitHub releases of `Brusdeylins/ppt-skill`; when a newer release
+  exists they add a single "update available" line (npm for the CLI / re-upload
+  the ZIP or update the plugin for the skill). The check uses Node's `fetch`
+  with a 3s timeout and degrades silently offline -- it never gates or delays
+  the work. `ppt-prepare` now carries its own `VERSION` file (written by
+  `plugin:sync` alongside `ppt`'s), and the bundle contract test asserts both.
+
+
 ## 0.10.1 (plugin 0.10.1)
 
 - **Fix: `state` now emits `customProps`.** 0.10.0 read custom document

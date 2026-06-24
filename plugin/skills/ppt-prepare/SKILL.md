@@ -80,6 +80,38 @@ Protocols
   straight to the slides." No transition to PHASE 4 without explicit
   storyline approval.
 
+
+Startup
+-------
+
+The FIRST thing you do when this skill is activated (ONCE per conversation,
+before PHASE 1): announce the version and check for an update -- a one-line
+banner, never a gate; never let it block or delay the work.
+
+1.  Read the `VERSION` file in this skill's directory (next to this SKILL.md)
+    -- that is `<version/>`.
+2.  Best-effort update check (Node's `fetch`; on ANY error or no network, skip
+    the update line silently). Substitute `SKILLDIR` with this skill's absolute
+    directory:
+
+    ```bash
+    node -e 'const fs=require("fs");let v="?";try{v=fs.readFileSync(process.argv[1],"utf8").trim()}catch{};const cmp=(a,b)=>{const p=s=>s.split(".").map(Number),x=p(a),y=p(b);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};fetch("https://api.github.com/repos/Brusdeylins/ppt-skill/releases/latest",{headers:{"User-Agent":"ppt-skill"},signal:AbortSignal.timeout(3000)}).then(r=>r.json()).then(j=>{const l=String(j.tag_name||"").replace(/^v/,"");console.log(JSON.stringify({current:v,latest:l||null,behind:!!l&&cmp(v,l)<0}))}).catch(()=>console.log(JSON.stringify({current:v,latest:null,behind:false})))' 'SKILLDIR/VERSION'
+    ```
+
+3.  Emit the banner; add the update line ONLY when the check reported
+    `behind: true` (translate the labels into the user's language):
+
+    <template>
+    📝 **ppt-prepare** v<version/>
+    </template>
+    <if condition="the check reported behind: true">
+    <template>
+    ↑ Update available: v<version/> → v<latest/> — re-upload the latest skill ZIP from https://github.com/Brusdeylins/ppt-skill/releases (Claude Code: update the plugin)
+    </template>
+    </if>
+
+Do this once per conversation, not on every turn.
+
 <flow>
 
 1.  <step id="PHASE 1: Briefing">

@@ -31,9 +31,13 @@ describe("skill bundle sync contract", () => {
         ).toBe(true)
     })
 
-    it("the bundled VERSION matches package.json", () => {
+    it("both skills' bundled VERSION files match package.json", () => {
         const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { version: string }
-        const version = readFileSync(path.join(root, "plugin", "skills", "ppt", "scripts", "VERSION"), "utf8").trim()
-        expect(version, "VERSION is stale -- run 'npm run plugin:sync'").toBe(pkg.version)
+        const files = [
+            path.join(root, "plugin", "skills", "ppt", "scripts", "VERSION"),
+            path.join(root, "plugin", "skills", "ppt-prepare", "VERSION")
+        ]
+        for (const f of files)
+            expect(readFileSync(f, "utf8").trim(), `${f} is stale -- run 'npm run plugin:sync'`).toBe(pkg.version)
     })
 })
