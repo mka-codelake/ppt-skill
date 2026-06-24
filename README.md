@@ -500,7 +500,7 @@ npm install        # dependencies
 npm test           # build + vitest (unit, golden, integration, contract)
 npm run lint       # eslint (incl. TSDoc) + tsc --noEmit
 npm run build      # esbuild bundle -> dst/pptc.mjs
-npm run plugin:sync # rebuild + copy the bundle into the plugin (scripts/VERSION)
+npm run plugin:sync # rebuild + copy the bundle into the plugin (+ both VERSION files)
 npm run skill:zip  # package each skill as deploy/<skill>.zip (claude.ai upload)
 ```
 
@@ -550,8 +550,9 @@ knowledge automatically.
 This repo carries two independently versioned artifacts: the **pptc CLI**
 (`package.json`, published to npm) and the **Claude Code plugin**
 (`plugin/.claude-plugin/plugin.json` + marketplace entry, distributed via
-git). `plugin/skills/ppt/scripts/VERSION` records which pptc build is
-bundled in the plugin.
+git). Each skill carries a `VERSION` file at its root
+(`plugin/skills/ppt/VERSION`, `plugin/skills/ppt-prepare/VERSION`) recording
+which build it ships -- both written by `plugin:sync`.
 
 - **Skill-only change** (SKILL.md, references, meta): bump the plugin and
   marketplace version, add a CHANGELOG entry, commit and push `main`,

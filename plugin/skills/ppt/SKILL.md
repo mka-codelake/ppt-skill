@@ -115,12 +115,12 @@ The FIRST thing you do when this skill is activated (ONCE per conversation,
 before STEP 1): announce the version and check for an update. It is a one-line
 banner, never a gate -- never let it block or delay the actual work.
 
-1.  Read `<skill-dir/>/scripts/VERSION` -- that is `<version/>`.
+1.  Read `<skill-dir/>/VERSION` -- that is `<version/>`.
 2.  Best-effort update check (uses Node's `fetch`; on ANY error or no network,
     skip the update line silently -- never retry, never warn):
 
     ```bash
-    node -e 'const fs=require("fs");let v="?";try{v=fs.readFileSync(process.argv[1],"utf8").trim()}catch{};const cmp=(a,b)=>{const p=s=>s.split(".").map(Number),x=p(a),y=p(b);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};fetch("https://api.github.com/repos/Brusdeylins/ppt-skill/releases/latest",{headers:{"User-Agent":"ppt-skill"},signal:AbortSignal.timeout(3000)}).then(r=>r.json()).then(j=>{const l=String(j.tag_name||"").replace(/^v/,"");console.log(JSON.stringify({current:v,latest:l||null,behind:!!l&&cmp(v,l)<0}))}).catch(()=>console.log(JSON.stringify({current:v,latest:null,behind:false})))' '<skill-dir/>/scripts/VERSION'
+    node -e 'const fs=require("fs");let v="?";try{v=fs.readFileSync(process.argv[1],"utf8").trim()}catch{};const cmp=(a,b)=>{const p=s=>s.split(".").map(Number),x=p(a),y=p(b);for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0};fetch("https://api.github.com/repos/Brusdeylins/ppt-skill/releases/latest",{headers:{"User-Agent":"ppt-skill"},signal:AbortSignal.timeout(3000)}).then(r=>r.json()).then(j=>{const l=String(j.tag_name||"").replace(/^v/,"");console.log(JSON.stringify({current:v,latest:l||null,behind:!!l&&cmp(v,l)<0}))}).catch(()=>console.log(JSON.stringify({current:v,latest:null,behind:false})))' '<skill-dir/>/VERSION'
     ```
 
 3.  Emit the banner; add the update line ONLY when the check reported
@@ -601,7 +601,7 @@ Non-Goals
 Maintenance
 -----------
 
-`scripts/pptc.mjs` is a build artifact of the pptc project
-(`scripts/VERSION` holds its version). To update: run `npm run plugin:sync`
-in the pptc repo (builds `dst/pptc.mjs` and copies it over) -- never edit
-the bundle by hand.
+`scripts/pptc.mjs` is a build artifact of the pptc project; the skill version
+lives in `VERSION` (skill root, same for `ppt-prepare`). To update: run
+`npm run plugin:sync` in the pptc repo (builds `dst/pptc.mjs`, copies it over
+and writes both `VERSION` files) -- never edit the bundle by hand.

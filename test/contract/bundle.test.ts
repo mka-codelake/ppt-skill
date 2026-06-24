@@ -34,7 +34,7 @@ describe("skill bundle sync contract", () => {
     it("both skills' bundled VERSION files match package.json", () => {
         const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { version: string }
         const files = [
-            path.join(root, "plugin", "skills", "ppt", "scripts", "VERSION"),
+            path.join(root, "plugin", "skills", "ppt", "VERSION"),
             path.join(root, "plugin", "skills", "ppt-prepare", "VERSION")
         ]
         for (const f of files)
