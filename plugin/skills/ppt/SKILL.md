@@ -219,10 +219,13 @@ follow-ups within the same run.
         <skill-dir/>/assets`. (A public build bundles only the neutral default;
         an internal build REPLACES it with the corporate templates, so the
         neutral default is absent there.)
-        <if condition="exactly one template is bundled">use it.
-        <if condition="it is the neutral default">TELL the user the generic
-        Office design is in use and a corporate template can be supplied at
-        any time.</if></if>
+        <if condition="exactly one template is bundled AND it is NOT the neutral default">use it
+        (an internal build supplied a single corporate template).</if>
+        <elseif condition="the only bundled template is the neutral default">do
+        NOT proceed silently on the generic Office design: ASK via the **Asking
+        the User** procedure whether to build on the neutral default or supply a
+        corporate template (a `.potx`/`.pptx` path, or a directory to scan).
+        Use the neutral default only once the user picks it.</elseif>
         <else>ask which bundled template to use via the **Asking the User**
         procedure; the user can still point to an external file instead.</else>
         </else>

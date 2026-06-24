@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.2 (plugin 1.0.2)
+
+- **`ppt` skill: no longer builds silently on the neutral default template.**
+  When the only bundled template is the neutral Office fallback, STEP 2 now
+  ASKS (via the Asking-the-User procedure) whether to build on that default or
+  supply a corporate template -- a `.potx`/`.pptx` path or a directory to
+  scan -- instead of using the generic design and merely informing afterwards.
+  A single bundled *corporate* template (internal build) is still used
+  directly. Skill-only change; the `pptc` CLI is unchanged (republished at
+  1.0.2 to keep engine, plugin and bundle in lockstep).
+
 ## 1.0.1 (plugin 1.0.1)
 
 - **`state --level full` now returns enough to recreate styled content without
