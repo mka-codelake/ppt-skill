@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.0.0 (plugin 1.0.0)
+
+First stable release. No code change over 0.11.3 -- this marks the surface as
+settled and the two skills as production-ready. What 1.0 stands for:
+
+- **Deterministic PPTX engine (`pptc`):** one atomic write path, schema-
+  validated ops, optimistic locking, and a self-checking post-pass that refuses
+  to emit a deck PowerPoint would ask to repair (`verify` is green by
+  construction).
+- **Self-contained decks:** `slide.add` needs no template on an existing deck
+  (it seeds from the deck's own layouts), and the deck carries its own setup as
+  custom document properties -- hand a `.pptx` to someone else and the skill
+  keeps working, no side files.
+- **Two skills, one flow:** `ppt-prepare` plans the story (Pyramid/MECE/SCR,
+  headline titles) and hands a single plan file to `ppt`, which builds it
+  deterministically and writes color-faithful image prompts.
+- **Portable everywhere:** runs in Claude Code and on claude.ai. Gates use the
+  native selection box where present and a clean Markdown dialog otherwise;
+  the progress task list is host-conditional; skills announce their version and
+  check GitHub for updates.
+- **Consistent, teachable output:** one clean-Markdown style across every
+  user-facing template, and the skills model the control-tag DSL they teach.
+
+
 ## 0.11.3 (plugin 0.11.3)
 
 - **Consistent "clean Markdown" look for all skill output.** One visual style
