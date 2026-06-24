@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.11.1 (plugin 0.11.1)
+
+- **Fix: gates work on claude.ai (no selection-box tool).** The Stage Gate
+  required the host's selection box (AskUserQuestion) and forbade prose, but
+  the claude.ai web chat has no such tool -- so a gate ended on a bare colon
+  with no answerable question and the flow stalled. Both skills now share one
+  central **"Asking the User"** procedure in `meta/control.md` (pattern
+  borrowed from ASE's `ase-dialog`): use the selection box where the host has
+  one, otherwise render a numbered Markdown dialog, wait, and map the reply
+  (number / label / free text) back to an option -- never ending a turn on a
+  half-asked question. Every `<gate/>` routes through it. The Progress Task
+  List is likewise host-conditional: skipped (not faked as text) where no
+  task-list facility exists.
+
+
 ## 0.11.0 (plugin 0.11.0)
 
 - **Skills announce their version and check for updates.** On first activation

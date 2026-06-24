@@ -55,9 +55,10 @@ Ground Rules
   1 (slide 1 = the first slide), matching how PowerPoint counts them.
 - **Story-first is non-negotiable:** PHASE 4 does not begin without an
   approved storyline (PHASE 3). Honor the Story/Slide barrier below.
-- **Advance only through the gate:** the selection box is the ONLY way
-  from one phase to the next. Approve → advance; Revise → stay; Skip →
-  Short-Path protocol first.
+- **Advance only through the gate:** the gate is the ONLY way from one phase
+  to the next (its question is a selection box where the host has one, else a
+  numbered list -- see `meta/control.md`). Approve → advance; Revise → stay;
+  Skip → Short-Path protocol first.
 - **Reference material** lives in `references/` and is loaded **lazily**:
   each phase's `Read … → "section"` line pulls in only the file and section
   that phase needs — never load it all up front.
@@ -67,8 +68,9 @@ Protocols
 ---------
 
 - **Checkpoint (every gate).** Summarize what the phase produced, then list
-  its quality criteria each marked met / not met, then ask via the
-  selection box: Approve & continue · Revise · (where offered) Skip next.
+  its quality criteria each marked met / not met, then ask the gate question
+  (selection box where the host has one, else a numbered list): Approve &
+  continue · Revise · (where offered) Skip next.
   After two revise rounds without approval, offer to escalate (step back a
   phase, or hand off the draft as-is).
 - **Short-Path (skip).** When the user wants to skip a phase, state the

@@ -93,8 +93,11 @@ Progress Task List
 ------------------
 
 So the user always sees where they are in the overall flow, maintain a
-visible task list of the phases via the host's task-list facility (in
-Claude Code: the Task tools -- TaskCreate / TaskUpdate / TaskList):
+visible task list of the phases via the host's task-list facility WHEN THE
+HOST PROVIDES ONE (in Claude Code: the Task tools -- TaskCreate / TaskUpdate
+/ TaskList). Where the host has no task-list facility (e.g. the claude.ai web
+chat), SKIP the task list entirely -- do not fake it as text; the phase-marker
+banner and the gate question carry the orientation on their own:
 
 1.  **At flow start**, before entering PHASE 1, create one task per
     `<step>` of the `<flow>`, in order, each titled with the phase marker
@@ -106,7 +109,39 @@ Claude Code: the Task tools -- TaskCreate / TaskUpdate / TaskList):
     the next phase's task to in_progress.
 
 The task list mirrors the flow as an always-visible map; it never replaces
-the phase-marker banner or the gate selection box -- it sits beside them.
+the phase-marker banner or the gate's question -- it sits beside them.
+
+Asking the User
+---------------
+
+Whenever a step needs the user to choose -- a `<gate/>`, a style pick, a
+disambiguation -- ask with ONE consistent procedure, and NEVER end a turn on a
+half-asked question (a bare colon or a trailing "..." with no options):
+
+1.  Frame it as a short question plus 2-4 options, each a
+    `Label — one-line description`.
+2.  <if condition="the AskUserQuestion selection-box tool is available to you">
+    Call `AskUserQuestion` with that question and those options; read the
+    chosen label from the tool result.
+    </if>
+    <else>
+    The host has no selection-box tool (e.g. the **claude.ai web chat**).
+    Render the choice as Markdown, then END the turn and wait for the reply:
+
+    <template>
+    **<the question>**
+
+    1. **<label>** — <description>
+    2. **<label>** — <description>
+
+    _Reply with the number — or your own answer._
+    </template>
+
+    Map the reply (a number, a label, or free text) back to an option; free
+    text matching none is an "Other" answer to act on.
+    </else>
+3.  If the user declines or cancels, treat it as Cancel: do not advance; ask
+    what they want instead.
 
 Stage Gate
 ----------
@@ -118,14 +153,13 @@ Stage Gate
     1.  Emit a **checkpoint**: a short structured summary of what this
         phase produced, followed by an explicit quality-criteria list
         (each marked met / not met).
-    2.  Ask the user with the host's **selection box** (the multiple-choice
-        question tool) -- never as free prose -- offering at least:
+    2.  Ask, via the **Asking the User** procedure, offering at least:
         - **Approve & continue** to the next phase,
         - **Revise** (stay in this phase and refine),
         - **Skip next phase** (only where sensible; show the risk first).
     3.  Act on the choice: on *approve* advance to the next `<step>`; on
-        *revise* stay here and iterate, then gate again; on *skip* apply
-        the Short-Path protocol from the skill before advancing.
+        *revise* stay here and iterate, then gate again; on *skip* apply the
+        Short-Path protocol from the skill before advancing.
 
     Stay inside the current phase until the gate is approved -- one phase
     is fully clarified before the next begins. Do not batch two phases

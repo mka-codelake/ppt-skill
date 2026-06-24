@@ -100,8 +100,11 @@ Progress Task List
 ------------------
 
 So the user always sees where they are in the flow, maintain a visible
-task list of the steps via the host's task-list facility (in Claude Code:
-the Task tools -- TaskCreate / TaskUpdate / TaskList):
+task list of the steps via the host's task-list facility WHEN THE HOST
+PROVIDES ONE (in Claude Code: the Task tools -- TaskCreate / TaskUpdate /
+TaskList). Where the host has no task-list facility (e.g. the claude.ai web
+chat), SKIP the task list -- do not fake it as text; the step banner and the
+gate question orient the user on their own:
 
 1.  **When a run traverses the full flow** (a new deck, or a major
     addition that goes through the outline gate), create one task per
@@ -119,7 +122,41 @@ the Task tools -- TaskCreate / TaskUpdate / TaskList):
     flow.
 
 The task list mirrors the flow as an always-visible map; it never replaces
-the step banner or the gate selection box -- it sits beside them.
+the step banner or the gate's question -- it sits beside them.
+
+
+Asking the User
+---------------
+
+Whenever a step needs the user to choose -- a `<gate/>`, a template or style
+pick, a disambiguation -- ask with ONE consistent procedure, and NEVER end a
+turn on a half-asked question (a bare colon or a trailing "..." with no
+options):
+
+1.  Frame it as a short question plus 2-4 options, each a
+    `Label — one-line description`.
+2.  <if condition="the AskUserQuestion selection-box tool is available to you">
+    Call `AskUserQuestion` with that question and those options; read the
+    chosen label from the tool result.
+    </if>
+    <else>
+    The host has no selection-box tool (e.g. the **claude.ai web chat**).
+    Render the choice as Markdown, then END the turn and wait for the reply:
+
+    <template>
+    **<the question>**
+
+    1. **<label>** — <description>
+    2. **<label>** — <description>
+
+    _Reply with the number — or your own answer._
+    </template>
+
+    Map the reply (a number, a label, or free text) back to an option; free
+    text matching none is an "Other" answer to act on.
+    </else>
+3.  If the user declines or cancels, treat it as Cancel: do not advance; ask
+    what they want instead.
 
 
 Stage Gate
@@ -132,12 +169,11 @@ Stage Gate
 
     1.  Emit a **checkpoint**: a short summary of what was resolved/produced
         in this step, with the step's key values shown explicitly.
-    2.  Ask the user with the host's **selection box** (the multiple-choice
-        question tool; AskUserQuestion in Claude Code) -- never as free
-        prose -- offering at least **Approve & continue** and **Change**
-        (adjust a value / revise and gate again).
-    3.  On *approve* advance; on *change* stay in this step, apply the
-        change, and gate again.
+    2.  Ask, via the **Asking the User** procedure, offering at least
+        **Approve & continue** and **Change** (adjust a value / revise and
+        gate again).
+    3.  On *approve* advance; on *change* stay in this step, apply the change,
+        and gate again.
 
     Never advance past a `<gate/>` by assuming or inferring an unanswered
     value -- an unresolved required value (e.g. the deck language) is asked
