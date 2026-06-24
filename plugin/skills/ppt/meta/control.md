@@ -76,10 +76,15 @@ Reusable Blocks
 Step Announcement
 -----------------
 
+All user-facing output uses ONE clean style: an icon + **bold** label, `·` as
+the separator, a thin `────────` rule to open a section, `›` before a prompt
+line. No drawn boxes, no ASCII art.
+
 The moment a `<step>` begins executing, FIRST emit a one-line banner so
 the user can see exactly where you are, THEN carry out the step:
 
-    <step-marker/> **<step-id/>** — <what you are about to do, one short clause>
+    ────────────────────────────────────────
+    <step-marker/> **<step-id/>** · <what you are about to do, one short clause>
 
 `<step-id/>` is the step's `id`. `<step-marker/>` is the colored bullet of
 the step's PHASE. There are exactly two phases, so the color tells the user
@@ -149,7 +154,7 @@ options):
     1. **<label>** — <description>
     2. **<label>** — <description>
 
-    _Reply with the number — or your own answer._
+    › _Reply with the number — or your own answer._
     </template>
 
     Map the reply (a number, a label, or free text) back to an option; free
@@ -167,8 +172,9 @@ Stage Gate
     decision points). The flow does NOT advance past it until the user
     explicitly approves. Run it like this:
 
-    1.  Emit a **checkpoint**: a short summary of what was resolved/produced
-        in this step, with the step's key values shown explicitly.
+    1.  Emit a **checkpoint** in the clean style: a header line
+        `◆ **Checkpoint · <step-id>**`, a one-line summary with the step's key
+        values, then the quality criteria as a list (`✅` met / `⬜` not met).
     2.  Ask, via the **Asking the User** procedure, offering at least
         **Approve & continue** and **Change** (adjust a value / revise and
         gate again).

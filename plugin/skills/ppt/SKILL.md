@@ -127,11 +127,11 @@ banner, never a gate -- never let it block or delay the actual work.
     `behind: true` (translate the labels into the USER's language):
 
     <template>
-    🧩 **ppt** v<version/>
+    🧩 **ppt** · v<version/>
     </template>
     <if condition="the check reported behind: true">
     <template>
-    ↑ Update available: v<version/> → v<latest/> — update via npm (`@brusdeylins/pptc`) or re-upload the latest skill ZIP from https://github.com/Brusdeylins/ppt-skill/releases
+    › ↑ **Update** v<version/> → v<latest/> · via npm (`@brusdeylins/pptc`) or re-upload the latest skill ZIP — https://github.com/Brusdeylins/ppt-skill/releases
     </template>
     </if>
 
@@ -542,7 +542,7 @@ follow-ups within the same run.
 
     <define name="image-prompt">
     <template>
-    ### Image prompt — slide <n/>, placeholder <idx/> (<aspect/>, role <role/>)
+    ### 🎨 Image prompt · slide <n/> · placeholder <idx/> · <aspect/> · role <role/>
 
     ```
     <prompt/>
@@ -564,12 +564,13 @@ follow-ups within the same run.
     never a finished deliverable. Then report with this output:
 
     <template>
-    **Deck updated**: `<deck/>` (rev `<rev/>`)
-
-    - Slides: <slide-count/> (<changed/> changed/new)
-    - Image prompts written: <prompt-count/>
-    - Integrity: <verify-result/>
-    - Open checklist items: <open-items/>
+    ────────────────────────────────────────
+    ✅ **Deck updated** · `<deck/>` · rev `<rev/>`
+    ────────────────────────────────────────
+    - 🗂 Slides: <slide-count/> (<changed/> changed/new)
+    - 🎨 Image prompts written: <prompt-count/>
+    - 🛡 Integrity: <verify-result/>
+    - 📋 Open checklist items: <open-items/>
     </template>
 
     Translate the fixed labels of this template into the USER's language.

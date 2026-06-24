@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.11.3 (plugin 0.11.3)
+
+- **Consistent "clean Markdown" look for all skill output.** One visual style
+  (icon + bold label, `·` separator, a thin `────` rule to open a section, `›`
+  before a prompt line; no drawn boxes) now governs every user-facing
+  template in both skills -- the version banner, the step/phase banner, the
+  Asking-the-User dialog, the gate checkpoint (`◆ Checkpoint` with `✅`/`⬜`
+  criteria), the `ppt` report (ruled header + 🗂/🎨/🛡/📋 lines) and the image-
+  prompt mirror (`🎨 Image prompt · slide … · role …`). The style is documented
+  centrally in each `meta/control.md`. Behaviour unchanged; the data plan file
+  stays plain for clean parsing.
+- **Consistency: `VERSION` at the skill root for both skills.** `ppt`'s
+  `VERSION` moved out of `scripts/` to the skill root, matching `ppt-prepare`,
+  so both read `<skill-dir>/VERSION` uniformly and `scripts/` holds only the
+  bundle. `plugin:sync`, the startup banner paths and the bundle contract test
+  updated accordingly.
+
+
 ## 0.11.2 (plugin 0.11.2)
 
 - **Routing: a NEW deck starts with `ppt-prepare`, not `ppt`.** "Create a deck

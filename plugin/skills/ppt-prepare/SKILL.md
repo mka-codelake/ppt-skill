@@ -106,11 +106,11 @@ banner, never a gate; never let it block or delay the work.
     `behind: true` (translate the labels into the user's language):
 
     <template>
-    📝 **ppt-prepare** v<version/>
+    📝 **ppt-prepare** · v<version/>
     </template>
     <if condition="the check reported behind: true">
     <template>
-    ↑ Update available: v<version/> → v<latest/> — re-upload the latest skill ZIP from https://github.com/Brusdeylins/ppt-skill/releases (Claude Code: update the plugin)
+    › ↑ **Update** v<version/> → v<latest/> · re-upload the latest skill ZIP from https://github.com/Brusdeylins/ppt-skill/releases (Claude Code: update the plugin)
     </template>
     </if>
 
@@ -286,7 +286,7 @@ Do this once per conversation, not on every turn.
 
     <define name="chapter-plan">
     <template>
-    ### <chapter-marker/> Chapter <c/> — <chapter-title/>
+    ### <chapter-marker/> Chapter <c/> · <chapter-title/>
 
     | Slide | Title | Content (proves the message) | Layout type |
     |---|---|---|---|

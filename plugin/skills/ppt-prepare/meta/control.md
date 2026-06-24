@@ -71,10 +71,15 @@ Reusable Blocks
 Step Announcement
 -----------------
 
+All user-facing output uses ONE clean style: an icon + **bold** label, `·` as
+the separator, a thin `────────` rule to open a section, `›` before a prompt
+line. No drawn boxes, no ASCII art.
+
 The moment a `<step>` begins executing, FIRST emit a one-line banner so
 the user can see exactly which phase is active, THEN carry out the phase:
 
-    <phase-marker/> **<step-id/>** — <what this phase decides, one short clause>
+    ────────────────────────────────────────
+    <phase-marker/> **<step-id/>** · <what this phase decides, one short clause>
 
 `<step-id/>` is the step's `id` (e.g. `PHASE 2: Core Message`).
 `<phase-marker/>` is the colored bullet of the WORK PHASE. There are two,
@@ -134,7 +139,7 @@ half-asked question (a bare colon or a trailing "..." with no options):
     1. **<label>** — <description>
     2. **<label>** — <description>
 
-    _Reply with the number — or your own answer._
+    › _Reply with the number — or your own answer._
     </template>
 
     Map the reply (a number, a label, or free text) back to an option; free
@@ -150,9 +155,10 @@ Stage Gate
     A BLOCKING checkpoint that ends a `<step>`. The flow does NOT advance
     to the next step until the user explicitly approves. Run it like this:
 
-    1.  Emit a **checkpoint**: a short structured summary of what this
-        phase produced, followed by an explicit quality-criteria list
-        (each marked met / not met).
+    1.  Emit a **checkpoint** in the clean style: a header line
+        `◆ **Checkpoint · <step-id>**`, a short structured summary of what this
+        phase produced, then the quality criteria as a list (`✅` met /
+        `⬜` not met).
     2.  Ask, via the **Asking the User** procedure, offering at least:
         - **Approve & continue** to the next phase,
         - **Revise** (stay in this phase and refine),
