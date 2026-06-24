@@ -37,7 +37,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "plugin:sync": "npm run build && cp dst/pptc.mjs plugin/skills/ppt/scripts/pptc.mjs && node -e \"const fs=require('fs');const v=require('./package.json').version+'\\n';fs.writeFileSync('plugin/skills/ppt/VERSION',v);fs.writeFileSync('plugin/skills/ppt-prepare/VERSION',v)\"",
+    "plugin:sync": "npm run build && cp dst/pptc.mjs plugin/skills/ppt/scripts/pptc.mjs && node scripts/sync-versions.mjs",
     "skill:zip": "npm run plugin:sync && node scripts/skill-zip.mjs",
     "skill:zip:internal": "npm run plugin:sync && node scripts/skill-zip.mjs --internal",
     "test": "vitest run",
