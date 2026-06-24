@@ -98,8 +98,10 @@ export const newPlanEntry = (
 export interface MutationPlan {
     /**  output slides in final order  */
     entries: SlidePlanEntry[]
-    /**  document property patch, null when untouched  */
+    /**  document core-property patch, null when untouched  */
     props: Record<string, string> | null
+    /**  custom document-property patch (name→value), null when untouched  */
+    customProps: Record<string, string> | null
     /**  lint findings collected during planning  */
     warnings: LintWarning[]
     /**  refs declared by ops, mapped to their entry  */

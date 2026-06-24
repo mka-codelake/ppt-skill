@@ -197,14 +197,24 @@ export const imgPrompts: OpHandler<Extract<Op, { op: "img.prompts" }>> = {
     }
 }
 
-/**  op handler: meta.props  */
+/**  op handler: meta.props -- core fields patch `plan.props`, the `custom`
+     map patches `plan.customProps` (written to docProps/custom.xml)  */
 export const metaProps: OpHandler<Extract<Op, { op: "meta.props" }>> = {
     name: "meta.props",
     plan(ctx, op): void {
-        const patch: Record<string, string> = { ...(ctx.plan.props ?? {}) }
-        for (const [key, value] of Object.entries(op.set))
-            if (value !== undefined)
+        const { custom, ...core } = op.set
+        const coreEntries = Object.entries(core).filter(([, v]) => v !== undefined)
+        if (coreEntries.length > 0) {
+            const patch: Record<string, string> = { ...(ctx.plan.props ?? {}) }
+            for (const [key, value] of coreEntries)
+                patch[key] = value as string
+            ctx.plan.props = patch
+        }
+        if (custom !== undefined) {
+            const patch: Record<string, string> = { ...(ctx.plan.customProps ?? {}) }
+            for (const [key, value] of Object.entries(custom))
                 patch[key] = value
-        ctx.plan.props = patch
+            ctx.plan.customProps = patch
+        }
     }
 }

@@ -20,7 +20,7 @@ import { atomicWrite, cacheDir } from "../infra/fs.js"
 import { addElement, type GenRoot, type GenSlide } from "./elements.js"
 import { postProcess, type PostSlideWork } from "./post.js"
 import { verifyBytes } from "./verify.js"
-import { ensureSeed } from "./seed.js"
+import { ensureSeed, ensureSeedFromDeck } from "./seed.js"
 import { setShapeText } from "./text.js"
 
 /*  unwrap the CJS default export robustly: plain node and vite/vitest
@@ -135,7 +135,7 @@ const executePlan = async (
                 ...(f.frame !== undefined && { frame: f.frame })
             }))
     }))
-    const finalBytes = await postProcess(readFileSync(tmpFile), work, plan.props)
+    const finalBytes = await postProcess(readFileSync(tmpFile), work, plan.props, plan.customProps)
     /*  self-verify before writing: the post-pass repairs every known
         PowerPoint "repair" trigger, so a finding here is a residual defect.
         Fail atomically rather than emit a .pptx the user only discovers is
@@ -170,11 +170,16 @@ export const runSession = async (
     plan: MutationPlan,
     templatePath: string | null
 ): Promise<SessionResult> => {
+    /*  new slides import from a seed = one slide per layout. When the caller
+        passes a template, the seed is derived from it; otherwise it is derived
+        from the DECK's OWN embedded layouts (carried in by `new`, never GC'd)
+        -- so adding slides to an existing deck needs no template file.  */
     const needsSeed = plan.entries.some((e) => e.source.kind === "seed")
-    if (needsSeed && templatePath === null)
-        throw new PptcError("E_TEMPLATE",
-            "the ops document creates slides: pass --template <file.potx>")
-    const seedPath = needsSeed ? await ensureSeed(templatePath as string) : null
+    const seedPath = needsSeed
+        ? (templatePath !== null
+            ? await ensureSeed(templatePath)
+            : await ensureSeedFromDeck(deckFile))
+        : null
 
     const tmpName = `pptc-session-${process.pid}.pptx`
     const tmpFile = path.join(cacheDir(), tmpName)

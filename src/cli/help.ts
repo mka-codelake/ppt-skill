@@ -14,7 +14,10 @@ export const HELP: Record<string, string> = {
     "state": `pptc state <deck> [--slide SEL] [--level summary|text|full] [--plain]
 
 Read model of a deck: slides, contents and the 'rev' token for
-optimistic locking (read-before-write: pass it to 'apply --rev').
+optimistic locking (read-before-write: pass it to 'apply --rev'). The
+result also carries 'customProps' -- the deck's custom document
+properties (docProps/custom.xml), the self-describing memory a skill
+stores inside the file (e.g. the chosen image style).
 
 Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
@@ -76,7 +79,10 @@ the deck stays byte-identical).
 Options:
   --ops @file|-     ops document from file or stdin ('pptc help ops')
   -e '<op-json>'    exactly one inline op instead of --ops
-  --template <tpl>  required when the document contains 'slide.add'
+  --template <tpl>  layout source for 'slide.add'. OPTIONAL when adding to an
+                    existing deck -- it reuses the deck's OWN embedded layouts
+                    (a deck is self-contained); supply one only to introduce
+                    layouts the deck does not already carry
   --dry-run         validate and plan only, no write; warnings included
   --strict          lint warnings become exit 7: W_TEXT_OVERFLOW
                     (shorten/split text), W_ELEMENT_OVERLAP (an el.add
@@ -236,7 +242,12 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
   el.rm        remove an element by name
   img.prompts  overlay picture placeholders with visible prompt boxes
                { "op": "img.prompts", "slide": SEL, "prompts": "..." }
-  meta.props   document properties (title, author, subject, ...)
+  meta.props   document properties: core fields (title, author, subject,
+               keywords, category, comments) and/or arbitrary 'custom'
+               name/value pairs -- stored in the .pptx (docProps/custom.xml),
+               so they travel with the file and 'state' reads them back
+               { "op": "meta.props", "set": { "title": "Q3",
+                 "custom": { "pptcImageStyle": "Pencil Sketch" } } }
 
 Text values accept plain strings (\\n = new paragraph) or rich text
 (runs with bold/italic/color/size, paragraphs with bullet levels).

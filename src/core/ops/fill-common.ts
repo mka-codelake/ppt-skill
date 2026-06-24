@@ -40,8 +40,11 @@ export const resolveEntry = (ctx: PlanContext, selector: string): SlidePlanEntry
  *  @returns the layout, or null when unresolvable
  */
 export const entryLayout = (ctx: PlanContext, entry: SlidePlanEntry): Layout | null => {
+    /*  seed slides take the template's layouts when a template was given,
+        else the deck's OWN layouts (seed-from-deck); kept slides always use
+        the deck's layouts  */
     const layouts = entry.source.kind === "seed"
-        ? ctx.template?.layouts ?? []
+        ? (ctx.template?.layouts ?? ctx.deckLayouts)
         : ctx.deckLayouts
     return layouts[entry.layoutIndex] ?? null
 }

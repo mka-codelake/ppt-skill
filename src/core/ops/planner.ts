@@ -49,7 +49,7 @@ export const planOps = (
     const entries: SlidePlanEntry[] = deck.slides.map((slide) =>
         newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex))
     const ctx: PlanContext = {
-        plan: { entries, props: null, warnings: [], refs: new Map() },
+        plan: { entries, props: null, customProps: null, warnings: [], refs: new Map() },
         deck,
         deckLayouts,
         template,

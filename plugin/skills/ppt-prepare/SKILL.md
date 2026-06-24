@@ -300,7 +300,10 @@ Protocols
         <template>
         # Presentation plan: <project/>
 
+        <!-- Setup for `ppt` — this header REPLACES the separate deck sidecar -->
         - Deck language: <deck-lang/>
+        - Deck title: <deck-title/>
+        - Topic: <topic/>
         - Type / audience / goal / time: <briefing/>
         - Core message: <core-message/>
         - Call to action: <cta/>
@@ -334,36 +337,37 @@ Protocols
 
 8.  <step id="PHASE 8: Handoff">
 
-    Deliver the approved plan. The two skills share artefacts by convention,
-    not by code, so hand-off is purely file-based.
+    Deliver the approved plan as a SINGLE file. The plan IS the whole
+    hand-off: its header carries the setup values `ppt` needs (deck language,
+    title, topic), so NO separate deck sidecar is written -- one file to keep,
+    one file to hand on.
 
     1.  Ask for the intended deck file name (default `<project>.pptx`).
     2.  Write the content plan **exactly as assembled and approved in
         PHASE 7** to **`<deck>-plan.md`** next to where the deck will live --
-        verbatim, no re-summarizing or re-condensing. This happens on BOTH
-        delivery paths.
+        verbatim, no re-summarizing or re-condensing, and make sure its header
+        carries deck language, title and topic. This happens on BOTH delivery
+        paths.
     3.  Offer the two delivery paths via the **selection box** (this is the
         phase's gate):
         -   **Save & finish** — the plan file is the deliverable; stop here.
-        -   **Save & hand off to `ppt`** — also prepare the build.
-    4.  <if condition="the user chose Save & hand off">
-        a.  Seed the deck sidecar **`<deck>.md`** with the values `ppt` reads
-            at its setup gate: deck language, title, topic. (Leave
-            image/info-graphic style to `ppt` -- those are its decision.)
-        b.  Tell the user: run the **`ppt` skill** on `<deck>.pptx`; it picks
-            up `<deck>-plan.md` and `<deck>.md` automatically, so the deck
-            language is already set and the outline gate is satisfied by this
-            plan -- it goes straight to building (template choice,
+        -   **Save & hand off to `ppt`** — also explain the build step.
+    4.  Tell the user how to continue, by platform (the hand-off is file-based,
+        and the two platforms share files differently):
+        -   **Claude Code (shared filesystem):** just run the **`ppt` skill**
+            on `<deck>.pptx` -- it finds `<deck>-plan.md` next to it
+            automatically; the deck language is set and the outline gate is
+            satisfied by this plan, so it goes straight to building (template,
             placeholders, image prompts).
-        </if>
-    5.  <else>
-        Confirm `<deck>-plan.md` is saved and tell the user they can build
-        later by running the `ppt` skill on the deck (it picks the plan up
-        automatically).
-        </else>
+        -   **claude.ai (sandboxed):** each skill runs in its own ephemeral
+            sandbox that is NOT shared, so `ppt` cannot see this file on disk.
+            **Download `<deck>-plan.md` and attach/upload it** when you run the
+            `ppt` skill (ideally in the same conversation). `ppt` reads its
+            setup straight from the plan -- there is no second file to carry.
 
-    Quality criteria: the plan is written to `<deck>-plan.md`; on hand-off
-    the sidecar is seeded and the user knows the next step.
+    Quality criteria: the plan is written to `<deck>-plan.md` and its header
+    carries the setup (language, title, topic); NO separate sidecar is
+    produced; the user knows how to hand it to `ppt` on their platform.
 
     </step>
 

@@ -105,6 +105,14 @@ Not a developer? Each skill is published as a ready-to-upload ZIP on the
 That is the whole install -- no clone, no `npm`. The bundled pptc is
 self-contained and runs on the claude.ai code-execution runtime.
 
+**Handing the plan from `ppt-prepare` to `ppt` on claude.ai.** Unlike the
+local CLI, each claude.ai skill runs in its own sandbox that is not shared,
+so `ppt` cannot see a file `ppt-prepare` wrote to disk. `ppt-prepare` now
+produces a **single** file -- `<deck>-plan.md`, with the deck setup in its
+header (no separate sidecar) -- so when you switch to `ppt`, just **download
+that one plan file and attach/upload it** (ideally in the same conversation).
+`ppt` reads its setup straight from the plan.
+
 ## Quick Start
 
 ```bash

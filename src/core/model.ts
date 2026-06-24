@@ -164,6 +164,10 @@ export interface DeckState {
     slideSize: { w: number, h: number }
     /**  all slides in presentation order  */
     slides: SlideInfo[]
+    /**  custom document properties (name→value) carried inside the .pptx
+         (docProps/custom.xml) -- the deck's self-describing memory, e.g. the
+         image/info-graphic style the skill chose. Empty when none are set.  */
+    customProps: Record<string, string>
 }
 
 /**

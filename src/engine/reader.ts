@@ -565,10 +565,21 @@ export const readDeckState = async (archive: DeckArchive): Promise<DeckState> =>
         slides.push({ id, index, title, layoutName, layoutIndex, shapes, notes, part })
     }
 
+    /*  custom document properties: the deck's self-describing memory  */
+    const customProps: Record<string, string> = {}
+    const customXml = await archive.text("docProps/custom.xml")
+    if (customXml !== null)
+        for (const p of elements(parseXml(customXml), "property")) {
+            const name = p.getAttribute("name")
+            if (name !== null && name !== "")
+                customProps[name] = firstElement(p, "vt:lpwstr")?.textContent ?? ""
+        }
+
     return {
         file: archive.file,
         rev: contentHash(...hashParts, JSON.stringify(slides.map((s) => s.id))),
         slideSize: info.slideSize,
-        slides
+        slides,
+        customProps
     }
 }

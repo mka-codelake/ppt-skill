@@ -100,8 +100,10 @@ Ops (in one JSON document, applied atomically): `slide.add`, `slide.fill`,
 `title:<exact>`, `$ref` (doc-local), or `index:N` (escape hatch only).
 
 Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
-`-` reads stdin). Whenever the ops document contains `slide.add`, the
-`apply` call needs `--template <tpl>` as well.
+`-` reads stdin). `slide.add` on an EXISTING deck needs **no** `--template`
+-- pptc reuses the deck's OWN embedded layouts (a deck is self-contained).
+Pass `--template` only when creating the deck (`new`) or to introduce a
+layout the deck does not already carry.
 
 <flow>
 
@@ -119,12 +121,15 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         slide's shapes and overlays -- `full` also returns table geometry +
         cells + column widths and autoshape preset/fill/border/font, so you
         can recreate or edit an existing table or native diagram faithfully
-        WITHOUT reading raw XML. ALSO read the deck sidecar
-        `<deck>.md` next to the file -- it restores the setup from
-        earlier sessions (title, deck language, image/info-graphic
-        styles, template notes). Treat this freshly read state as
-        reality, never a structure you remember from a previous turn;
-        carry <rev/> into every later write (`apply --rev <rev/>`).
+        WITHOUT reading raw XML. The deck's OWN setup memory now travels
+        INSIDE the file: the `state` you read carries `customProps` (image
+        style, info-graphic style, deck language, title, topic) -- read the
+        styles from there, so a deck handed over by someone else is fully
+        self-describing, no side file needed. (A legacy `<deck>.md` sidecar
+        may still sit next to older decks; read it IF present for template
+        notes, but the deck's own `customProps` take precedence.) Treat this
+        freshly read state as reality, never a structure you remember from a
+        previous turn; carry <rev/> into every later write (`apply --rev <rev/>`).
         </if>
     -   <if condition="the deck does not exist yet (brand-new deck)">
         There is no state to read. Note it and continue to STEP 2; you
@@ -132,19 +137,26 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         always runs first.
         </if>
 
-    Also look for a **ppt-prepare plan** (`*-plan.md` -- the handoff
-    artefact from the `ppt-prepare` skill: approved storyline, per-slide
-    messages, headline titles, content, speaker notes AND the deck
-    language). It may exist before the deck does.
+    Also look for a **ppt-prepare plan** (`*-plan.md` -- the SINGLE hand-off
+    artefact from the `ppt-prepare` skill: a setup header with deck language,
+    title and topic, plus the approved storyline, per-slide messages, headline
+    titles, content and speaker notes). It may exist before the deck does, and
+    it now carries everything `ppt` needs to start -- there is NO separate
+    `ppt-prepare` deck sidecar to look for.
 
     -   <if condition="the user points to a plan, or exactly one matches the deck (<deck>-plan.md)">
-        adopt it -- it pre-answers the STEP 3 deck language and the STEP 5
-        outline.</if>
+        adopt it -- its header pre-answers the STEP 3 setup (deck language,
+        title, topic) and its body pre-answers the STEP 5 outline.</if>
     -   <if condition="several plan files are found (ambiguous)">present a
         selection box of the found plans (file name + the plan's
         `# Presentation plan: <title>` line) and let the user choose --
         with an option to build fresh without a plan. Do not pick one
         silently.</if>
+    -   <if condition="the conversation shows a plan was just prepared (e.g. by ppt-prepare) but no *-plan.md is on disk">
+        you are likely on **claude.ai**, where each skill runs in its own
+        sandbox and files are NOT shared between runs. ASK the user to
+        attach/upload the `<deck>-plan.md` file before building; do NOT
+        silently re-derive the outline and discard their approved plan.</if>
     -   <else>proceed without a plan; you derive the outline yourself in
         STEP 5.</else>
 
@@ -201,21 +213,25 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
 3.  <step id="STEP 3: Deck Setup">
 
     Resolve four setup values once per deck, then confirm them at a gate
-    and persist them. If STEP 1 found a deck sidecar `<deck>.md` (or a
-    ppt-prepare plan), it may already answer some of these -- adopt those
-    and only resolve the rest.
+    and persist them. If STEP 1's `state` already carries `customProps`
+    (`pptcImageStyle`, `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`,
+    `pptcTopic`), adopt those -- the deck remembers its own setup. If a
+    ppt-prepare plan was found, its header answers deck language, title and
+    topic (image and info-graphic style are never in the plan -- they stay
+    `ppt`'s decision). Only resolve what is still missing.
 
     -   <deck-lang/>: the language of the deck (slide content, notes,
         footer, AI note), independent of the conversation language.
-        Derive it ONLY from an explicit statement or the sidecar/plan;
-        when it is not stated, ASK -- never assume the conversation
-        language is the deck language.
+        Derive it ONLY from an explicit statement, the deck's `customProps`
+        (`pptcDeckLang`) or the plan; when it is not stated, ASK -- never
+        assume the conversation language is the deck language.
     -   <deck-title/>: the presentation title (title slide + footer).
         Derive from the request when obvious, otherwise ASK; never leave
         the template's placeholder title in.
     -   **Image style** and **info-graphic style** from
         `references/style-catalog.md`. These are NEVER inferred: set them
-        only from a LITERAL user statement (or the sidecar). Do NOT derive
+        only from a LITERAL user statement (or the deck's `customProps`
+        `pptcImageStyle`/`pptcInfoStyle`). Do NOT derive
         them from topic, tone, audience or template -- "serious tech talk →
         cinematic" is the forbidden inference. If either is missing, show the
         user the COMPLETE list from `style-catalog.md` -- EVERY style with its
@@ -227,10 +243,15 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
         the USER's choice; they are NOT an auto-pick default. WAIT for the
         choice. Keep both chosen blocks verbatim in every prompt.
 
-    **Persist** the resolved setup in the deck sidecar `<deck>.md` next to
-    `<deck>.pptx` (title, topic, deck language, image style, info-graphic
-    style, template notes) -- the deck's memory across sessions; UPDATE it
-    whenever a value changes.
+    **Persist** the resolved setup INSIDE THE DECK as custom document
+    properties -- one `meta.props` op with a `custom` map, applied with the
+    first write. Store image style, info-graphic style, deck language, title
+    and topic under the keys `pptcImageStyle`, `pptcInfoStyle`, `pptcDeckLang`,
+    `pptcTitle`, `pptcTopic`. Because they live in the `.pptx`, the deck is
+    self-describing: hand it to anyone and their `ppt` run reads the styles
+    straight back from `state` (`customProps`) -- no side file. UPDATE the
+    relevant key whenever a value changes. (Template-specific notes that are
+    not deck setup may still go in a `<deck>.md` sidecar.)
 
     **Gate:** present the resolved setup (deck language, title, image
     style, info-graphic style) and confirm it via the selection box before
@@ -291,6 +312,11 @@ Pitfalls: the ops file is passed as `--ops @/abs/path.json` (note the `@`;
     Build ONE ops document for the change set, obeying
     `references/content-rules.md`:
 
+    -   **Persist the setup into the deck.** When the deck is first built (or
+        whenever a setup value changed since the last `state`), include ONE
+        `meta.props` op with the `custom` map from STEP 3 (`pptcImageStyle`,
+        `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`, `pptcTopic`) so the
+        deck stays self-describing. Skip it when the values are unchanged.
     -   **Preserve approved wording — do not rewrite the plan.** When a
         ppt-prepare plan or the user supplies a slide's content (headline,
         bullets, body), write it to the slide AS GIVEN: do NOT paraphrase,
@@ -528,7 +554,7 @@ Non-Goals
 Maintenance
 -----------
 
-`bin/pptc.mjs` is a build artifact of the pptc project
-(`bin/VERSION` holds its version). To update: build pptc
-(`npm run build` → `dst/pptc.mjs`) and copy it over -- never edit
+`scripts/pptc.mjs` is a build artifact of the pptc project
+(`scripts/VERSION` holds its version). To update: run `npm run plugin:sync`
+in the pptc repo (builds `dst/pptc.mjs` and copies it over) -- never edit
 the bundle by hand.

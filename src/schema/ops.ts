@@ -121,7 +121,9 @@ export const ImgPromptsSchema = z.object({
     prompts: z.union([z.string(), z.record(z.string().regex(/^\d+$/), z.string())])
 }).strict()
 
-/**  Op: set document core properties.  */
+/**  Op: set document properties -- standard core fields and/or arbitrary
+     custom name/value pairs (stored in docProps/custom.xml, so they travel
+     inside the .pptx and survive PowerPoint round-trips).  */
 export const MetaPropsSchema = z.object({
     op: z.literal("meta.props"),
     set: z.object({
@@ -130,7 +132,10 @@ export const MetaPropsSchema = z.object({
         subject: z.string().optional(),
         keywords: z.string().optional(),
         category: z.string().optional(),
-        comments: z.string().optional()
+        comments: z.string().optional(),
+        /**  arbitrary custom document properties (name→value); a value
+             may be empty to clear the visible content of a property  */
+        custom: z.record(z.string().min(1), z.string()).optional()
     }).strict()
 }).strict()
 

@@ -208,6 +208,36 @@ export const ensureSeed = async (templatePath: string): Promise<string> => {
 }
 
 /**
+ *  Get the cached seed deck derived from an EXISTING deck's OWN embedded
+ *  layouts -- used by `slide.add` when no external template is supplied.
+ *  `pptc new` bakes the full template (masters, layouts, theme) into every
+ *  deck and the post-pass never garbage-collects layouts, so the deck always
+ *  carries the same layouts the template did. The cache key hashes only the
+ *  design parts (masters, layouts, theme, presentation), so ordinary content
+ *  edits do not rebuild the seed.
+ *
+ *  @param deckPath - path of the deck whose own layouts seed new slides
+ *  @returns absolute path of the cached seed deck
+ */
+export const ensureSeedFromDeck = async (deckPath: string): Promise<string> => {
+    const bytes = readFileSync(deckPath)
+    const zip = await JSZip.loadAsync(bytes)
+    const designParts = Object.keys(zip.files)
+        .filter((f) => /^ppt\/(slideMasters|slideLayouts|theme)\/[^/]+\.xml$/.test(f)
+            || f === "ppt/presentation.xml")
+        .sort()
+    const design: string[] = []
+    for (const part of designParts)
+        design.push(`${part}:${await (zip.file(part) as JSZip.JSZipObject).async("string")}`)
+    const seedPath = path.join(cacheDir(), `seed-deck-${SEED_FORMAT}-${contentHash(...design)}.pptx`)
+    if (!existsSync(seedPath)) {
+        const seed = await buildSeed(bytes)
+        writeFileSync(seedPath, seed.bytes)
+    }
+    return seedPath
+}
+
+/**
  *  Create an empty deck from a template: the seed deck with the slide list
  *  truncated and all seed slide parts removed. Used by `pptc new`.
  *

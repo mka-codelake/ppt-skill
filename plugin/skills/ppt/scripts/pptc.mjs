@@ -38388,7 +38388,10 @@ var HELP = {
   "state": `pptc state <deck> [--slide SEL] [--level summary|text|full] [--plain]
 
 Read model of a deck: slides, contents and the 'rev' token for
-optimistic locking (read-before-write: pass it to 'apply --rev').
+optimistic locking (read-before-write: pass it to 'apply --rev'). The
+result also carries 'customProps' -- the deck's custom document
+properties (docProps/custom.xml), the self-describing memory a skill
+stores inside the file (e.g. the chosen image style).
 
 Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
@@ -38447,7 +38450,10 @@ the deck stays byte-identical).
 Options:
   --ops @file|-     ops document from file or stdin ('pptc help ops')
   -e '<op-json>'    exactly one inline op instead of --ops
-  --template <tpl>  required when the document contains 'slide.add'
+  --template <tpl>  layout source for 'slide.add'. OPTIONAL when adding to an
+                    existing deck -- it reuses the deck's OWN embedded layouts
+                    (a deck is self-contained); supply one only to introduce
+                    layouts the deck does not already carry
   --dry-run         validate and plan only, no write; warnings included
   --strict          lint warnings become exit 7: W_TEXT_OVERFLOW
                     (shorten/split text), W_ELEMENT_OVERLAP (an el.add
@@ -38594,7 +38600,12 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
   el.rm        remove an element by name
   img.prompts  overlay picture placeholders with visible prompt boxes
                { "op": "img.prompts", "slide": SEL, "prompts": "..." }
-  meta.props   document properties (title, author, subject, ...)
+  meta.props   document properties: core fields (title, author, subject,
+               keywords, category, comments) and/or arbitrary 'custom'
+               name/value pairs -- stored in the .pptx (docProps/custom.xml),
+               so they travel with the file and 'state' reads them back
+               { "op": "meta.props", "set": { "title": "Q3",
+                 "custom": { "pptcImageStyle": "Pencil Sketch" } } }
 
 Text values accept plain strings (\\n = new paragraph) or rich text
 (runs with bold/italic/color/size, paragraphs with bullet levels).
@@ -38715,7 +38726,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.9.1" : "0.0.0-dev";
+var VERSION = true ? "0.10.0" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -38925,7 +38936,7 @@ var resolveEntry = (ctx, selector) => {
   return view.find((v) => v.id === hit.id).entry;
 };
 var entryLayout = (ctx, entry) => {
-  const layouts = entry.source.kind === "seed" ? ctx.template?.layouts ?? [] : ctx.deckLayouts;
+  const layouts = entry.source.kind === "seed" ? ctx.template?.layouts ?? ctx.deckLayouts : ctx.deckLayouts;
   return layouts[entry.layoutIndex] ?? null;
 };
 var resolvePlaceholderKey = (layout, key) => {
@@ -39033,26 +39044,27 @@ var planFill = (ctx, entry, fill) => {
 
 // src/core/ops/slide-add.ts
 var resolveLayout = (ctx, layout) => {
-  if (ctx.template === null)
+  const layouts = ctx.template?.layouts ?? ctx.deckLayouts;
+  if (layouts.length === 0)
     throw new PptcError(
       "E_TEMPLATE",
-      "'slide.add' needs a template: pass --template <file.potx>"
+      "'slide.add' needs layouts: this deck carries none -- pass --template <file.potx>"
     );
   if (typeof layout === "number") {
-    if (ctx.template.layouts[layout] === void 0)
+    if (layouts[layout] === void 0)
       throw new PptcError(
         "E_ADDR_NOTFOUND",
-        `layout index ${layout} out of range (0-${ctx.template.layouts.length - 1})`,
-        { layouts: ctx.template.layouts.map((l) => ({ index: l.index, name: l.name })) }
+        `layout index ${layout} out of range (0-${layouts.length - 1})`,
+        { layouts: layouts.map((l) => ({ index: l.index, name: l.name })) }
       );
     return layout;
   }
-  const hit = ctx.template.layouts.find((l) => l.name === layout);
+  const hit = layouts.find((l) => l.name === layout);
   if (hit === void 0)
     throw new PptcError(
       "E_ADDR_NOTFOUND",
       `no layout named '${layout}'`,
-      { layouts: ctx.template.layouts.map((l) => ({ index: l.index, name: l.name })) }
+      { layouts: layouts.map((l) => ({ index: l.index, name: l.name })) }
     );
   return hit.index;
 };
@@ -39385,11 +39397,20 @@ var imgPrompts = {
 var metaProps = {
   name: "meta.props",
   plan(ctx, op) {
-    const patch = { ...ctx.plan.props ?? {} };
-    for (const [key, value] of Object.entries(op.set))
-      if (value !== void 0)
+    const { custom: custom2, ...core } = op.set;
+    const coreEntries = Object.entries(core).filter(([, v]) => v !== void 0);
+    if (coreEntries.length > 0) {
+      const patch = { ...ctx.plan.props ?? {} };
+      for (const [key, value] of coreEntries)
         patch[key] = value;
-    ctx.plan.props = patch;
+      ctx.plan.props = patch;
+    }
+    if (custom2 !== void 0) {
+      const patch = { ...ctx.plan.customProps ?? {} };
+      for (const [key, value] of Object.entries(custom2))
+        patch[key] = value;
+      ctx.plan.customProps = patch;
+    }
   }
 };
 
@@ -39417,7 +39438,7 @@ var planOps = (doc, deck, deckLayouts, template) => {
     );
   const entries = deck.slides.map((slide) => newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex));
   const ctx = {
-    plan: { entries, props: null, warnings: [], refs: /* @__PURE__ */ new Map() },
+    plan: { entries, props: null, customProps: null, warnings: [], refs: /* @__PURE__ */ new Map() },
     deck,
     deckLayouts,
     template,
@@ -54192,7 +54213,10 @@ var MetaPropsSchema = external_exports.object({
     subject: external_exports.string().optional(),
     keywords: external_exports.string().optional(),
     category: external_exports.string().optional(),
-    comments: external_exports.string().optional()
+    comments: external_exports.string().optional(),
+    /**  arbitrary custom document properties (name→value); a value
+         may be empty to clear the visible content of a property  */
+    custom: external_exports.record(external_exports.string().min(1), external_exports.string()).optional()
   }).strict()
 }).strict();
 var OpSchema = external_exports.discriminatedUnion("op", [
@@ -54713,11 +54737,20 @@ var readDeckState = async (archive) => {
     }
     slides.push({ id, index, title, layoutName, layoutIndex, shapes, notes, part });
   }
+  const customProps = {};
+  const customXml = await archive.text("docProps/custom.xml");
+  if (customXml !== null)
+    for (const p of elements(parseXml(customXml), "property")) {
+      const name = p.getAttribute("name");
+      if (name !== null && name !== "")
+        customProps[name] = firstElement(p, "vt:lpwstr")?.textContent ?? "";
+    }
   return {
     file: archive.file,
     rev: contentHash(...hashParts, JSON.stringify(slides.map((s) => s.id))),
     slideSize: info.slideSize,
-    slides
+    slides,
+    customProps
   };
 };
 
@@ -55446,7 +55479,49 @@ var setProps = async (zip, props) => {
   }
   zip.file(part, serializeXml(doc));
 };
-var postProcess = async (bytes, work, props) => {
+var CUSTOM_PROPS_PART = "docProps/custom.xml";
+var CUSTOM_PROPS_CT = "application/vnd.openxmlformats-officedocument.custom-properties+xml";
+var CUSTOM_PROPS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties";
+var NS_CUSTOM = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
+var NS_VT = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
+var CUSTOM_FMTID = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
+var setCustomProps = async (zip, patch) => {
+  const props = /* @__PURE__ */ new Map();
+  const existing = await zip.file(CUSTOM_PROPS_PART)?.async("string");
+  if (existing !== void 0)
+    for (const p of elements(parseXml(existing), "property")) {
+      const vt = firstElement(p, "vt:lpwstr");
+      props.set(p.getAttribute("name") ?? "", vt?.textContent ?? "");
+    }
+  for (const [k, v] of Object.entries(patch))
+    props.set(k, v);
+  let pid = 2;
+  let body = "";
+  for (const [name, value] of props)
+    body += `<property fmtid="${CUSTOM_FMTID}" pid="${pid++}" name="${xmlEscape(name)}"><vt:lpwstr>${xmlEscape(value)}</vt:lpwstr></property>`;
+  zip.file(
+    CUSTOM_PROPS_PART,
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r
+<Properties xmlns="${NS_CUSTOM}" xmlns:vt="${NS_VT}">${body}</Properties>`
+  );
+  const ct = await partText(zip, "[Content_Types].xml");
+  if (!ct.includes(`PartName="/${CUSTOM_PROPS_PART}"`))
+    zip.file("[Content_Types].xml", ct.replace(
+      "</Types>",
+      `<Override PartName="/${CUSTOM_PROPS_PART}" ContentType="${CUSTOM_PROPS_CT}"/></Types>`
+    ));
+  const rootRels = parseXml(await partText(zip, "_rels/.rels"));
+  const present = elements(rootRels, "Relationship").some((r) => (r.getAttribute("Type") ?? "") === CUSTOM_PROPS_REL);
+  if (!present) {
+    const ids = new Set(elements(rootRels, "Relationship").map((r) => r.getAttribute("Id")));
+    let n = 1;
+    while (ids.has(`rId${n}`))
+      n++;
+    addRel(rootRels, `rId${n}`, CUSTOM_PROPS_REL, CUSTOM_PROPS_PART);
+    zip.file("_rels/.rels", serializeXml(rootRels));
+  }
+};
+var postProcess = async (bytes, work, props, customProps = null) => {
   const zip = await import_jszip2.default.loadAsync(bytes);
   let maxRid = 9e3;
   for (const relsPart of Object.keys(zip.files).filter((f) => f.endsWith(".rels"))) {
@@ -55500,6 +55575,8 @@ var postProcess = async (bytes, work, props) => {
   }
   if (props !== null)
     await setProps(zip, props);
+  if (customProps !== null)
+    await setCustomProps(zip, customProps);
   await dedupeSharedNotes(zip, slides);
   await gcAssets(zip);
   await pruneSectionRefs(zip);
@@ -55760,6 +55837,20 @@ var ensureSeed = async (templatePath) => {
   }
   return seedPath;
 };
+var ensureSeedFromDeck = async (deckPath) => {
+  const bytes = readFileSync6(deckPath);
+  const zip = await import_jszip4.default.loadAsync(bytes);
+  const designParts = Object.keys(zip.files).filter((f) => /^ppt\/(slideMasters|slideLayouts|theme)\/[^/]+\.xml$/.test(f) || f === "ppt/presentation.xml").sort();
+  const design = [];
+  for (const part of designParts)
+    design.push(`${part}:${await zip.file(part).async("string")}`);
+  const seedPath = path6.join(cacheDir(), `seed-deck-${SEED_FORMAT}-${contentHash(...design)}.pptx`);
+  if (!existsSync2(seedPath)) {
+    const seed = await buildSeed(bytes);
+    writeFileSync3(seedPath, seed.bytes);
+  }
+  return seedPath;
+};
 var buildEmptyDeck = async (templatePath) => {
   const seed = await buildSeed(readFileSync6(templatePath));
   const zip = await import_jszip4.default.loadAsync(seed.bytes);
@@ -55849,7 +55940,7 @@ var executePlan = async (deckFile, outFile, plan, seedPath, tmpName, tmpFile) =>
       ...f.frame !== void 0 && { frame: f.frame }
     }))
   }));
-  const finalBytes = await postProcess(readFileSync7(tmpFile), work, plan.props);
+  const finalBytes = await postProcess(readFileSync7(tmpFile), work, plan.props, plan.customProps);
   const findings = await verifyBytes(finalBytes);
   if (findings.length > 0)
     throw new PptcError(
@@ -55865,12 +55956,7 @@ var executePlan = async (deckFile, outFile, plan, seedPath, tmpName, tmpFile) =>
 };
 var runSession = async (deckFile, outFile, plan, templatePath) => {
   const needsSeed = plan.entries.some((e) => e.source.kind === "seed");
-  if (needsSeed && templatePath === null)
-    throw new PptcError(
-      "E_TEMPLATE",
-      "the ops document creates slides: pass --template <file.potx>"
-    );
-  const seedPath = needsSeed ? await ensureSeed(templatePath) : null;
+  const seedPath = needsSeed ? templatePath !== null ? await ensureSeed(templatePath) : await ensureSeedFromDeck(deckFile) : null;
   const tmpName = `pptc-session-${process.pid}.pptx`;
   const tmpFile = path7.join(cacheDir(), tmpName);
   try {

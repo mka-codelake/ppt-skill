@@ -567,18 +567,75 @@ const setProps = async (zip: JSZip, props: Record<string, string>): Promise<void
     zip.file(part, serializeXml(doc))
 }
 
+/**  package-level identifiers for the custom document-properties part  */
+const CUSTOM_PROPS_PART = "docProps/custom.xml"
+const CUSTOM_PROPS_CT = "application/vnd.openxmlformats-officedocument.custom-properties+xml"
+const CUSTOM_PROPS_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties"
+const NS_CUSTOM = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties"
+const NS_VT = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"
+/**  the well-known fmtid every custom document property carries  */
+const CUSTOM_FMTID = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}"
+
+/**  create or patch docProps/custom.xml with a name→value patch, ensuring
+     the content-type override and the package relationship exist. Existing
+     custom properties not named in the patch are preserved; PowerPoint keeps
+     these across edit/save, so they make the deck self-describing.  */
+const setCustomProps = async (zip: JSZip, patch: Record<string, string>): Promise<void> => {
+    /*  merge: existing properties first, then the patch overrides/adds  */
+    const props = new Map<string, string>()
+    const existing = await zip.file(CUSTOM_PROPS_PART)?.async("string")
+    if (existing !== undefined)
+        for (const p of elements(parseXml(existing), "property")) {
+            const vt = firstElement(p, "vt:lpwstr")
+            props.set(p.getAttribute("name") ?? "", vt?.textContent ?? "")
+        }
+    for (const [k, v] of Object.entries(patch))
+        props.set(k, v)
+
+    /*  pids are sequential and MUST start at 2 (pid 1 is reserved)  */
+    let pid = 2
+    let body = ""
+    for (const [name, value] of props)
+        body += `<property fmtid="${CUSTOM_FMTID}" pid="${pid++}" name="${xmlEscape(name)}">`
+            + `<vt:lpwstr>${xmlEscape(value)}</vt:lpwstr></property>`
+    zip.file(CUSTOM_PROPS_PART,
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n"
+        + `<Properties xmlns="${NS_CUSTOM}" xmlns:vt="${NS_VT}">${body}</Properties>`)
+
+    /*  content-type override (idempotent)  */
+    const ct = await partText(zip, "[Content_Types].xml")
+    if (!ct.includes(`PartName="/${CUSTOM_PROPS_PART}"`))
+        zip.file("[Content_Types].xml", ct.replace("</Types>",
+            `<Override PartName="/${CUSTOM_PROPS_PART}" ContentType="${CUSTOM_PROPS_CT}"/></Types>`))
+
+    /*  package relationship from the root .rels (idempotent)  */
+    const rootRels = parseXml(await partText(zip, "_rels/.rels"))
+    const present = elements(rootRels, "Relationship")
+        .some((r) => (r.getAttribute("Type") ?? "") === CUSTOM_PROPS_REL)
+    if (!present) {
+        const ids = new Set(elements(rootRels, "Relationship").map((r) => r.getAttribute("Id")))
+        let n = 1
+        while (ids.has(`rId${n}`))
+            n++
+        addRel(rootRels, `rId${n}`, CUSTOM_PROPS_REL, CUSTOM_PROPS_PART)
+        zip.file("_rels/.rels", serializeXml(rootRels))
+    }
+}
+
 /**
  *  Run the complete post-pass over automizer's output.
  *
  *  @param bytes - the .pptx produced by the automizer pass
  *  @param work - per-slide work items in final slide order
- *  @param props - document property patch, null for none
+ *  @param props - document core-property patch, null for none
+ *  @param customProps - custom document-property patch, null for none
  *  @returns the final .pptx bytes
  */
 export const postProcess = async (
     bytes: Buffer,
     work: PostSlideWork[],
-    props: Record<string, string> | null
+    props: Record<string, string> | null,
+    customProps: Record<string, string> | null = null
 ): Promise<Buffer> => {
     const zip = await JSZip.loadAsync(bytes)
     /*  the rid counter must clear every rIdPptc left by EARLIER applies,
@@ -633,6 +690,8 @@ export const postProcess = async (
     }
     if (props !== null)
         await setProps(zip, props)
+    if (customProps !== null)
+        await setCustomProps(zip, customProps)
     /*  final sweeps: orphan assets, stale section refs and stale or
         duplicate content-type overrides accumulate across applies  */
     await dedupeSharedNotes(zip, slides)

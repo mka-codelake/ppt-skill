@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.10.0 (plugin 0.10.0)
+
+**Self-contained decks** -- a deck now carries everything a skill needs to keep
+working on it, so one person can hand a `.pptx` to another and the skill picks
+up seamlessly, with no side files:
+
+- **Seed-from-deck: `slide.add` no longer needs `--template` on an existing
+  deck.** `new` already bakes the full template (masters, layouts, theme) into
+  every deck and the post-pass never garbage-collects layouts, so pptc now
+  derives its seed (one slide per layout) from the deck's OWN embedded layouts.
+  A template is needed only to CREATE a deck (`new`) or to introduce a layout
+  the deck does not already carry. This also removes a latent mismatch: layout
+  addressing already read the deck's layouts, while the seed came from the
+  external template -- now both come from the same source.
+- **Custom document properties: `meta.props` gains a `custom` map.** Arbitrary
+  name/value pairs are written to `docProps/custom.xml` (with the content-type
+  override and package relationship wired idempotently, so `verify` stays clean
+  and re-applies never duplicate). PowerPoint preserves them across edit/save,
+  so they travel inside the file. `state` now returns them as `customProps`.
+- **Skills `ppt` + `ppt-prepare`:** `ppt` persists its setup (image style,
+  info-graphic style, deck language, title, topic) INTO the deck as custom
+  properties (`pptcImageStyle`, `pptcInfoStyle`, `pptcDeckLang`, `pptcTitle`,
+  `pptcTopic`) and reads them back from `state` -- the deck is self-describing,
+  the separate `<deck>.md` sidecar is no longer required. `slide.add` guidance
+  updated: no `--template` needed for an existing deck.
+- **`ppt-prepare` hands off a SINGLE file.** The deck setup (language, title,
+  topic) now rides in the plan's header, so PHASE 8 writes only
+  `<deck>-plan.md` -- the separate seeded sidecar is gone. On claude.ai, where
+  each skill runs in its own non-shared sandbox, `ppt` now asks the user to
+  attach the plan instead of silently building without it; README documents
+  the platform difference.
+
+
 ## 0.9.1 (plugin 0.9.1)
 
 Review fixes to the `ppt-prepare` and `ppt` skill prompts (no engine change):
