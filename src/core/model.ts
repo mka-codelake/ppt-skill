@@ -92,6 +92,36 @@ export interface TemplateInfo {
 }
 
 /**  A shape found on an existing slide (read model).  */
+/**  One styled text run (read model). Mirrors the run vocabulary of a
+     slide.fill / el.add `runs[]` entry, so a run read here passes straight
+     back as a write input.  */
+export interface RunInfo {
+    /**  run text  */
+    text: string
+    /**  typeface (a:latin) when set on the run; pass as a run `font`  */
+    font?: string
+    /**  font size in points when set on the run; pass as a run `size`  */
+    size?: number
+    /**  bold when set on the run  */
+    bold?: boolean
+    /**  italic when set on the run  */
+    italic?: boolean
+    /**  font color RRGGBB (theme colors resolved) when set on the run  */
+    color?: string
+}
+
+/**  One paragraph of a text body (read model), its runs in order. Mirrors a
+     slide.fill / el.add paragraph object.  */
+export interface ParaInfo {
+    /**  the runs of this paragraph in order (empty for a blank line)  */
+    runs: RunInfo[]
+    /**  indent level (a:pPr lvl) when greater than 0  */
+    level?: number
+    /**  true/false only when the paragraph sets a bullet explicitly
+         (a:buChar / a:buAutoNum / a:buNone); omitted when inherited  */
+    bullet?: boolean
+}
+
 export interface ShapeInfo {
     /**  shape name (selection pane)  */
     name: string
@@ -132,6 +162,17 @@ export interface ShapeInfo {
     /**  typeface of the first text run when present; pass it as the `font` of
          a slide.fill / el run to preserve it (e.g. a monospace code block)  */
     fontFace?: string
+    /**  media file name under ppt/media for a picture shape, e.g.
+         "image11.png", resolved from the blip r:embed relationship; absent
+         for non-picture shapes and for placeholders with no image filled  */
+    image?: string
+    /**  rich text as paragraphs and runs. Present at the 'full' read level
+         only when the body carries explicit run formatting (a per-run font,
+         size, bold or italic) -- e.g. a monospace code block or an emphasized
+         word. The structure round-trips into slide.fill / el run inputs, so a
+         styled body can be recreated without reading raw XML. Omitted for
+         plain uniform text, where the flat `text` already suffices.  */
+    paragraphs?: ParaInfo[]
 }
 
 /**  One slide of an existing deck (read model).  */

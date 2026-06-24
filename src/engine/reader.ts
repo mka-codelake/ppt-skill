@@ -19,8 +19,8 @@ import { regionWithin, coverageFraction } from "../core/describe/position.js"
 import { elements, firstElement, drawingText, parseXml } from "./xml.js"
 import { emuToInch } from "../core/model.js"
 import type {
-    DeckState, Frame, Layout, Placeholder, PlaceholderKind,
-    ShapeInfo, SlideInfo, TemplateInfo
+    DeckState, Frame, Layout, ParaInfo, Placeholder, PlaceholderKind,
+    RunInfo, ShapeInfo, SlideInfo, TemplateInfo
 } from "../core/model.js"
 
 /**  An opened OOXML archive with cached XML parsing.  */
@@ -468,6 +468,56 @@ const shapeStyle = (sp: Element, colors: Record<string, string>): Partial<ShapeI
     return out
 }
 
+/**  read one `a:r` run into the RunInfo shape (mirrors a slide.fill run)  */
+const runStyle = (r: Element, colors: Record<string, string>): RunInfo => {
+    const out: RunInfo = { text: firstElement(r, "a:t")?.textContent ?? "" }
+    const rPr = firstElement(r, "a:rPr")
+    if (rPr === null)
+        return out
+    const face = firstElement(rPr, "a:latin")?.getAttribute("typeface")
+    if (face !== null && face !== undefined && face !== "")
+        out.font = face
+    const sz = rPr.getAttribute("sz")
+    if (sz !== null && sz !== "")
+        out.size = Number(sz) / 100
+    if (rPr.getAttribute("b") === "1")
+        out.bold = true
+    if (rPr.getAttribute("i") === "1")
+        out.italic = true
+    const color = colorOf(directChild(rPr, ["a:solidFill"]), colors)
+    if (color !== undefined)
+        out.color = color
+    return out
+}
+
+/**  Break a text body into paragraphs and runs, but only when it carries
+     explicit run formatting (a per-run font, bold or italic) -- e.g. a
+     monospace code block or an emphasized word. Returns undefined for plain
+     uniform text, where the flat `text` already says everything and the
+     extra structure would only be noise.  */
+const richParagraphs = (txBody: Element, colors: Record<string, string>): ParaInfo[] | undefined => {
+    const paras: ParaInfo[] = []
+    let formatted = false
+    for (const p of elements(txBody, "a:p")) {
+        const runs = elements(p, "a:r").map((r) => runStyle(r, colors))
+        if (runs.some((rn) => rn.font !== undefined || rn.bold === true || rn.italic === true))
+            formatted = true
+        const para: ParaInfo = { runs }
+        const pPr = firstElement(p, "a:pPr")
+        if (pPr !== null) {
+            const lvl = pPr.getAttribute("lvl")
+            if (lvl !== null && lvl !== "" && Number(lvl) > 0)
+                para.level = Number(lvl)
+            if (directChild(pPr, ["a:buChar", "a:buAutoNum"]) !== null)
+                para.bullet = true
+            else if (directChild(pPr, ["a:buNone"]) !== null)
+                para.bullet = false
+        }
+        paras.push(para)
+    }
+    return formatted ? paras : undefined
+}
+
 /**
  *  Read the full deck state: slides, shapes, notes and the rev token.
  *
@@ -497,6 +547,8 @@ export const readDeckState = async (archive: DeckArchive): Promise<DeckState> =>
 
         /*  layout of this slide  */
         const slideRels = await archive.xml(`ppt/slides/_rels/${partBase}.rels`)
+        const slideRelMap = new Map(elements(slideRels, "Relationship")
+            .map((r) => [r.getAttribute("Id") ?? "", r.getAttribute("Target") ?? ""]))
         const layoutTarget = elements(slideRels, "Relationship")
             .find((r) => (r.getAttribute("Type") ?? "").endsWith("/slideLayout"))?.getAttribute("Target")
         let layoutName = ""
@@ -538,6 +590,17 @@ export const readDeckState = async (archive: DeckArchive): Promise<DeckState> =>
                 }
                 if (node.nodeName === "p:sp")
                     Object.assign(shape, shapeStyle(node, info.colors))
+                if (txBody !== null) {
+                    const paras = richParagraphs(txBody, info.colors)
+                    if (paras !== undefined)
+                        shape.paragraphs = paras
+                }
+                if (node.nodeName === "p:pic") {
+                    const embed = firstElement(node, "a:blip")?.getAttribute("r:embed")
+                    const tgt = embed === null || embed === undefined ? undefined : slideRelMap.get(embed)
+                    if (tgt !== undefined && tgt !== "")
+                        shape.image = path.posix.basename(tgt)
+                }
                 if (shape.type === "table") {
                     shape.table = tableCells(node)
                     const grid = firstElement(node, "a:tblGrid")

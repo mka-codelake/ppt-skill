@@ -25,10 +25,13 @@ Options:
                  text (default): plus placeholder texts and notes
                  full: plus every shape with geometry AND styling --
                    type, name, frame, text, table cells + column widths,
-                   and autoshape preset/fill/border/font. This is the
-                   COMPLETE structure: enough to recreate or edit a styled
-                   table or diagram, so there is never a need to unzip the
-                   .pptx and read raw XML.
+                   autoshape preset/fill/border/font, a picture's media file
+                   name (image), and -- for a body with explicit run
+                   formatting -- its paragraphs/runs (per-run font, size,
+                   bold, italic, color), which pass straight back into
+                   slide.fill. This is the COMPLETE structure: enough to
+                   recreate or edit a styled table, diagram or code block, so
+                   there is never a need to unzip the .pptx and read raw XML.
   --plain        readable text instead of the JSON envelope
 
 Example:

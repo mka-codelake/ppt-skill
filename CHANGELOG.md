@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.1 (plugin 1.0.1)
+
+- **`state --level full` now returns enough to recreate styled content without
+  unzipping the deck.** Two read-model additions:
+  - a picture shape carries its media file name (`image`, e.g. `image11.png`),
+    resolved from the blip `r:embed` relationship;
+  - a text body with explicit run formatting carries its `paragraphs[]` /
+    `runs[]` -- per-run `font`, `size`, `bold`, `italic`, `color` -- and the
+    structure round-trips straight back into `slide.fill`.
+
+  Plain uniform text stays lean (no `paragraphs`; the flat `text` already says
+  everything). This closes the last cases -- monospace code blocks and image
+  references -- where an agent had to drop to raw XML, so the `state` help no
+  longer over-promises "never a need to unzip".
+
+
 ## 1.0.0 (plugin 1.0.0)
 
 First stable release. No code change over 0.11.3 -- this marks the surface as

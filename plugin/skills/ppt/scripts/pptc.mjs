@@ -38399,10 +38399,13 @@ Options:
                  text (default): plus placeholder texts and notes
                  full: plus every shape with geometry AND styling --
                    type, name, frame, text, table cells + column widths,
-                   and autoshape preset/fill/border/font. This is the
-                   COMPLETE structure: enough to recreate or edit a styled
-                   table or diagram, so there is never a need to unzip the
-                   .pptx and read raw XML.
+                   autoshape preset/fill/border/font, a picture's media file
+                   name (image), and -- for a body with explicit run
+                   formatting -- its paragraphs/runs (per-run font, size,
+                   bold, italic, color), which pass straight back into
+                   slide.fill. This is the COMPLETE structure: enough to
+                   recreate or edit a styled table, diagram or code block, so
+                   there is never a need to unzip the .pptx and read raw XML.
   --plain        readable text instead of the JSON envelope
 
 Example:
@@ -38726,7 +38729,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "1.0.0" : "0.0.0-dev";
+var VERSION = true ? "1.0.1" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -54661,6 +54664,48 @@ var shapeStyle = (sp, colors) => {
     out.fontFace = face;
   return out;
 };
+var runStyle = (r, colors) => {
+  const out = { text: firstElement(r, "a:t")?.textContent ?? "" };
+  const rPr = firstElement(r, "a:rPr");
+  if (rPr === null)
+    return out;
+  const face = firstElement(rPr, "a:latin")?.getAttribute("typeface");
+  if (face !== null && face !== void 0 && face !== "")
+    out.font = face;
+  const sz = rPr.getAttribute("sz");
+  if (sz !== null && sz !== "")
+    out.size = Number(sz) / 100;
+  if (rPr.getAttribute("b") === "1")
+    out.bold = true;
+  if (rPr.getAttribute("i") === "1")
+    out.italic = true;
+  const color = colorOf(directChild(rPr, ["a:solidFill"]), colors);
+  if (color !== void 0)
+    out.color = color;
+  return out;
+};
+var richParagraphs = (txBody, colors) => {
+  const paras = [];
+  let formatted = false;
+  for (const p of elements(txBody, "a:p")) {
+    const runs = elements(p, "a:r").map((r) => runStyle(r, colors));
+    if (runs.some((rn) => rn.font !== void 0 || rn.bold === true || rn.italic === true))
+      formatted = true;
+    const para = { runs };
+    const pPr = firstElement(p, "a:pPr");
+    if (pPr !== null) {
+      const lvl = pPr.getAttribute("lvl");
+      if (lvl !== null && lvl !== "" && Number(lvl) > 0)
+        para.level = Number(lvl);
+      if (directChild(pPr, ["a:buChar", "a:buAutoNum"]) !== null)
+        para.bullet = true;
+      else if (directChild(pPr, ["a:buNone"]) !== null)
+        para.bullet = false;
+    }
+    paras.push(para);
+  }
+  return formatted ? paras : void 0;
+};
 var readDeckState = async (archive) => {
   const info = await readTemplateInfo(archive);
   const layoutIndexByName = new Map(info.layouts.map((l) => [l.name, l.index]));
@@ -54680,6 +54725,7 @@ var readDeckState = async (archive) => {
     hashParts.push(`${id}:${slideXmlText}`);
     const doc = parseXml(slideXmlText);
     const slideRels = await archive.xml(`ppt/slides/_rels/${partBase}.rels`);
+    const slideRelMap = new Map(elements(slideRels, "Relationship").map((r) => [r.getAttribute("Id") ?? "", r.getAttribute("Target") ?? ""]));
     const layoutTarget = elements(slideRels, "Relationship").find((r) => (r.getAttribute("Type") ?? "").endsWith("/slideLayout"))?.getAttribute("Target");
     let layoutName = "";
     let layoutIndex = -1;
@@ -54716,6 +54762,17 @@ var readDeckState = async (archive) => {
         };
         if (node.nodeName === "p:sp")
           Object.assign(shape, shapeStyle(node, info.colors));
+        if (txBody !== null) {
+          const paras = richParagraphs(txBody, info.colors);
+          if (paras !== void 0)
+            shape.paragraphs = paras;
+        }
+        if (node.nodeName === "p:pic") {
+          const embed = firstElement(node, "a:blip")?.getAttribute("r:embed");
+          const tgt = embed === null || embed === void 0 ? void 0 : slideRelMap.get(embed);
+          if (tgt !== void 0 && tgt !== "")
+            shape.image = path3.posix.basename(tgt);
+        }
         if (shape.type === "table") {
           shape.table = tableCells(node);
           const grid = firstElement(node, "a:tblGrid");
