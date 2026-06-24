@@ -61,12 +61,14 @@ plugin/
   bin/pptc                     PATH wrapper
   skills/ppt/
     SKILL.md                   the build skill (imports meta/control.md)
+    VERSION                    bundled version (checked against GitHub releases)
     meta/control.md            control-tag definitions
     references/                content rules, prompt formula, styles
-    scripts/pptc.mjs           bundled pptc build (+ VERSION)
+    scripts/pptc.mjs           bundled pptc build
     assets/                    neutral fallback template + sidecar
   skills/ppt-prepare/
     SKILL.md                   the content-planning skill (imports meta/control.md)
+    VERSION                    bundled version (checked against GitHub releases)
     meta/control.md            control-tag definitions
     references/                methodology + storyline patterns
 ```

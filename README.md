@@ -81,8 +81,9 @@ default template; point the skill at any external `.potx`/`.pptx`
 (optionally with a `<name>.md` sidecar for template-specific knowledge),
 or build an in-house package that bundles your company templates (see
 [Packaging & Distribution](#packaging--distribution)). Deck-level settings
-(language, image style, ...) persist in a `<deck>.md` sidecar next to the
-deck.
+(language, image style, ...) persist as **custom document properties inside the
+`.pptx`**, so the deck is self-describing -- hand it to someone else and the
+skill reads its setup straight back, no side file.
 
 The skill definitions live in
 [`plugin/skills/ppt/SKILL.md`](plugin/skills/ppt/SKILL.md) and
@@ -235,9 +236,12 @@ The deck read model and the **`rev` token** for optimistic locking.
 - `--level summary` -- ids, indices, titles, layout indices only
 - `--level text` (default) -- plus all placeholder texts and notes
 - `--level full` -- plus every shape with geometry and styling: type,
-  name, `frame`, text, table cells + column widths, and autoshape
-  preset/fill/border/font -- enough to recreate or edit a styled table or
-  diagram without touching the raw XML
+  name, `frame`, text, table cells + column widths, autoshape
+  preset/fill/border/font, a picture's media file name (`image`), and --
+  for a body with explicit run formatting -- its `paragraphs`/`runs`
+  (per-run font, size, bold, italic, color, round-tripping into
+  `slide.fill`) -- enough to recreate or edit a styled table, diagram or
+  code block without touching the raw XML
 - `--slide SEL` -- restrict to one slide
 
 Read-before-write protocol: take `rev` from here and pass it to
@@ -390,7 +394,7 @@ Recommended agent loop:
 | `el.add` | add free elements: `textbox`, `table`, `chart`, `shape`, `image`, `connector` -- all share `frame: {x,y,w,h}` in inches |
 | `el.set` / `el.rm` | retext / remove an element by shape name; matches exactly or as prefix of the engine's UUID-suffixed names (`Kasten` matches `Kasten-1d22c8b0-...`), and also targets elements generated earlier in the same ops document |
 | `img.prompts` | overlay picture placeholders with visible image-prompt boxes (removable via `el.rm`) |
-| `meta.props` | document properties (title, author, subject, keywords, category, comments) |
+| `meta.props` | document properties: core fields (title, author, subject, keywords, category, comments) and/or arbitrary `custom` name/value pairs stored in the `.pptx` (read back by `state` -- the deck's self-describing memory) |
 
 Run `pptc schema <op>` for the authoritative JSON Schema with all fields, or
 `pptc schema document` for the whole ops document.
@@ -465,7 +469,10 @@ the 5% they cannot do -- never a self-built PPTX engine.
 - **Seed decks.** The engine ([pptx-automizer](https://github.com/singerla/pptx-automizer))
   imports slides, not layouts. For each template pptc derives a *seed deck*
   (one empty cloned-placeholder slide per layout) on demand, cached by
-  template content hash -- `slide.add` works with any template.
+  template content hash -- `slide.add` works with any template. With no
+  template, pptc seeds from the deck's OWN embedded layouts instead, so
+  `slide.add` keeps working on an existing deck with no side file -- a deck
+  is self-contained.
 - **Two-phase apply.** Every op is a pure plan transformer; the engine session
   interprets the finished plan. `--dry-run` is "plan without commit", not a
   separate code path.
