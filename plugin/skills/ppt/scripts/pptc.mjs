@@ -38726,7 +38726,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "0.10.0" : "0.0.0-dev";
+var VERSION = true ? "0.10.1" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -56195,6 +56195,7 @@ var cmdState = async (argv) => {
     result: {
       slideSize: deck.slideSize,
       slideCount: deck.slides.length,
+      customProps: deck.customProps,
       slides: slides.map((s) => renderSlide(s, level))
     }
   };

@@ -18,6 +18,7 @@ import { buildEmptyDeck } from "../../src/engine/seed.js"
 import { DeckArchive, readDeckState } from "../../src/engine/reader.js"
 import { expectIntact } from "../util/integrity.js"
 import { executeOps, type ExecuteOptions } from "../../src/commands/apply.js"
+import { cmdState } from "../../src/commands/state.js"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TEMPLATE = path.join(here, "..", "fixtures", "neutral-template.pptx")
@@ -71,6 +72,13 @@ describe("custom document properties", () => {
         expect(await countIn(DECK, "_rels/.rels", "custom-properties")).toBe(1)
         const zip = await JSZip.loadAsync(readFileSync(DECK))
         expect(zip.file("docProps/custom.xml")).not.toBeNull()
+    })
+
+    it("the `state` command surfaces customProps in its envelope", async () => {
+        const out = await cmdState([DECK, "--level", "summary"])
+        const result = out.result as { customProps: Record<string, string> }
+        expect(result.customProps.pptcImageStyle).toBe("Cinematic")
+        expect(result.customProps.pptcInfoStyle).toBe("Minimal")
     })
 
     it("sets core and custom properties in one op", async () => {

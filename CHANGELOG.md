@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.1 (plugin 0.10.1)
+
+- **Fix: `state` now emits `customProps`.** 0.10.0 read custom document
+  properties into the model but the `state` command dropped them from its JSON
+  envelope, so a skill calling the CLI never saw them -- defeating the
+  self-describing-deck feature end to end. The command now includes
+  `result.customProps`. (The round-trip test exercised `readDeckState`
+  directly and missed the gap; a test now asserts the command envelope.)
+
+
 ## 0.10.0 (plugin 0.10.0)
 
 **Self-contained decks** -- a deck now carries everything a skill needs to keep

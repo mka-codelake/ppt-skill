@@ -78,6 +78,7 @@ export const cmdState = async (argv: string[]): Promise<Record<string, unknown>>
         result: {
             slideSize: deck.slideSize,
             slideCount: deck.slides.length,
+            customProps: deck.customProps,
             slides: slides.map((s) => renderSlide(s, level))
         }
     }
