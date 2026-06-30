@@ -10,6 +10,10 @@
   every slide that was hidden, untouched slides included -- so visibility
   round-trips losslessly. `state` reports `hidden: true` on hidden slides (all
   levels; `[hidden]` in `--plain`).
+- **`slide.fill` / `slide.add` can hide or show a slide.** A new optional
+  `hidden` boolean on the fill payload deliberately sets visibility:
+  `"hidden": true` hides ("Hide Slide"), `false` shows, omitted leaves the
+  current state untouched. Builds on the visibility preservation above.
 
 ## 1.0.2 (plugin 1.0.2)
 

@@ -49,7 +49,10 @@ const fillProps = {
     placeholders: z.record(PlaceholderKeySchema, PlaceholderFillSchema).optional(),
     notes: z.string().optional(),
     footer: z.string().optional(),
-    background: z.object({ color: ColorSchema }).strict().optional()
+    background: z.object({ color: ColorSchema }).strict().optional(),
+    /**  hide ("Hide Slide", `show="0"`) or show the slide; omitted leaves the
+         current visibility untouched (kept slides keep their hidden state)  */
+    hidden: z.boolean().optional()
 }
 
 /**  Op: add a new slide based on a template layout.  */
