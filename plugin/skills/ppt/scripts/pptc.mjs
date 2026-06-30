@@ -38761,7 +38761,7 @@ var checkForUpdate = async () => {
 };
 
 // src/core/ops/registry.ts
-var newPlanEntry = (source, virtualId, title, layoutIndex) => ({
+var newPlanEntry = (source, virtualId, title, layoutIndex, hidden = false) => ({
   source,
   virtualId,
   title,
@@ -38770,6 +38770,7 @@ var newPlanEntry = (source, virtualId, title, layoutIndex) => ({
   notes: null,
   footer: null,
   background: null,
+  hidden,
   elements: [],
   setTexts: [],
   removeNames: []
@@ -39439,7 +39440,7 @@ var planOps = (doc, deck, deckLayouts, template) => {
       `deck revision is '${deck.rev}' but ops document expects '${doc.expectRev}' -- re-read with 'pptc state'`,
       { expected: doc.expectRev, actual: deck.rev }
     );
-  const entries = deck.slides.map((slide) => newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex));
+  const entries = deck.slides.map((slide) => newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex, slide.hidden));
   const ctx = {
     plan: { entries, props: null, customProps: null, warnings: [], refs: /* @__PURE__ */ new Map() },
     deck,
@@ -54792,7 +54793,8 @@ var readDeckState = async (archive) => {
         notes = body === void 0 ? null : drawingText(body) || null;
       }
     }
-    slides.push({ id, index, title, layoutName, layoutIndex, shapes, notes, part });
+    const hidden = doc.documentElement?.getAttribute("show") === "0";
+    slides.push({ id, index, title, layoutName, layoutIndex, shapes, notes, hidden, part });
   }
   const customProps = {};
   const customXml = await archive.text("docProps/custom.xml");
@@ -55255,6 +55257,22 @@ var addRel = (rels, id, type, target, external = false) => {
     rel.setAttribute("TargetMode", "External");
   rels.documentElement?.appendChild(rel);
 };
+var setSlideVisibility = (slide, hidden) => {
+  const root = slide.documentElement;
+  if (root === null)
+    return false;
+  const current = root.getAttribute("show");
+  if (hidden) {
+    if (current === "0")
+      return false;
+    root.setAttribute("show", "0");
+    return true;
+  }
+  if (current === null || current === "")
+    return false;
+  root.removeAttribute("show");
+  return true;
+};
 var setBackground = (slide, color) => {
   const cSld = firstElement(slide, "p:cSld");
   if (cSld === null)
@@ -55622,6 +55640,7 @@ var postProcess = async (bytes, work, props, customProps = null) => {
       if (job.notes !== null)
         await setNotes(post, slidePart, slideRels, job.notes);
       wireHyperlinks(post, slide, slideRels);
+      setSlideVisibility(slide, job.hidden);
     }
     const idsChanged = uniquifyShapeIds(slide);
     const relsChanged = pruneUnusedSlideRels(slide, slideRels);
@@ -55991,6 +56010,7 @@ var executePlan = async (deckFile, outFile, plan, seedPath, tmpName, tmpFile) =>
     notes: entry.notes,
     footer: entry.footer,
     background: entry.background,
+    hidden: entry.hidden,
     images: entry.fills.filter((f) => f.image !== void 0).map((f) => ({
       phIdx: f.phIdx,
       path: f.image,
@@ -56212,7 +56232,8 @@ var renderSlide = (slide, level) => {
     index: slide.index,
     title: slide.title,
     layout: slide.layoutName,
-    layoutIndex: slide.layoutIndex
+    layoutIndex: slide.layoutIndex,
+    ...slide.hidden && { hidden: true }
   };
   if (level === "summary")
     return { ...base, shapes: slide.shapes.length, hasNotes: slide.notes !== null };
@@ -56244,7 +56265,7 @@ var cmdState = async (argv) => {
   if (args.flag("plain"))
     return { plain: [
       `${deck.file}  rev:${deck.rev}  ${deck.slides.length} slide(s)`,
-      ...slides.map((s) => `  #${s.index} id:${s.id} '${s.title ?? ""}' (layout ${s.layoutIndex})` + (s.notes !== null && s.notes !== "" ? "  [notes]" : ""))
+      ...slides.map((s) => `  #${s.index} id:${s.id} '${s.title ?? ""}' (layout ${s.layoutIndex})` + (s.notes !== null && s.notes !== "" ? "  [notes]" : "") + (s.hidden ? "  [hidden]" : ""))
     ].join("\n") };
   return {
     file: deck.file,
