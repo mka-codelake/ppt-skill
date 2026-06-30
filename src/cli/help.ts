@@ -233,7 +233,8 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
                                    "body":  { "text": "A\\nB" },
                                    "image": { "image": "photo.png" } },
                  "notes": "...", "footer": "...",
-                 "background": { "color": "1F4E79" } }
+                 "background": { "color": "1F4E79" },
+                 "hidden": true }           // optional: hide/show the slide
   slide.fill   same fill payload, on an existing slide ("slide": SEL)
   slide.rm     { "op": "slide.rm",   "slide": SEL }
   slide.move   { "op": "slide.move", "slide": SEL, "to": 2 }

@@ -373,9 +373,11 @@ Anatomy:
 - **Fill payloads** (`slide.add`/`slide.fill`): `placeholders` maps a
   key (semantic like `"title"`/`"body"`/`"image"`, or the OOXML idx
   like `"13"`) to `{ "text": ... }`, `{ "image": "path.png" }` or
-  `{ "text": ..., "append": true }`. Plus optional `notes`, `footer`
-  and `background`. Text accepts plain strings (`\n` = new paragraph)
-  or rich text (runs with bold/italic/color/size, bullet levels).
+  `{ "text": ..., "append": true }`. Plus optional `notes`, `footer`,
+  `background` and `hidden` (`true` hides the slide -- "Hide Slide" --,
+  `false` shows it; omitted keeps the current state). Text accepts plain
+  strings (`\n` = new paragraph) or rich text (runs with
+  bold/italic/color/size, bullet levels).
 - **Authoritative field reference:** `pptc schema <op>` prints the
   exact JSON Schema of any op, `pptc schema document` the whole
   document -- generated from the validating code, never stale.
@@ -390,7 +392,7 @@ Recommended agent loop:
 | Op | Purpose |
 |---|---|
 | `slide.add` | add a slide from a template layout (`layout`: index or name; optional `ref`, `at`, inline fill) |
-| `slide.fill` | fill placeholders (`text`/`image`), `notes`, `footer`, `background` of a slide |
+| `slide.fill` | fill placeholders (`text`/`image`), `notes`, `footer`, `background`, `hidden` (hide/show) of a slide |
 | `slide.rm` / `slide.move` / `slide.copy` | structure edits |
 | `el.add` | add free elements: `textbox`, `table`, `chart`, `shape`, `image`, `connector` -- all share `frame: {x,y,w,h}` in inches |
 | `el.set` / `el.rm` | retext / remove an element by shape name; matches exactly or as prefix of the engine's UUID-suffixed names (`Kasten` matches `Kasten-1d22c8b0-...`), and also targets elements generated earlier in the same ops document |
