@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **`apply` no longer un-hides hidden slides.** Every apply rebuilds the slide
+  list through `pptx-automizer`, which drops the `show="0"` attribute (`p:sld`
+  root -- PowerPoint's "Hide Slide") on every slide. pptc carried no notion of
+  it, so a single edit silently made *all* hidden slides visible. The read model
+  now carries `hidden` per slide, and the post-pass re-applies `show="0"` to
+  every slide that was hidden, untouched slides included -- so visibility
+  round-trips losslessly. `state` reports `hidden: true` on hidden slides (all
+  levels; `[hidden]` in `--plain`).
+
 ## 1.0.2 (plugin 1.0.2)
 
 - **`ppt` skill: no longer builds silently on the neutral default template.**

@@ -47,7 +47,7 @@ export const planOps = (
 
     /*  start from the deck as it exists: every slide is kept unchanged  */
     const entries: SlidePlanEntry[] = deck.slides.map((slide) =>
-        newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex))
+        newPlanEntry({ kind: "self", part: slide.part }, slide.id, slide.title, slide.layoutIndex, slide.hidden))
     const ctx: PlanContext = {
         plan: { entries, props: null, customProps: null, warnings: [], refs: new Map() },
         deck,

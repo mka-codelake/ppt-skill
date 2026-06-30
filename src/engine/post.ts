@@ -28,6 +28,10 @@ export interface PostSlideWork {
     footer: string | null
     /**  solid background color (RRGGBB), null = leave untouched  */
     background: string | null
+    /**  whether the output slide must be hidden ("Hide Slide", `show="0"` on
+         the `p:sld` root). automizer drops this attribute on every rebuild, so
+         it is re-applied here from the plan to keep hidden slides hidden  */
+    hidden: boolean
     /**  images to insert into picture placeholders  */
     images: { phIdx: number, path: string, frame?: Frame }[]
 }
@@ -229,6 +233,27 @@ const addRel = (rels: Document, id: string, type: string, target: string, extern
     if (external)
         rel.setAttribute("TargetMode", "External")
     rels.documentElement?.appendChild(rel)
+}
+
+/**  apply the slide-hidden flag: set `show="0"` on the `p:sld` root when the
+     slide must be hidden, clear it otherwise. automizer rebuilds every slide
+     and never copies this attribute, so a kept hidden slide would re-appear
+     without this. Returns whether the slide XML changed.  */
+const setSlideVisibility = (slide: Document, hidden: boolean): boolean => {
+    const root = slide.documentElement
+    if (root === null)
+        return false
+    const current = root.getAttribute("show")
+    if (hidden) {
+        if (current === "0")
+            return false
+        root.setAttribute("show", "0")
+        return true
+    }
+    if (current === null || current === "")
+        return false
+    root.removeAttribute("show")
+    return true
 }
 
 /**  set a solid background color on a slide  */
@@ -679,6 +704,7 @@ export const postProcess = async (
             if (job.notes !== null)
                 await setNotes(post, slidePart, slideRels, job.notes)
             wireHyperlinks(post, slide, slideRels)
+            setSlideVisibility(slide, job.hidden)
         }
         const idsChanged = uniquifyShapeIds(slide)
         const relsChanged = pruneUnusedSlideRels(slide, slideRels)
