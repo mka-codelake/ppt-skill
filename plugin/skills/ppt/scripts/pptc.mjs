@@ -38591,7 +38591,8 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
                                    "body":  { "text": "A\\nB" },
                                    "image": { "image": "photo.png" } },
                  "notes": "...", "footer": "...",
-                 "background": { "color": "1F4E79" } }
+                 "background": { "color": "1F4E79" },
+                 "hidden": true }           // optional: hide/show the slide
   slide.fill   same fill payload, on an existing slide ("slide": SEL)
   slide.rm     { "op": "slide.rm",   "slide": SEL }
   slide.move   { "op": "slide.move", "slide": SEL, "to": 2 }
@@ -39044,6 +39045,8 @@ var planFill = (ctx, entry, fill) => {
     entry.footer = fill.footer;
   if (fill.background !== void 0)
     entry.background = fill.background.color;
+  if (fill.hidden !== void 0)
+    entry.hidden = fill.hidden;
 };
 
 // src/core/ops/slide-add.ts
@@ -54156,7 +54159,10 @@ var fillProps = {
   placeholders: external_exports.record(PlaceholderKeySchema, PlaceholderFillSchema).optional(),
   notes: external_exports.string().optional(),
   footer: external_exports.string().optional(),
-  background: external_exports.object({ color: ColorSchema }).strict().optional()
+  background: external_exports.object({ color: ColorSchema }).strict().optional(),
+  /**  hide ("Hide Slide", `show="0"`) or show the slide; omitted leaves the
+       current visibility untouched (kept slides keep their hidden state)  */
+  hidden: external_exports.boolean().optional()
 };
 var SlideAddSchema = external_exports.object({
   op: external_exports.literal("slide.add"),
