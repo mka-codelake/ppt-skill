@@ -122,6 +122,9 @@ export interface ParaInfo {
     bullet?: boolean
 }
 
+/**  One shape on a slide as the reader exposes it: identity, classification,
+     geometry and -- depending on the shape kind -- text, table, style or
+     media facts. The per-slide unit of the `state` read model.  */
 export interface ShapeInfo {
     /**  shape name (selection pane)  */
     name: string

@@ -6,8 +6,13 @@
 **  engine/post: the zip-level post-pass that runs after pptx-automizer has
 **  written the slide structure. It garbage-collects unreferenced slide parts
 **  and applies everything automizer cannot express: speaker notes, footer
-**  cloning, backgrounds, images inside picture placeholders, hyperlink
-**  relationships and document properties.
+**  cloning, backgrounds, slide visibility, images inside picture
+**  placeholders, hyperlink relationships and document properties.
+**
+**  LOCKSTEP: every repair-trigger this pass fixes is asserted read-only by
+**  engine/verify.ts -- when a trigger is added or changed here, teach the
+**  verifier the same rule (and vice versa), or self-verify turns green
+**  fixes into false E_INTEGRITY failures.
 */
 
 import JSZip from "jszip"

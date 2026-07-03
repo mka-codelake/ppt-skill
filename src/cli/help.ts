@@ -21,7 +21,9 @@ stores inside the file (e.g. the chosen image style).
 
 Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
-  --level        summary: ids, indices, titles, layout indices
+  --level        summary: ids, indices, titles, layout indices, and
+                   'hidden: true' on hidden slides ("Hide Slide"; reported
+                   on every level, '[hidden]' under --plain)
                  text (default): plus placeholder texts and notes
                  full: plus every shape with geometry AND styling --
                    type, name, frame, text, table cells + column widths,

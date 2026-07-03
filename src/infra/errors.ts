@@ -3,7 +3,7 @@
 **  Copyright (c) 2026 Matthias Brusdeylins
 **  Licensed under MIT license <https://spdx.org/licenses/MIT>
 **
-**  core/errors: the single error taxonomy of pptc. Every failure travels as a
+**  infra/errors: the single error taxonomy of pptc. Every failure travels as a
 **  typed PptcError carrying a stable machine-readable code and the process
 **  exit code derived from its error class. Nothing in pptc throws strings.
 */

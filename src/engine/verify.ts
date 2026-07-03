@@ -10,6 +10,9 @@
 **  The post-pass repairs these triggers; verify is the safety net that turns
 **  any residual corruption into a clean, atomic failure instead of a broken
 **  .pptx the user only discovers in PowerPoint.
+**
+**  LOCKSTEP: the trigger list here mirrors what engine/post.ts repairs --
+**  extend both sides together (see the matching note there).
 */
 
 import JSZip from "jszip"

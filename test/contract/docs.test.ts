@@ -20,6 +20,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, "..", "..")
 const mainSrc = readFileSync(path.join(root, "src", "cli", "main.ts"), "utf8")
 const lintSrc = readFileSync(path.join(root, "src", "core", "lint.ts"), "utf8")
+const opsSrc  = readFileSync(path.join(root, "src", "schema", "ops.ts"), "utf8")
 const readme = readFileSync(path.join(root, "README.md"), "utf8")
 
 /**  command names parsed from the dispatch tables in main.ts  */
@@ -35,6 +36,12 @@ const commands = (): string[] => {
 /**  warning codes parsed from the LintWarning union in lint.ts  */
 const warningCodes = (): string[] =>
     [...lintSrc.matchAll(/"(W_[A-Z_]+)"/g)].map((m) => m[1] as string)
+
+/**  field names parsed from the shared fill payload in schema/ops.ts  */
+const fillFields = (): string[] => {
+    const block = /const fillProps = \{(.*?)\n\}/s.exec(opsSrc)?.[1] ?? ""
+    return [...block.matchAll(/^ {4}(\w+):/gm)].map((m) => m[1] as string)
+}
 
 describe("documentation sync contract", () => {
     it("every command has a detailed help entry", () => {
@@ -58,6 +65,16 @@ describe("documentation sync contract", () => {
         for (const op of OP_NAMES) {
             expect(readme, op).toContain(op)
             expect(opsHelp, op).toContain(op)
+        }
+    })
+
+    it("the README and 'help ops' document every fill payload field", () => {
+        const opsHelp = helpFor(["ops"]) ?? ""
+        const fields = fillFields()
+        expect(fields.length).toBeGreaterThanOrEqual(5)
+        for (const field of fields) {
+            expect(readme, field).toContain(field)
+            expect(opsHelp, field).toContain(field)
         }
     })
 
