@@ -24,7 +24,8 @@ const renderSlide = (slide: SlideInfo, level: Level): Record<string, unknown> =>
         index: slide.index,
         title: slide.title,
         layout: slide.layoutName,
-        layoutIndex: slide.layoutIndex
+        layoutIndex: slide.layoutIndex,
+        ...(slide.hidden && { hidden: true })
     }
     if (level === "summary")
         return { ...base, shapes: slide.shapes.length, hasNotes: slide.notes !== null }
@@ -70,7 +71,8 @@ export const cmdState = async (argv: string[]): Promise<Record<string, unknown>>
             `${deck.file}  rev:${deck.rev}  ${deck.slides.length} slide(s)`,
             ...slides.map((s) =>
                 `  #${s.index} id:${s.id} '${s.title ?? ""}' (layout ${s.layoutIndex})`
-                + (s.notes !== null && s.notes !== "" ? "  [notes]" : ""))
+                + (s.notes !== null && s.notes !== "" ? "  [notes]" : "")
+                + (s.hidden ? "  [hidden]" : ""))
         ].join("\n") }
     return {
         file: deck.file,

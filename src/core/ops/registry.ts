@@ -58,6 +58,9 @@ export interface SlidePlanEntry {
     footer: string | null
     /**  solid background color (RRGGBB), null = leave untouched  */
     background: string | null
+    /**  whether the output slide is hidden ("Hide Slide", `show="0"`). Kept
+         slides inherit the source slide's state; new slides default visible  */
+    hidden: boolean
     /**  elements to generate via PptxGenJS  */
     elements: PlannedElement[]
     /**  existing elements to retext: shape name to new content  */
@@ -73,13 +76,16 @@ export interface SlidePlanEntry {
  *  @param virtualId - virtual id during planning
  *  @param title - tracked slide title, null when unknown
  *  @param layoutIndex - layout index the slide uses (-1 when unknown)
+ *  @param hidden - initial hidden state (kept slides inherit it; defaults to
+ *                  false for new slides)
  *  @returns a plan entry with empty work lists
  */
 export const newPlanEntry = (
     source: SlidePlanEntry["source"],
     virtualId: number,
     title: string | null,
-    layoutIndex: number
+    layoutIndex: number,
+    hidden = false
 ): SlidePlanEntry => ({
     source,
     virtualId,
@@ -89,6 +95,7 @@ export const newPlanEntry = (
     notes: null,
     footer: null,
     background: null,
+    hidden,
     elements: [],
     setTexts: [],
     removeNames: []

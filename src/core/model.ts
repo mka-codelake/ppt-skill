@@ -191,6 +191,9 @@ export interface SlideInfo {
     shapes: ShapeInfo[]
     /**  speaker notes text, null if none  */
     notes: string | null
+    /**  true when the slide is hidden ("Hide Slide" in PowerPoint, the
+         `show="0"` attribute on the `<p:sld>` root); preserved across edits  */
+    hidden: boolean
     /**  archive part path of the slide (engine address, e.g. "ppt/slides/slide3.xml")  */
     part: string
 }

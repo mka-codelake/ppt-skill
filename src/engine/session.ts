@@ -127,6 +127,7 @@ const executePlan = async (
         notes: entry.notes,
         footer: entry.footer,
         background: entry.background,
+        hidden: entry.hidden,
         images: entry.fills
             .filter((f) => f.image !== undefined)
             .map((f) => ({

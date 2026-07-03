@@ -233,7 +233,8 @@ for speaker notes, ...). Reports `issues` with severities; exit 7 when a
 
 The deck read model and the **`rev` token** for optimistic locking.
 
-- `--level summary` -- ids, indices, titles, layout indices only
+- `--level summary` -- ids, indices, titles, layout indices, and `hidden:
+  true` on every hidden slide ("Hide Slide"); preserved across `apply`
 - `--level text` (default) -- plus all placeholder texts and notes
 - `--level full` -- plus every shape with geometry and styling: type,
   name, `frame`, text, table cells + column widths, autoshape
@@ -453,7 +454,8 @@ one deliberate own layer:
     interop.
 3.  **The zip post-pass** (`engine/post.ts`, one file) -- everything the
     libraries cannot express or get wrong: speaker notes, footer cloning,
-    backgrounds, images into placeholders, hyperlink relationships, document
+    backgrounds, images into placeholders, hyperlink relationships, slide
+    visibility (re-applying `show="0"` on kept hidden slides), document
     properties -- plus deterministic cleanup after automizer (orphan parts,
     stale relationships, duplicate shape ids).
 
