@@ -41,7 +41,7 @@ Body
     share ONE size deckwide. Scattered ad-hoc sizes are visual noise --
     avoid size variation that has no reason.
 
-Language & footer
+Language and footer
 -----------------
 
 -   **Deck language**: fixed once in deck setup (ask when not obvious

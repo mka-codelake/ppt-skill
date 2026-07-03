@@ -310,7 +310,7 @@ follow-ups within the same run.
 
     </step>
 
-4.  <step id="STEP 4: Route & Scope">
+4.  <step id="STEP 4: Route and Scope">
 
     Using the state and sidecar already read in STEP 1 (and the deck
     setup from STEP 3, only asking for values the sidecar did not answer):

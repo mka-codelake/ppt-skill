@@ -19,7 +19,7 @@ Image Style (photos / motifs)
 |------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
 | Stock Photo      | `commercial photography, shot on Canon EOS R5 85mm f/1.4, soft diffused light, shallow depth of field, professional color grading, 8k` | versatile business/people shots                                     |
 | Editorial        | `editorial photography, shot on Hasselblad 120mm, cinematic color grading, golden hour backlighting, 8k`                               | premium, magazine feel                                              |
-| Cinematic        | `cinematic film still, anamorphic lens, shallow depth of field, dramatic directional lighting, color-graded`                           | mood-driven hero & section openers; not for data slides             |
+| Cinematic        | `cinematic film still, anamorphic lens, shallow depth of field, dramatic directional lighting, color-graded`                           | mood-driven hero and section openers; not for data slides           |
 | Minimalist Photo | `minimalist photography, single subject, wide negative space, muted neutral palette, soft natural light, clean background`             | title/divider slides; breathable, brand-neutral                     |
 | 3D Render        | `polished 3D render, soft studio lighting, matte materials, octane render quality`                                                     | objects/metaphors with depth                                        |
 | Pencil Sketch    | `graphite pencil drawing, fine hatching, delicate line-weight variation, hand-rendered shading, white paper background`                | innovation/"thinking" feel; light backgrounds only                  |
@@ -31,16 +31,16 @@ Image Style (photos / motifs)
 Info-Graphic Style (diagrams / data visuals)
 --------------------------------------------
 
-| Style             | Prompt block                                                                                                       | Best for / caveat                                                |
-|-------------------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| Flat              | `flat design infographic, solid color fills, clean sans-serif labels, no shadows`                                  | clean, neutral, on-brand                                         |
-| Line              | `minimal line-art infographic, thin consistent strokes, outline icons`                                             | light, technical, airy                                           |
-| Isometric         | `isometric infographic, 30-degree perspective, consistent depth, soft shadows`                                     | systems, architecture, processes                                 |
-| Hand-drawn        | `hand-drawn sketch infographic, marker strokes, whiteboard aesthetic`                                              | workshops, informal ideation                                     |
-| Blueprint         | `blueprint technical drawing, white lines on deep blue background, grid overlay, precise geometric forms`          | engineering/product-spec; labels in PPT, not in the image        |
-| Low Poly          | `low poly art, triangulated geometric facets, flat shading, gradient fill`                                         | abstract backgrounds/icons; not for dense data                   |
-| Corporate Memphis | `corporate Memphis illustration, flat abstract human figures, no faces, simple geometric shapes, friendly palette` | SaaS/HR, people & process; customize palette or it reads generic |
-| Dashboard         | `data-visualization dashboard shell, floating cards, modular grid, subtle glassmorphism, minimal labels`           | analytics decks; add real data in PPT                            |
+| Style             | Prompt block                                                                                                       | Best for / caveat                                                  |
+|-------------------|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| Flat              | `flat design infographic, solid color fills, clean sans-serif labels, no shadows`                                  | clean, neutral, on-brand                                           |
+| Line              | `minimal line-art infographic, thin consistent strokes, outline icons`                                             | light, technical, airy                                             |
+| Isometric         | `isometric infographic, 30-degree perspective, consistent depth, soft shadows`                                     | systems, architecture, processes                                   |
+| Hand-drawn        | `hand-drawn sketch infographic, marker strokes, whiteboard aesthetic`                                              | workshops, informal ideation                                       |
+| Blueprint         | `blueprint technical drawing, white lines on deep blue background, grid overlay, precise geometric forms`          | engineering/product-spec; labels in PPT, not in the image          |
+| Low Poly          | `low poly art, triangulated geometric facets, flat shading, gradient fill`                                         | abstract backgrounds/icons; not for dense data                     |
+| Corporate Memphis | `corporate Memphis illustration, flat abstract human figures, no faces, simple geometric shapes, friendly palette` | SaaS/HR, people and process; customize palette or it reads generic |
+| Dashboard         | `data-visualization dashboard shell, floating cards, modular grid, subtle glassmorphism, minimal labels`           | analytics decks; add real data in PPT                              |
 
 Consistency rules
 -----------------

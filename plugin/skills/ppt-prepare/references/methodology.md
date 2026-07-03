@@ -6,7 +6,7 @@ before you run it. Everything here is template-neutral and tool-neutral:
 it shapes the CONTENT; the `ppt` skill later builds the slides.
 
 
-Audience & decision analysis  (Phase 1 — Briefing)
+Audience and decision analysis  (Phase 1 — Briefing)
 --------------------------------------------------
 
 Before any message is written, know who decides and what they need to
@@ -100,7 +100,7 @@ pure analytical/recommendation decks, plain SCR is enough.
 
 **Red-team the story before locking it.** Have someone argue against the
 recommendation. For every objection you cannot answer on the planned
-slides, either add a slide or pre-build an appendix answer (see Q&A
+slides, either add a slide or pre-build an appendix answer (see Q and A
 pre-build). This is also where you confirm the story is *consistent* with
 the core message and the complication is genuinely urgent.
 
@@ -131,7 +131,7 @@ Rule of thumb: ~3 minutes per slide. 30 minutes -> ~10 slides. Eight
 strong slides beat twelve half-strong ones.
 
 
-Headlines & title-reading test  (Phase 5 — Slide Headlines)
+Headlines and title-reading test  (Phase 5 — Slide Headlines)
 -----------------------------------------------------------
 
 This phase writes the **per-slide headline** — one on-slide title for each
@@ -167,7 +167,7 @@ the deck is about, (b) the core message, and (c) what is expected of them
 re-derive.
 
 
-Content, layout & storyboard  (Phase 6 — Content & Layout)
+Content, layout and storyboard  (Phase 6 — Content and Layout)
 ----------------------------------------------------------
 
 Work slide by slide, the message kept visible as the yardstick.
@@ -243,25 +243,25 @@ Work slide by slide, the message kept visible as the yardstick.
   term B) or an inline **clarification callout** on the slide where the
   mix-up would otherwise happen. Resolve the confusion before it forms.
 - **Pacing / section time-boxing:** assign minutes per section; the total
-  must equal available time minus ~20% Q&A buffer. Over-built analysis
+  must equal available time minus ~20% Q and A buffer. Over-built analysis
   and under-built recommendation/next-steps is the usual failure -- move
   excess to an appendix.
 
 
-Speaker notes & Q&A  (Phase 7 — Speaker Notes)
+Speaker notes and Q and A  (Phase 7 — Speaker Notes)
 ----------------------------------------------
 
 **Teaching / self-study decks skip speaker notes.** When the deck is READ
 without a presenter (Phase 1 genre = teaching), do NOT write speaker notes:
 the slide itself must be complete, so the explaining text lives ON the slide
 (see Phase 6), not in a notes pane no one will read. A self-study deck may
-still carry an appendix FAQ in place of live Q&A. The two points below apply
+still carry an appendix FAQ in place of live Q and A. The two points below apply
 to **presented** decks.
 
 - Develop speaker notes from each slide's MESSAGE, not from its bullets
   (bullets prove; the message persuades). 3-5 sentences per slide plus a
   one-line transition to the next slide. A red thread must run through.
-- **Q&A pre-build:** list the 5-10 most likely questions; for each write
+- **Q and A pre-build:** list the 5-10 most likely questions; for each write
   a one-sentence answer and, where useful, a pre-built appendix slide.
 
 

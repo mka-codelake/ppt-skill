@@ -89,7 +89,7 @@ the story is still being shaped or the slides are being planned:
 | Work phase                               | Steps      | Marker |
 | ---------------------------------------- | ---------- | ------ |
 | **Story** — briefing, core message, storyline (no slides yet) | PHASE 1–3 | 🔵 |
-| **Slides** — messages, titles, content & layout, notes, handoff | PHASE 4–8 | 🟢 |
+| **Slides** — messages, titles, content and layout, notes, handoff | PHASE 4–8 | 🟢 |
 
 Emit the banner exactly once per phase entry. These two markers are the
 only decoration -- do not invent other status glyphs or colors.
@@ -160,7 +160,7 @@ Stage Gate
         phase produced, then the quality criteria as a list (`✅` met /
         `⬜` not met).
     2.  Ask, via the **Asking the User** procedure, offering at least:
-        - **Approve & continue** to the next phase,
+        - **Approve and continue** to the next phase,
         - **Revise** (stay in this phase and refine),
         - **Skip next phase** (only where sensible; show the risk first).
     3.  Act on the choice: on *approve* advance to the next `<step>`; on

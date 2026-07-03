@@ -71,7 +71,7 @@ Protocols
 
 - **Checkpoint (every gate).** Summarize what the phase produced, then list
   its quality criteria each marked met / not met, then ask the gate question
-  (selection box where the host has one, else a numbered list): Approve &
+  (selection box where the host has one, else a numbered list): Approve and
   continue · Revise · (where offered) Skip next.
   After two revise rounds without approval, offer to escalate (step back a
   phase, or hand off the draft as-is).
@@ -122,7 +122,7 @@ Do this once per conversation, not on every turn.
 
     Capture the context fully and gauge the user's preparation level.
 
-    Read `references/methodology.md` → "Audience & decision analysis".
+    Read `references/methodology.md` → "Audience and decision analysis".
 
     Adapt the entry to what the user brings:
     -   <if condition="a vague idea / topic only">one open question: "What is
@@ -241,7 +241,7 @@ Do this once per conversation, not on every turn.
     never collapse them into one deck title. Order is irreversible:
     message → headline, never the reverse.
 
-    Read `references/methodology.md` → "Headlines & title-reading test".
+    Read `references/methodology.md` → "Headlines and title-reading test".
 
     -   Per slide: show the message → propose a headline + rationale.
         Reject descriptors ("Market analysis") and offer an assertion.
@@ -259,13 +259,13 @@ Do this once per conversation, not on every turn.
 
     </step>
 
-6.  <step id="PHASE 6: Content & Layout">
+6.  <step id="PHASE 6: Content and Layout">
 
     Work out content and layout INTENT per slide, slide by slide, the
     message kept visible as the yardstick. (Concrete template layouts are
     chosen later by `ppt`; here you name the layout TYPE.)
 
-    Read `references/methodology.md` → "Content, layout & storyboard".
+    Read `references/methodology.md` → "Content, layout and storyboard".
 
     Per slide: content that PROVES the message, then a recommended layout
     TYPE + why it serves the message; iterate until the user agrees. Pick the
@@ -298,7 +298,7 @@ Do this once per conversation, not on every turn.
 
     Then across the deck: assemble the **ghost deck** (titles-only
     skeleton), run the **grandmother/jargon test**, and set **section
-    pacing** (minutes per section = time − ~20% Q&A buffer; push excess to
+    pacing** (minutes per section = time − ~20% Q and A buffer; push excess to
     an appendix).
 
     Quality criteria for the gate: each slide carries exactly one message;
@@ -310,12 +310,12 @@ Do this once per conversation, not on every turn.
 
     </step>
 
-7.  <step id="PHASE 7: Speaker Notes & Q&A">
+7.  <step id="PHASE 7: Speaker Notes and Q and A">
 
-    Develop speaker notes (presented decks only), prepare Q&A, then assemble
+    Develop speaker notes (presented decks only), prepare Q and A, then assemble
     the complete plan.
 
-    Read `references/methodology.md` → "Speaker notes & Q&A".
+    Read `references/methodology.md` → "Speaker notes and Q and A".
 
     1.  <if condition="a presented deck (a speaker is present)">speaker notes
         from each slide's MESSAGE (not its bullets): 3–5 sentences + a one-line
@@ -323,7 +323,7 @@ Do this once per conversation, not on every turn.
         <else>(a teaching / self-study deck) SKIP notes — the slide must be
         self-contained, so the explaining text lives ON the slide (Phase 6),
         not in a notes pane no reader opens.</else>
-    2.  **Q&A pre-build:** 5–10 likely questions, each with a one-sentence
+    2.  **Q and A pre-build:** 5–10 likely questions, each with a one-sentence
         answer and an optional appendix slide.
     3.  Assemble the final **content plan** as the following output, grouped
         by chapter and naming the resolved layout TYPE per slide from the
@@ -363,7 +363,7 @@ Do this once per conversation, not on every turn.
 	        </for>
         </for>
 
-        ## Appendix / Q&A
+        ## Appendix / Q and A
         <qa/>
         </template>
 
@@ -392,8 +392,8 @@ Do this once per conversation, not on every turn.
         paths.
     3.  Offer the two delivery paths via the **Asking the User** procedure
         (this is the phase's gate):
-        -   **Save & finish** — the plan file is the deliverable; stop here.
-        -   **Save & hand off to `ppt`** — also explain the build step.
+        -   **Save and finish** — the plan file is the deliverable; stop here.
+        -   **Save and hand off to `ppt`** — also explain the build step.
     4.  Tell the user how to continue, by platform (the hand-off is file-based,
         and the two platforms share files differently):
         -   <if condition="on Claude Code (shared filesystem)">just run the

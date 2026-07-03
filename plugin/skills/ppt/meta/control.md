@@ -176,7 +176,7 @@ Stage Gate
         `◆ **Checkpoint · <step-id>**`, a one-line summary with the step's key
         values, then the quality criteria as a list (`✅` met / `⬜` not met).
     2.  Ask, via the **Asking the User** procedure, offering at least
-        **Approve & continue** and **Change** (adjust a value / revise and
+        **Approve and continue** and **Change** (adjust a value / revise and
         gate again).
     3.  On *approve* advance; on *change* stay in this step, apply the change,
         and gate again.

@@ -41,7 +41,7 @@ Strategy / decision proposal
 Title
 Agenda
 -----------------
-Chapter: Situation & target picture
+Chapter: Situation and target picture
   -> Current situation (Situation)
   -> Pressure to act (Complication)
   -> Strategic direction (Resolution / core message)
@@ -52,11 +52,11 @@ Chapter: Analysis
 -----------------
 Chapter: Options
   -> Option A vs. Option B (two-column)
-  -> Assessment & recommendation
+  -> Assessment and recommendation
 -----------------
 Chapter: Execution
   -> Roadmap / phases
-  -> Resources & risks
+  -> Resources and risks
 -----------------
 Chapter: Decision
   -> Recommendation summary
@@ -72,7 +72,7 @@ Concept / workshop
 Title
 Agenda
 -----------------
-Chapter: Context & goals
+Chapter: Context and goals
   -> Why are we here? (Situation + Complication)
   -> Goals of today's session
 -----------------
@@ -80,7 +80,7 @@ Chapter: Concept
   -> Core idea (core message)
   -> Building blocks (one slide per element)
 -----------------
-Chapter: Discussion & validation
+Chapter: Discussion and validation
   -> Open questions
   -> Decisions needed
 -----------------
