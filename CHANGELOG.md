@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.3 (plugin 1.0.3)
 
 - **`apply` no longer un-hides hidden slides.** Every apply rebuilds the slide
   list through `pptx-automizer`, which drops the `show="0"` attribute (`p:sld`
@@ -14,6 +14,19 @@
   `hidden` boolean on the fill payload deliberately sets visibility:
   `"hidden": true` hides ("Hide Slide"), `false` shows, omitted leaves the
   current state untouched. Builds on the visibility preservation above.
+- **Skill docs: prose `&` replaced with the word "and".** The `&` character in
+  skill markdown caused downstream ampersand-handling problems; the skill text
+  now spells it out (English skills -> "and"). Documentation only; the `pptc`
+  CLI is unchanged (republished at 1.0.3 to keep engine, plugin and bundle in
+  lockstep).
+- **Docs and drift-guards from an architecture/docs review.** ARCHITECTURE.md
+  corrects its layer diagram (engine depends on core, not the other way
+  round), lists the previously missing modules (`engine/verify.ts` among
+  them) and documents the self-verify step and slide visibility in the
+  `apply` data flow. `pptc help state` now mentions the `hidden` report. The
+  docs contract test additionally pins every fill-payload field to README and
+  `help ops`, and `engine/post.ts` / `engine/verify.ts` carry an explicit
+  lockstep note tying their repair-trigger lists together.
 
 ## 1.0.2 (plugin 1.0.2)
 

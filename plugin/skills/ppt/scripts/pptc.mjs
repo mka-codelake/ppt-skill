@@ -38395,7 +38395,9 @@ stores inside the file (e.g. the chosen image style).
 
 Options:
   --slide SEL    restrict to one slide (see 'pptc help selectors')
-  --level        summary: ids, indices, titles, layout indices
+  --level        summary: ids, indices, titles, layout indices, and
+                   'hidden: true' on hidden slides ("Hide Slide"; reported
+                   on every level, '[hidden]' under --plain)
                  text (default): plus placeholder texts and notes
                  full: plus every shape with geometry AND styling --
                    type, name, frame, text, table cells + column widths,
@@ -38591,7 +38593,8 @@ Every <op> is an object with an "op" discriminator. The vocabulary:
                                    "body":  { "text": "A\\nB" },
                                    "image": { "image": "photo.png" } },
                  "notes": "...", "footer": "...",
-                 "background": { "color": "1F4E79" } }
+                 "background": { "color": "1F4E79" },
+                 "hidden": true }           // optional: hide/show the slide
   slide.fill   same fill payload, on an existing slide ("slide": SEL)
   slide.rm     { "op": "slide.rm",   "slide": SEL }
   slide.move   { "op": "slide.move", "slide": SEL, "to": 2 }
@@ -38729,7 +38732,7 @@ var requireFile = (file2, what) => {
 };
 
 // src/infra/version.ts
-var VERSION = true ? "1.0.2" : "0.0.0-dev";
+var VERSION = true ? "1.0.3" : "0.0.0-dev";
 var PACKAGE = true ? "@brusdeylins/pptc" : "@brusdeylins/pptc";
 var CHECK_INTERVAL_MS = 24 * 60 * 60 * 1e3;
 var checkForUpdate = async () => {
@@ -39044,6 +39047,8 @@ var planFill = (ctx, entry, fill) => {
     entry.footer = fill.footer;
   if (fill.background !== void 0)
     entry.background = fill.background.color;
+  if (fill.hidden !== void 0)
+    entry.hidden = fill.hidden;
 };
 
 // src/core/ops/slide-add.ts
@@ -54156,7 +54161,10 @@ var fillProps = {
   placeholders: external_exports.record(PlaceholderKeySchema, PlaceholderFillSchema).optional(),
   notes: external_exports.string().optional(),
   footer: external_exports.string().optional(),
-  background: external_exports.object({ color: ColorSchema }).strict().optional()
+  background: external_exports.object({ color: ColorSchema }).strict().optional(),
+  /**  hide ("Hide Slide", `show="0"`) or show the slide; omitted leaves the
+       current visibility untouched (kept slides keep their hidden state)  */
+  hidden: external_exports.boolean().optional()
 };
 var SlideAddSchema = external_exports.object({
   op: external_exports.literal("slide.add"),
